@@ -1,0 +1,189 @@
+# Qeetrix (@qeetrix/ui)
+
+> Qeetrix is Qeet Group's shared design system: one published npm package
+> (`@qeetrix/ui`) of 145 accessible, token-driven React components built on
+> Base UI + Tailwind v4, with W3C-DTCG design tokens (OKLCH, WCAG-AA gated) and a
+> Qeet-orange brand. It powers Qeet ID, qeet-docs, qeet-notify and qeet-logs.
+
+## Install
+
+- `bun add @qeetrix/ui react react-dom`
+- Import the stylesheet once: `@import "@qeetrix/ui/styles.css";`
+- Import components from the barrel: `import { Button, Card } from "@qeetrix/ui";`
+- Light/dark via the `.dark` class (managed by `ThemeProvider`).
+
+## Import surfaces
+
+- `@qeetrix/ui` — components, blocks re-exports, hooks, `cn`
+- `@qeetrix/ui/styles.css` — tokens + fonts + base layer (side-effect import)
+- `@qeetrix/ui/tokens.css` — raw `--qx-*` custom properties · `@qeetrix/ui/tokens.json`
+- `@qeetrix/ui/brand` — QeetLogo + brand icons · `@qeetrix/ui/blocks` — composed patterns
+
+## Components (145)
+
+- access-review
+- accordion
+- action-bar
+- alert
+- alert-dialog
+- angle-slider
+- app-shell
+- aspect-ratio
+- audit-event
+- autocomplete
+- availability-grid
+- avatar
+- badge
+- banner
+- blockquote
+- breadcrumb
+- button
+- button-group
+- calendar
+- callout
+- card
+- carousel
+- chart
+- chart-presets
+- checkbox
+- checkbox-card
+- chip
+- clipboard
+- close-button
+- code-block
+- collapsible
+- color-picker
+- color-swatch
+- combobox
+- command-palette
+- comment-thread
+- container
+- context-menu
+- copyable-secret
+- country-picker
+- currency-input
+- data-state
+- data-table
+- date-picker
+- date-time-picker
+- description-list
+- dialog
+- diff-viewer
+- drawer
+- dropdown-menu
+- editable
+- empty-state
+- feed
+- field
+- file-card
+- file-type-icon
+- file-upload
+- filter-bar
+- floating-window
+- focus-trap
+- form
+- highlight
+- hover-card
+- icon
+- icon-button
+- input
+- input-group
+- json-tree
+- kbd
+- label
+- link
+- listbox
+- logo-uploader
+- marquee
+- mask-input
+- master-detail
+- mention-input
+- menubar
+- meter
+- native-select
+- navigation-menu
+- notification
+- notification-center
+- notification-preference-matrix
+- number-field
+- number-formatter
+- org-chart
+- otp-input
+- overflow-list
+- page-header
+- pagination
+- pagination-bar
+- password-input
+- password-strength-meter
+- popover
+- portal
+- presence-indicator
+- preview-card
+- progress
+- progress-circle
+- qr-code
+- radio-card
+- radio-group
+- rating
+- reaction-bar
+- resizable
+- rich-text-editor
+- rolling-number
+- schedule-calendar
+- scroll-area
+- security-item
+- segmented-control
+- select
+- separator
+- sheet
+- sidebar
+- skeleton
+- skip-nav
+- slider
+- spinner
+- spoiler
+- stat
+- status-pill
+- stepper
+- switch
+- table
+- table-of-contents
+- tabs
+- tag-input
+- textarea
+- time-picker
+- time-range-picker
+- time-since
+- timeline
+- timer
+- timezone-picker
+- toast
+- toggle
+- toggle-tip
+- toolbar
+- tooltip
+- tour
+- tree-view
+- typography
+- visually-hidden
+
+## Design tokens (~451 per theme)
+
+Authored as W3C DTCG JSON (`packages/qeetrix-ui/tokens/**`), compiled by Style Dictionary to
+CSS custom properties (`--qx-*`) + JSON. Colour is OKLCH; every required text/surface
+pair is held to WCAG-AA by a build gate. Brand = Qeet orange (`#F26D0E`). A Tokens
+Studio / Figma export lives at `packages/qeetrix-ui/tokens-studio/`.
+
+## Guides
+
+- [Accessibility](https://qeetrix.qeet.in/?path=/docs/guides-accessibility)
+- [Design Tokens](https://qeetrix.qeet.in/?path=/docs/guides-design-tokens)
+- [Foundation Modes](https://qeetrix.qeet.in/?path=/docs/guides-foundation-modes)
+- [Getting Started](https://qeetrix.qeet.in/?path=/docs/guides-getting-started)
+- [Theming](https://qeetrix.qeet.in/?path=/docs/guides-theming)
+
+## Reference
+
+- Storybook workshop: https://qeetrix.qeet.in
+- Full component + token context: https://qeetrix.qeet.in/llms-full.txt
+- Architecture decisions: docs/adr/ · Accessibility/VPAT: docs/accessibility/

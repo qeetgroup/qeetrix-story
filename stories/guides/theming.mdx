@@ -1,0 +1,47 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guides/Theming" />
+
+# Theming
+
+Qeetrix is themed entirely through semantic CSS custom properties. Components never
+hard-code colour — they read tokens — so theming is a matter of overriding variables.
+
+## Light and dark
+
+Both themes ship in `@qeetrix/ui/styles.css`. Toggle by adding/removing the `.dark`
+class on a root element; `ThemeProvider` does this for you (`system` | `light` | `dark`).
+
+```tsx
+import { ThemeProvider } from "@qeetrix/ui";
+<ThemeProvider defaultTheme="system">{children}</ThemeProvider>;
+```
+
+## Brand colour
+
+The brand is **Qeet orange** (`#F26D0E` ≈ `orange.500`). Primary buttons, links, focus
+rings and the shadcn `--primary` / `--ring` bridge resolve to the brand ramp, with a
+dark on-brand foreground for AA contrast. To re-brand, re-point the `color.brand.*`
+aliases in `packages/ui/tokens/primitive/color.json` — semantic and component layers
+need no change (see ADR 0004).
+
+## Overriding tokens in a consuming app
+
+Import the Qeetrix layer, then override the variables you want *after* it:
+
+```css
+@import "@qeetrix/ui/styles.css";
+
+:root {
+  /* nudge the accent surfaces without touching the package */
+  --primary: oklch(0.62 0.20 250); /* your blue */
+}
+```
+
+Prefer overriding the **semantic** bridge variables (`--primary`, `--ring`, `--muted`, …)
+rather than raw `--qx-*` primitives, so light/dark and future ramps stay coherent.
+
+## RTL
+
+Wrap in `DirectionProvider` (`direction="rtl"`) — logical properties and the
+`rtl:` variants in components flip automatically.

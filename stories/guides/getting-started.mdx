@@ -1,0 +1,57 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guides/Getting Started" />
+
+# Getting started
+
+Qeetrix ships as a single package — components, tokens, and brand assets are all in
+`@qeetrix/ui`.
+
+## Install
+
+```bash
+bun add @qeetrix/ui react react-dom
+```
+
+## Wire up styles (Tailwind v4)
+
+In your global stylesheet, import the Qeetrix layer once, and let Tailwind see the
+component classes:
+
+```css
+@import "@qeetrix/ui/styles.css";
+@source "../node_modules/@qeetrix/ui/dist/**/*.js";
+```
+
+## Use it
+
+```tsx
+import { ThemeProvider, Button, Card, CardContent } from "@qeetrix/ui";
+import { QeetLogo } from "@qeetrix/ui/brand";
+
+export function App() {
+  return (
+    <ThemeProvider defaultTheme="system">
+      <Card>
+        <CardContent className="flex items-center gap-3">
+          <QeetLogo size={28} />
+          <Button>Authenticate with Qeet</Button>
+        </CardContent>
+      </Card>
+    </ThemeProvider>
+  );
+}
+```
+
+Light and dark are driven by the `.dark` class, which `ThemeProvider` manages. RTL is
+handled by `DirectionProvider`.
+
+## Import surfaces
+
+- `@qeetrix/ui` — the barrel (components, hooks, `cn`)
+- `@qeetrix/ui/styles.css` — tokens + fonts + base layer
+- `@qeetrix/ui/brand` — `QeetLogo` + brand icons
+- `@qeetrix/ui/blocks` — composed multi-component patterns (auth, dashboard shell, …)
+- `@qeetrix/ui/tokens.css` / `@qeetrix/ui/tokens.json` — raw design tokens
+
+See **Theming** and **Design tokens** for customisation.

@@ -1,0 +1,245 @@
+<!--
+  Loads the Qeet brand faces into the Storybook *chrome* (sidebar / toolbars),
+  which renders outside the preview iframe and so doesn't pick up the design
+  system's @font-face from @qeetrix/ui/styles.css. The woff2 are staged in
+  ./public/fonts and served from the static root. Falls back to system type if a
+  face fails to load — purely a cosmetic uplift, no behavioural dependency.
+
+  The companion <style> block also adds premium chrome refinements: custom
+  scrollbar, smooth nav transitions, search field treatment, and sidebar
+  visual hierarchy that the Storybook `create()` API alone can't reach.
+-->
+<style>
+  /* ── Brand faces ──────────────────────────────────────────────────────── */
+  @font-face {
+    font-family: "Cal Sans Display";
+    src: url("/fonts/CalSansUI-GeoRegular.woff2") format("woff2");
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Cal Sans Display";
+    src: url("/fonts/CalSansUI-GeoSemiBold.woff2") format("woff2");
+    font-weight: 600;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Cal Sans Display";
+    src: url("/fonts/CalSansUI-GeoBold.woff2") format("woff2");
+    font-weight: 700;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Cal Sans Text";
+    src: url("/fonts/CalSansText-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Cal Sans Text";
+    src: url("/fonts/CalSansText-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Cal Sans Text";
+    src: url("/fonts/CalSansText-SemiBold.woff2") format("woff2");
+    font-weight: 600;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Fira Code";
+    src: url("/fonts/FiraCode-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Fira Code";
+    src: url("/fonts/FiraCode-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Fira Code";
+    src: url("/fonts/FiraCode-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-display: swap;
+  }
+
+  /* ── Brand logo — constrain the viewBox-only SVG to a consistent height ── */
+  img[src*="qeet-logo"] {
+    height: 24px;
+    width: auto;
+    display: block;
+  }
+
+  /* ── Sidebar scrollbar — thin warm-neutral track ──────────────────────── */
+  #storybook-explorer-tree,
+  nav[role="navigation"],
+  [class*="sidebar"] {
+    scrollbar-width: thin;
+    scrollbar-color: #DAD6CF transparent;
+  }
+
+  #storybook-explorer-tree::-webkit-scrollbar,
+  nav[role="navigation"]::-webkit-scrollbar {
+    width: 4px;
+  }
+  #storybook-explorer-tree::-webkit-scrollbar-track,
+  nav[role="navigation"]::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  #storybook-explorer-tree::-webkit-scrollbar-thumb,
+  nav[role="navigation"]::-webkit-scrollbar-thumb {
+    background: #DAD6CF;
+    border-radius: 2px;
+  }
+  #storybook-explorer-tree::-webkit-scrollbar-thumb:hover,
+  nav[role="navigation"]::-webkit-scrollbar-thumb:hover {
+    background: #C5C1B8;
+  }
+
+  /* ── Search input — clean rounded field ───────────────────────────────── */
+  input[placeholder*="Find"],
+  input[id="search"] {
+    border-radius: 10px;
+    font-family: "Cal Sans Text", ui-sans-serif, system-ui, sans-serif;
+    font-size: 13px;
+    transition: box-shadow 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  input[placeholder*="Find"]:focus,
+  input[id="search"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(242, 109, 14, 0.18);
+  }
+
+  /* ── Sidebar nav items — smooth hover transitions ─────────────────────── */
+  [class*="TreeNode"],
+  [class*="sidebar-item"],
+  [data-nodeid] {
+    border-radius: 8px;
+    transition: background-color 0.15s cubic-bezier(0.32, 0.72, 0, 1),
+                color 0.15s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  /* ── Section headings in the sidebar — uppercase tracking ─────────────── */
+  [class*="sidebar-subheading"],
+  [class*="SidebarItem"] span[class*="GroupName"],
+  [class*="collapsible"] > button > span {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ── Toolbar buttons — slightly rounded active pill ───────────────────── */
+  [class*="toolbars"] button,
+  [class*="toolbar"] button {
+    border-radius: 8px;
+    transition: background-color 0.15s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  /* ── Global manager body — apply the brand font ───────────────────────── */
+  body {
+    font-family: "Cal Sans Text", "Cal Sans UI", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Dark chrome ────────────────────────────────────────────────────────
+     Storybook themes the manager once at boot and can't hot-swap it, so
+     manager.ts toggles `.qx-chrome-dark` on <body> when the preview's Theme
+     global flips to dark. These overrides repaint the sidebar + toolbars to the
+     DS dark surfaces so the chrome follows the story canvas. Warm-neutral ramp
+     matching the design tokens; brand orange (selected/hover) is untouched. */
+  body.qx-chrome-dark {
+    background: #0f0e0c;
+  }
+
+  /* Sidebar surface + default text */
+  .qx-chrome-dark .sidebar-container {
+    background: #121110;
+  }
+  /* Hovered nav-row text stays light. Declared before the base
+     #storybook-explorer-menu rule below so selector specificity is
+     non-descending — the hover selector is class-only while the base one
+     carries an id (which wins the cascade either way). */
+  .qx-chrome-dark .sidebar-item:not([data-selected="true"]):hover a,
+  .qx-chrome-dark .sidebar-item:not([data-selected="true"]):hover button,
+  .qx-chrome-dark .sidebar-item:not([data-selected="true"]):hover span {
+    color: #f5f3ee;
+  }
+  .qx-chrome-dark .sidebar-container,
+  .qx-chrome-dark #storybook-explorer-menu a,
+  .qx-chrome-dark #storybook-explorer-menu button,
+  .qx-chrome-dark #storybook-explorer-menu span {
+    color: #c7c4bb;
+  }
+
+  /* Section headings (FOUNDATIONS / GUIDES / …) */
+  .qx-chrome-dark [class*="sidebar-subheading"],
+  .qx-chrome-dark #storybook-explorer-menu [class*="collapsible"] > button > span {
+    color: #8b897f;
+  }
+
+  /* Toolbars — top bar + sidebar header/footer bars */
+  .qx-chrome-dark .sb-bar {
+    background: #121110;
+    border-color: #2a2823;
+  }
+  .qx-chrome-dark .sb-bar button,
+  .qx-chrome-dark .sb-bar span {
+    color: #a8a69c;
+  }
+
+  /* Search field */
+  .qx-chrome-dark .sidebar-container input,
+  .qx-chrome-dark .search-field input {
+    background: #1a1813;
+    color: #f5f3ee;
+    border-color: #33302a;
+  }
+  .qx-chrome-dark .sidebar-container input::placeholder {
+    color: #7a786e;
+  }
+  /* Search pill wrapper (the white rounded box around the input) */
+  .qx-chrome-dark .sidebar-container form > div,
+  .qx-chrome-dark .sidebar-container label > div {
+    background: #1a1813;
+    border-color: #33302a;
+  }
+
+  /* Borders / rules that separate chrome regions */
+  .qx-chrome-dark .sidebar-container hr,
+  .qx-chrome-dark [class*="sidebar"] [style*="border"] {
+    border-color: #2a2823;
+  }
+
+  /* Keyboard-shortcut chips (⌘K) + filter buttons */
+  .qx-chrome-dark .sidebar-container kbd {
+    background: #211e18;
+    color: #a8a69c;
+    border-color: #33302a;
+  }
+
+  /* Nav item hover — Storybook paints the hovered row a light-theme blue with dark
+     text, which flashes bright on the dark sidebar. Replace it with a subtle dark
+     hover and keep the text light. The selected row ([data-selected]) keeps its
+     brand-orange highlight, so exclude it. */
+  .qx-chrome-dark .sidebar-item:not([data-selected="true"]):hover {
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  /* Section headers (FOUNDATIONS / GUIDES / …) + their expand/collapse rows on hover */
+  .qx-chrome-dark #storybook-explorer-menu button[data-action="collapse-root"]:hover,
+  .qx-chrome-dark #storybook-explorer-menu [data-nodetype="group"]:hover,
+  .qx-chrome-dark #storybook-explorer-menu [data-nodetype="component"]:hover {
+    background: rgba(255, 255, 255, 0.055);
+  }
+  .qx-chrome-dark #storybook-explorer-menu button[data-action="collapse-root"]:hover span,
+  .qx-chrome-dark #storybook-explorer-menu [data-nodetype="group"]:hover span,
+  .qx-chrome-dark #storybook-explorer-menu [data-nodetype="component"]:hover span {
+    color: #f5f3ee;
+  }
+
+</style>

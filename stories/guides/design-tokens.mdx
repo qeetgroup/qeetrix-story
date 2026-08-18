@@ -1,0 +1,42 @@
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guides/Design Tokens" />
+
+# Design tokens
+
+Tokens are the single source of truth. Everything downstream (components, themes, the
+Figma export) is generated or composed from them.
+
+## Pipeline
+
+W3C **DTCG JSON** (`packages/ui/tokens/**`) → **Style Dictionary**
+(`scripts/build-tokens.mjs`) → generated CSS + JSON. Three layers:
+
+- **primitive** — raw ramps (OKLCH colour, spacing, radius, shadow, motion, …)
+- **semantic** — meaning (`text.primary`, `surface.canvas`, `action.primary`, …), per theme
+- **bridge** — the shadcn/Base-UI variables (`--primary`, `--ring`, …), per theme
+
+## Consuming tokens
+
+- `@qeetrix/ui/styles.css` — the semantic `:root` / `.dark` variables, baked in
+- `@qeetrix/ui/tokens.css` — the raw `--qx-*` ramp
+- `@qeetrix/ui/tokens.json` — resolved values per theme (cross-platform)
+
+```css
+.badge { background: var(--qx-color-brand-500); }
+.hero  { background: var(--qx-gradient-brand); } /* composite gradient token */
+```
+
+## Guarantees
+
+- Colour is authored in **OKLCH**.
+- A **WCAG-AA contrast gate** (`bun run tokens:validate`) fails the build if a required
+  text/surface pair drops below AA.
+- **Composite tokens** (`gradient`, `strokeStyle`) serialize to real CSS
+  (`linear-gradient(…)`, `dashed`) — see `--qx-gradient-*` / `--qx-stroke-*`.
+
+## Figma / Tokens Studio
+
+`bun run --filter @qeetrix/ui tokens:studio` exports the tokens into
+`packages/ui/tokens-studio/` (DTCG sets + `$themes.json`/`$metadata.json`) for the
+Tokens Studio Figma plugin to import as Variables.

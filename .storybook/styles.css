@@ -1,0 +1,388 @@
+/* Pulls in the full Qeetrix layer (tokens, fonts, base) exactly as a real app
+ * would. The imported stylesheet already @sources the compiled @qeetrix/ui
+ * classes; we add the stories so their own Tailwind utilities are generated. */
+@import "@qeetrix/ui/styles.css";
+/* @qeetrix/ui/styles.css carries only the *semantic* runtime tokens (--background, …).
+ * The Foundations/Colors story also documents the raw primitive ramp (--qx-color-*),
+ * which ships as a separate subpath apps don't normally load — pull it in here so
+ * those swatches resolve instead of rendering empty/white. */
+@import "@qeetrix/ui/tokens.css";
+@source "../stories";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * ENTERPRISE DOCS CANVAS
+ *
+ * The Docs pages render inside the preview iframe where @qeetrix/ui/styles.css
+ * has already loaded Cal Sans, tokens, and base styles. These rules dress the
+ * generated DocBlocks to read like premium enterprise product documentation.
+ * All rules are scoped under .sbdocs to prevent leakage into stories.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Page container ─────────────────────────────────────────────────────── */
+
+.sbdocs.sbdocs-content {
+  max-width: 85rem;
+  padding-inline: 2rem;
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Headings ───────────────────────────────────────────────────────────── */
+
+.sbdocs.sbdocs-content :is(h1, h2, h3, h4, .sbdocs-title, .sbdocs-subtitle) {
+  font-family: var(--font-heading);
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+}
+
+.sbdocs.sbdocs-content .sbdocs-h1,
+.sbdocs.sbdocs-content .sbdocs-title {
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+}
+
+.sbdocs.sbdocs-content .sbdocs-h2 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  margin-top: 3rem;
+  padding-bottom: 0.625rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sbdocs.sbdocs-content .sbdocs-h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-top: 2rem;
+}
+
+/* ── Body copy ──────────────────────────────────────────────────────────── */
+
+/* Storybook renders markdown prose as *class-less* <p>/<li>, then paints them with
+ * its own light-base docs theme (a near-black colour) — which vanishes on the dark
+ * canvas. Target the raw tags at higher specificity than Storybook's `.sbdocs-content
+ * p` (0,1,1) so the text follows the DS foreground in BOTH themes. The custom
+ * Introduction component (.qx-intro) styles its own prose, so exclude it. */
+.sbdocs.sbdocs-content :is(p, li, .sbdocs-p, .sbdocs-li):not(.qx-intro *) {
+  font-family: var(--font-sans);
+  color: var(--muted-foreground);
+  line-height: 1.75;
+  font-size: 0.9375rem;
+}
+
+.sbdocs.sbdocs-content :is(strong, b):not(.qx-intro *) {
+  color: var(--foreground);
+  font-weight: 600;
+}
+
+/* ── Links ──────────────────────────────────────────────────────────────── */
+
+.sbdocs.sbdocs-content a.sbdocs-a {
+  color: var(--qeet-brand, #f26d0e);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition:
+    color 0.15s cubic-bezier(0.32, 0.72, 0, 1),
+    opacity 0.15s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.sbdocs.sbdocs-content a.sbdocs-a:hover {
+  opacity: 0.8;
+}
+
+/* ── Inline code ────────────────────────────────────────────────────────── */
+
+.sbdocs.sbdocs-content code,
+.sbdocs.sbdocs-content pre,
+.sbdocs.sbdocs-content .docblock-source,
+.sbdocs.sbdocs-content .docblock-source code,
+.sbdocs.sbdocs-content .docblock-source span {
+  font-family: "Fira Code", ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+.sbdocs.sbdocs-content :not(pre) > code {
+  background: var(--muted);
+  /* Storybook's emotion paints inline code a near-black colour (from the light docs
+   * base), which is unreadable on the dark chip in dark mode. Force the DS foreground
+   * so it resolves correctly in BOTH themes. */
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.1em 0.45em;
+  font-size: 0.82em;
+}
+
+/* ── Code block (docblock-source) — dark surface for readability ─────────── */
+
+.sbdocs.sbdocs-content .docblock-source {
+  /* Outer shell (double-bezel) */
+  padding: 5px;
+  background: #1a1917;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 18px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.1),
+    0 12px 32px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  margin-block: 1.5rem;
+}
+
+.sbdocs.sbdocs-content .docblock-source pre {
+  /* Inner core */
+  margin: 0;
+  background: #111110 !important;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem !important;
+  font-size: 0.8125rem !important;
+  line-height: 1.65 !important;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.sbdocs.sbdocs-content .docblock-source pre::-webkit-scrollbar {
+  height: 4px;
+}
+.sbdocs.sbdocs-content .docblock-source pre::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 2px;
+}
+
+/* ── Syntax highlighting ─────────────────────────────────────────────────────
+ * Our code surface is dark in BOTH themes, but Storybook's Prism theme follows the
+ * light docs base — so MDX fenced blocks come through with near-black keywords /
+ * pure-blue strings that are unreadable on the dark card. Repaint the Prism tokens
+ * with a light-on-dark palette so every code sample reads cleanly, light or dark. */
+.sbdocs.sbdocs-content .prismjs,
+.sbdocs.sbdocs-content .prismjs .token.plain-text {
+  color: #e7e4db !important;
+}
+.sbdocs.sbdocs-content .prismjs .token.comment,
+.sbdocs.sbdocs-content .prismjs .token.prolog,
+.sbdocs.sbdocs-content .prismjs .token.doctype,
+.sbdocs.sbdocs-content .prismjs .token.cdata {
+  color: #7c8595 !important;
+  font-style: italic;
+}
+.sbdocs.sbdocs-content .prismjs .token.punctuation,
+.sbdocs.sbdocs-content .prismjs .token.operator,
+.sbdocs.sbdocs-content .prismjs .token.entity,
+.sbdocs.sbdocs-content .prismjs .token.url {
+  color: #c9c6bd !important;
+}
+.sbdocs.sbdocs-content .prismjs .token.keyword,
+.sbdocs.sbdocs-content .prismjs .token.atrule,
+.sbdocs.sbdocs-content .prismjs .token.rule {
+  color: #f7a76c !important;
+}
+.sbdocs.sbdocs-content .prismjs .token.string,
+.sbdocs.sbdocs-content .prismjs .token.char,
+.sbdocs.sbdocs-content .prismjs .token.attr-value,
+.sbdocs.sbdocs-content .prismjs .token.builtin,
+.sbdocs.sbdocs-content .prismjs .token.inserted {
+  color: #9bd4a9 !important;
+}
+.sbdocs.sbdocs-content .prismjs .token.function,
+.sbdocs.sbdocs-content .prismjs .token.class-name {
+  color: #7cc7f5 !important;
+}
+.sbdocs.sbdocs-content .prismjs .token.tag .token.class-name,
+.sbdocs.sbdocs-content .prismjs .token.number,
+.sbdocs.sbdocs-content .prismjs .token.boolean,
+.sbdocs.sbdocs-content .prismjs .token.constant,
+.sbdocs.sbdocs-content .prismjs .token.symbol {
+  color: #e5c07b !important;
+}
+.sbdocs.sbdocs-content .prismjs .token.tag,
+.sbdocs.sbdocs-content .prismjs .token.property,
+.sbdocs.sbdocs-content .prismjs .token.attr-name {
+  color: #e0a878 !important;
+}
+.sbdocs.sbdocs-content .prismjs .token.variable,
+.sbdocs.sbdocs-content .prismjs .token.regex,
+.sbdocs.sbdocs-content .prismjs .token.important {
+  color: #c4b0f5 !important;
+}
+
+/* ── Story preview block — double-bezel treatment ───────────────────────── */
+
+.sbdocs.sbdocs-content .docblock-preview {
+  /* Outer shell */
+  padding: 6px;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 4px 12px rgba(0, 0, 0, 0.04);
+  margin-block: 1.5rem;
+  overflow: hidden;
+}
+
+/* The .docs-story inner element acts as the inner core */
+.sbdocs.sbdocs-content .docblock-preview .docs-story {
+  background: var(--background);
+  border-radius: 17px;
+  padding: 2rem 2.5rem;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.7);
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* ── Args / controls table ──────────────────────────────────────────────── */
+
+.sbdocs.sbdocs-content .docblock-argstable {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  margin-block: 1.5rem;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.sbdocs.sbdocs-content .docblock-argstable thead tr th {
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--muted);
+  color: var(--muted-foreground);
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sbdocs.sbdocs-content .docblock-argstable tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.1s ease;
+}
+
+.sbdocs.sbdocs-content .docblock-argstable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.sbdocs.sbdocs-content .docblock-argstable tbody tr:hover {
+  background: var(--muted);
+}
+
+.sbdocs.sbdocs-content .docblock-argstable td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* ── Subtitle / autodocs meta line ──────────────────────────────────────── */
+
+.sbdocs.sbdocs-content .sbdocs-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
+  margin-top: 0.25rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+/* ── Eyebrow / badge elements inside docs MDX ───────────────────────────── */
+
+.sbdocs.sbdocs-content .sbdocs-wrapper {
+  padding-block: 2.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * LIGHT / DARK CANVAS
+ *
+ * `.dark` is toggled on the iframe <html> by preview.ts (channel + decorator),
+ * and @qeetrix/ui/styles.css defines all the semantic vars for both themes — so
+ * everything below resolves automatically.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: light;
+}
+.dark {
+  color-scheme: dark;
+}
+
+/* Story canvas — components don't render on a white box in dark. */
+html,
+body.sb-show-main,
+#storybook-root {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Autodocs page chrome — flip to DS semantics under .dark. */
+.dark .sbdocs-wrapper,
+.dark .docs-story,
+.dark .docblock-preview {
+  background-color: var(--background);
+}
+
+/* Args/controls table — Storybook renders it with the light docs theme, so in dark
+ * the body cells stay cream with near-black text (a bright block on the dark page).
+ * Flip the cell surfaces + text to DS semantics; keep the header on --muted. */
+.dark .sbdocs.sbdocs-content .docblock-argstable td,
+.dark .sbdocs.sbdocs-content .docblock-argstable th {
+  background-color: var(--card) !important;
+  color: var(--foreground);
+}
+.dark .sbdocs.sbdocs-content .docblock-argstable thead tr th {
+  background-color: var(--muted) !important;
+  color: var(--muted-foreground);
+}
+.dark .sbdocs.sbdocs-content .docblock-argstable tbody tr:hover td {
+  background-color: var(--muted) !important;
+}
+
+/* Primary autodocs preview (.sbdocs-preview) + its zoom toolbar sit on the light
+ * docs-theme surface; give them the double-bezel treatment and flip in dark. */
+.sbdocs.sbdocs-content .sbdocs-preview {
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow:
+    0 1px 3px rgb(0 0 0 / 0.05),
+    0 4px 14px rgb(0 0 0 / 0.03);
+}
+.dark .sbdocs.sbdocs-content .sbdocs-preview {
+  background: var(--muted) !important;
+  border-color: var(--border) !important;
+}
+.dark .sbdocs.sbdocs-content .sbdocs-preview > div:first-child {
+  background: var(--card) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+/* In dark, the docblock-source shell is already dark — soften its border. */
+.dark .sbdocs.sbdocs-content .docblock-source {
+  background: #0d0d0c;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+/* Flip the double-bezel preview shell to the dark muted surface. */
+.dark .sbdocs.sbdocs-content .docblock-preview {
+  background: var(--muted);
+  border-color: var(--border);
+}
+
+.dark .sbdocs.sbdocs-content .docblock-preview .docs-story {
+  background: var(--background);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.04);
+}
+
+/* ── Font-smoothing and antialiasing for docs canvas ────────────────────── */
+
+.sbdocs-wrapper,
+.sb-show-main {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

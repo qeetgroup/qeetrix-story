@@ -1,0 +1,46 @@
+{
+  "name": "@qeetrix/stories",
+  "version": "0.0.9",
+  "private": true,
+  "type": "module",
+  "description": "Storybook workshop for the Qeetrix design system (not published).",
+  "packageManager": "bun@1.3.14",
+  "engines": {
+    "node": ">=20",
+    "bun": ">=1.3"
+  },
+  "scripts": {
+    "dev": "storybook dev -p 6006 --no-open",
+    "storybook": "storybook dev -p 6006",
+    "build": "node scripts/gen-llms.mjs && storybook build",
+    "llms": "node scripts/gen-llms.mjs",
+    "shoot": "node scripts/shoot.mjs",
+    "test": "node scripts/verify-foundations.mjs",
+    "vrt": "playwright test",
+    "vrt:update": "playwright test --update-snapshots",
+    "lint": "biome check .",
+    "clean": "rm -rf storybook-static screenshots test-results playwright-report"
+  },
+  "dependencies": {
+    "@qeetrix/ui": "^1.0.3",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "recharts": "^3.8.1"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.0.0",
+    "lucide-react": "^0.577.0",
+    "@storybook/addon-a11y": "^10.4.1",
+    "@storybook/addon-docs": "^10.4.1",
+    "@storybook/addon-themes": "^10.4.1",
+    "@storybook/react-vite": "^10.4.1",
+    "@tailwindcss/vite": "^4.3.0",
+    "@types/react": "^19.2.15",
+    "@types/react-dom": "^19.2.3",
+    "playwright": "^1.61.0",
+    "storybook": "^10.4.1",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.0"
+  }
+}

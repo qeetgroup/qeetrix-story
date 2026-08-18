@@ -1,0 +1,525 @@
+# Qeetrix (@qeetrix/ui)
+
+> Qeetrix is Qeet Group's shared design system: one published npm package
+> (`@qeetrix/ui`) of 145 accessible, token-driven React components built on
+> Base UI + Tailwind v4, with W3C-DTCG design tokens (OKLCH, WCAG-AA gated) and a
+> Qeet-orange brand. It powers Qeet ID, qeet-docs, qeet-notify and qeet-logs.
+
+## Install
+
+- `bun add @qeetrix/ui react react-dom`
+- Import the stylesheet once: `@import "@qeetrix/ui/styles.css";`
+- Import components from the barrel: `import { Button, Card } from "@qeetrix/ui";`
+- Light/dark via the `.dark` class (managed by `ThemeProvider`).
+
+## Import surfaces
+
+- `@qeetrix/ui` — components, blocks re-exports, hooks, `cn`
+- `@qeetrix/ui/styles.css` — tokens + fonts + base layer (side-effect import)
+- `@qeetrix/ui/tokens.css` — raw `--qx-*` custom properties · `@qeetrix/ui/tokens.json`
+- `@qeetrix/ui/brand` — QeetLogo + brand icons · `@qeetrix/ui/blocks` — composed patterns
+
+## Components (145)
+
+- access-review
+- accordion
+- action-bar
+- alert
+- alert-dialog
+- angle-slider
+- app-shell
+- aspect-ratio
+- audit-event
+- autocomplete
+- availability-grid
+- avatar
+- badge
+- banner
+- blockquote
+- breadcrumb
+- button
+- button-group
+- calendar
+- callout
+- card
+- carousel
+- chart
+- chart-presets
+- checkbox
+- checkbox-card
+- chip
+- clipboard
+- close-button
+- code-block
+- collapsible
+- color-picker
+- color-swatch
+- combobox
+- command-palette
+- comment-thread
+- container
+- context-menu
+- copyable-secret
+- country-picker
+- currency-input
+- data-state
+- data-table
+- date-picker
+- date-time-picker
+- description-list
+- dialog
+- diff-viewer
+- drawer
+- dropdown-menu
+- editable
+- empty-state
+- feed
+- field
+- file-card
+- file-type-icon
+- file-upload
+- filter-bar
+- floating-window
+- focus-trap
+- form
+- highlight
+- hover-card
+- icon
+- icon-button
+- input
+- input-group
+- json-tree
+- kbd
+- label
+- link
+- listbox
+- logo-uploader
+- marquee
+- mask-input
+- master-detail
+- mention-input
+- menubar
+- meter
+- native-select
+- navigation-menu
+- notification
+- notification-center
+- notification-preference-matrix
+- number-field
+- number-formatter
+- org-chart
+- otp-input
+- overflow-list
+- page-header
+- pagination
+- pagination-bar
+- password-input
+- password-strength-meter
+- popover
+- portal
+- presence-indicator
+- preview-card
+- progress
+- progress-circle
+- qr-code
+- radio-card
+- radio-group
+- rating
+- reaction-bar
+- resizable
+- rich-text-editor
+- rolling-number
+- schedule-calendar
+- scroll-area
+- security-item
+- segmented-control
+- select
+- separator
+- sheet
+- sidebar
+- skeleton
+- skip-nav
+- slider
+- spinner
+- spoiler
+- stat
+- status-pill
+- stepper
+- switch
+- table
+- table-of-contents
+- tabs
+- tag-input
+- textarea
+- time-picker
+- time-range-picker
+- time-since
+- timeline
+- timer
+- timezone-picker
+- toast
+- toggle
+- toggle-tip
+- toolbar
+- tooltip
+- tour
+- tree-view
+- typography
+- visually-hidden
+
+## Design tokens (~451 per theme)
+
+Authored as W3C DTCG JSON (`packages/qeetrix-ui/tokens/**`), compiled by Style Dictionary to
+CSS custom properties (`--qx-*`) + JSON. Colour is OKLCH; every required text/surface
+pair is held to WCAG-AA by a build gate. Brand = Qeet orange (`#F26D0E`). A Tokens
+Studio / Figma export lives at `packages/qeetrix-ui/tokens-studio/`.
+
+## Guides
+
+- [Accessibility](https://qeetrix.qeet.in/?path=/docs/guides-accessibility)
+- [Design Tokens](https://qeetrix.qeet.in/?path=/docs/guides-design-tokens)
+- [Foundation Modes](https://qeetrix.qeet.in/?path=/docs/guides-foundation-modes)
+- [Getting Started](https://qeetrix.qeet.in/?path=/docs/guides-getting-started)
+- [Theming](https://qeetrix.qeet.in/?path=/docs/guides-theming)
+
+## Reference
+
+- Storybook workshop: https://qeetrix.qeet.in
+- Full component + token context: https://qeetrix.qeet.in/llms-full.txt
+- Architecture decisions: docs/adr/ · Accessibility/VPAT: docs/accessibility/
+
+
+---
+
+# Full context
+
+
+## Guide: Accessibility
+
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guides/Accessibility" />
+
+# Accessibility
+
+Qeetrix targets **WCAG 2.1 AA** and **EN 301 549**, built on Base UI (WAI-ARIA APG
+behaviour). Accessibility is enforced, not aspirational.
+
+## What's guaranteed
+
+- **Keyboard + ARIA** — interactive components inherit APG keyboard models, focus
+  management, and roles/states from Base UI.
+- **Contrast** — every required text/surface pair is held to AA by a token-level gate
+  (`bun run tokens:validate`); the Qeet-orange brand pairs are enforced too.
+- **Visible focus**, reduced-motion support, light/dark, and RTL throughout.
+
+## Automated coverage
+
+- `bun run --filter @qeetrix/ui test` runs Vitest + `vitest-axe`.
+- `bun run --filter @qeetrix/ui test:a11y-coverage` is a **ratchet**: every component must
+  have an automated a11y test, be in the smoke harness, or be on a shrinking exemption
+  list. CI enforces it.
+
+## For contributors
+
+Run the per-component review in `docs/accessibility/audit-checklist.md` before shipping.
+The conformance report template lives in `docs/accessibility/VPAT.md` (currently
+self-reported, pending a third-party audit).
+
+## Known caveat
+
+`text.link` on white is currently ~3:1 with the orange brand — fine for large/UI text
+but below the 4.5:1 body-text bar. Prefer `Button`/`Typography` link styling in dense
+body copy until this is resolved (tracked in ADR 0004).
+
+
+## Guide: Design Tokens
+
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guides/Design Tokens" />
+
+# Design tokens
+
+Tokens are the single source of truth. Everything downstream (components, themes, the
+Figma export) is generated or composed from them.
+
+## Pipeline
+
+W3C **DTCG JSON** (`packages/ui/tokens/**`) → **Style Dictionary**
+(`scripts/build-tokens.mjs`) → generated CSS + JSON. Three layers:
+
+- **primitive** — raw ramps (OKLCH colour, spacing, radius, shadow, motion, …)
+- **semantic** — meaning (`text.primary`, `surface.canvas`, `action.primary`, …), per theme
+- **bridge** — the shadcn/Base-UI variables (`--primary`, `--ring`, …), per theme
+
+## Consuming tokens
+
+- `@qeetrix/ui/styles.css` — the semantic `:root` / `.dark` variables, baked in
+- `@qeetrix/ui/tokens.css` — the raw `--qx-*` ramp
+- `@qeetrix/ui/tokens.json` — resolved values per theme (cross-platform)
+
+```css
+.badge { background: var(--qx-color-brand-500); }
+.hero  { background: var(--qx-gradient-brand); } /* composite gradient token */
+```
+
+## Guarantees
+
+- Colour is authored in **OKLCH**.
+- A **WCAG-AA contrast gate** (`bun run tokens:validate`) fails the build if a required
+  text/surface pair drops below AA.
+- **Composite tokens** (`gradient`, `strokeStyle`) serialize to real CSS
+  (`linear-gradient(…)`, `dashed`) — see `--qx-gradient-*` / `--qx-stroke-*`.
+
+## Figma / Tokens Studio
+
+`bun run --filter @qeetrix/ui tokens:studio` exports the tokens into
+`packages/ui/tokens-studio/` (DTCG sets + `$themes.json`/`$metadata.json`) for the
+Tokens Studio Figma plugin to import as Variables.
+
+
+## Guide: Foundation Modes
+
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guides/Foundation modes" />
+
+# Foundation modes
+
+Qeetrix keeps language, direction, density, color theme, motion preference, and viewport behavior
+as separate concerns. Compose only the modes an application owns.
+
+## Language and direction
+
+`I18nProvider` supplies system-owned component strings and sets the document `lang` by default.
+Set `setDocumentLanguage={false}` when the host already owns that attribute. Language does not
+imply direction; compose `DirectionProvider` explicitly for RTL layouts.
+
+```tsx
+<I18nProvider locale="ar" messages={ar}>
+  <DirectionProvider direction="rtl">{children}</DirectionProvider>
+</I18nProvider>
+```
+
+Caller-owned content, option labels, and product terminology remain the caller's responsibility.
+
+## Density
+
+Density is opt-in so existing consumers retain their current dimensions. Use a subtree for a
+preview or embedded tool, or apply the mode to the document at the app root.
+
+```tsx
+<DensityProvider density="compact" scope="document">
+  {children}
+</DensityProvider>
+```
+
+Default-sized controls, field rhythm, and table cells consume the generated density variables.
+Explicit `xs`, `sm`, and `lg` sizes remain explicit overrides. Density never replaces mobile touch
+guidance; use comfortable density for coarse-pointer primary workflows.
+
+## Forced colors and focus
+
+`styles.css` maps semantic colors to browser system colors under `forced-colors: active`. Focused
+elements receive a token-driven `Highlight` outline even when shadows and custom rings are removed.
+Do not disable `forced-color-adjust` on interactive controls without a tested reason.
+
+## Responsive behavior
+
+Use CSS first. `Container` provides the standard centered shell and responsive gutters. Tailwind's
+default `sm`, `md`, `lg`, `xl`, and `2xl` ladder is canonical. `useMediaQuery`, `useIsMobile`, and
+the exported query helpers are for behavioral adaptation only, such as switching a split view to a
+modal detail panel.
+
+## Token layers and enforcement
+
+Primitive values feed semantic light/dark roles, stable component metrics, shared interaction
+state, and data-visualization roles. `build-tokens` generates runtime CSS and typed values from the
+same DTCG source; do not mirror motion, icon, stacking, shadow, or component constants by hand.
+
+Use `--chart-1` through `--chart-8` for categorical identity and the dedicated grid, axis,
+reference, positive, negative, and warning roles for chart structure and meaning. Run
+`bun run tokens:scan` before review; exemptions are limited to documented domain data and
+third-party selector shims.
+
+## Guide: Getting Started
+
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guides/Getting Started" />
+
+# Getting started
+
+Qeetrix ships as a single package — components, tokens, and brand assets are all in
+`@qeetrix/ui`.
+
+## Install
+
+```bash
+bun add @qeetrix/ui react react-dom
+```
+
+## Wire up styles (Tailwind v4)
+
+In your global stylesheet, import the Qeetrix layer once, and let Tailwind see the
+component classes:
+
+```css
+@import "@qeetrix/ui/styles.css";
+@source "../node_modules/@qeetrix/ui/dist/**/*.js";
+```
+
+## Use it
+
+```tsx
+import { ThemeProvider, Button, Card, CardContent } from "@qeetrix/ui";
+import { QeetLogo } from "@qeetrix/ui/brand";
+
+export function App() {
+  return (
+    <ThemeProvider defaultTheme="system">
+      <Card>
+        <CardContent className="flex items-center gap-3">
+          <QeetLogo size={28} />
+          <Button>Authenticate with Qeet</Button>
+        </CardContent>
+      </Card>
+    </ThemeProvider>
+  );
+}
+```
+
+Light and dark are driven by the `.dark` class, which `ThemeProvider` manages. RTL is
+handled by `DirectionProvider`.
+
+## Import surfaces
+
+- `@qeetrix/ui` — the barrel (components, hooks, `cn`)
+- `@qeetrix/ui/styles.css` — tokens + fonts + base layer
+- `@qeetrix/ui/brand` — `QeetLogo` + brand icons
+- `@qeetrix/ui/blocks` — composed multi-component patterns (auth, dashboard shell, …)
+- `@qeetrix/ui/tokens.css` / `@qeetrix/ui/tokens.json` — raw design tokens
+
+See **Theming** and **Design tokens** for customisation.
+
+
+## Guide: Theming
+
+import { Meta } from "@storybook/addon-docs/blocks";
+
+<Meta title="Guides/Theming" />
+
+# Theming
+
+Qeetrix is themed entirely through semantic CSS custom properties. Components never
+hard-code colour — they read tokens — so theming is a matter of overriding variables.
+
+## Light and dark
+
+Both themes ship in `@qeetrix/ui/styles.css`. Toggle by adding/removing the `.dark`
+class on a root element; `ThemeProvider` does this for you (`system` | `light` | `dark`).
+
+```tsx
+import { ThemeProvider } from "@qeetrix/ui";
+<ThemeProvider defaultTheme="system">{children}</ThemeProvider>;
+```
+
+## Brand colour
+
+The brand is **Qeet orange** (`#F26D0E` ≈ `orange.500`). Primary buttons, links, focus
+rings and the shadcn `--primary` / `--ring` bridge resolve to the brand ramp, with a
+dark on-brand foreground for AA contrast. To re-brand, re-point the `color.brand.*`
+aliases in `packages/ui/tokens/primitive/color.json` — semantic and component layers
+need no change (see ADR 0004).
+
+## Overriding tokens in a consuming app
+
+Import the Qeetrix layer, then override the variables you want *after* it:
+
+```css
+@import "@qeetrix/ui/styles.css";
+
+:root {
+  /* nudge the accent surfaces without touching the package */
+  --primary: oklch(0.62 0.20 250); /* your blue */
+}
+```
+
+Prefer overriding the **semantic** bridge variables (`--primary`, `--ring`, `--muted`, …)
+rather than raw `--qx-*` primitives, so light/dark and future ramps stay coherent.
+
+## RTL
+
+Wrap in `DirectionProvider` (`direction="rtl"`) — logical properties and the
+`rtl:` variants in components flip automatically.
+
+
+## CONTRIBUTING.md
+
+# Contributing to Qeetrix
+
+## Setup
+
+```bash
+bun install
+bun run build
+```
+
+Node ≥ 20, Bun ≥ 1.3 (the sole package manager — `bun@>=1.3` in `engines`).
+
+## Add or change a token
+
+Tokens live in [`packages/ui/tokens`](packages/ui/tokens) as W3C Design Tokens JSON
+(`primitive/` → `theme/{light,dark}/{semantic,bridge}.json`). Edit those, then:
+
+```bash
+bun run --filter @qeetrix/ui build-tokens      # regenerates src/styles/tokens.{css,raw.css,json}
+bun run --filter @qeetrix/ui validate-tokens   # WCAG-AA contrast guard
+```
+
+- The neutral, status, and **brand** ramps are real. Brand is **Qeet orange** (`#F26D0E`,
+  OD-DS-03 — see [docs/adr/0004](docs/adr/0004-brand-color-od-ds-03.md)); the `accent` and
+  `passkey` sub-ramps are still neutral placeholders. Re-brand by re-pointing only the primitive
+  ramps in `primitive/color.json` — semantic, bridge and component layers are untouched.
+- Never hand-edit `:root` / `.dark` in `@qeetrix/ui` — those come from the generated `src/styles/tokens.css`.
+
+## Add a component
+
+```bash
+cd packages/ui
+npx shadcn@latest add <component>   # drops Base UI variants into src/components/ui
+```
+
+Then export it from `src/index.ts`, build (`bun run --filter @qeetrix/ui build`), and add a story in
+`apps/qeetrix-story/stories/primitives/<component>.stories.tsx` importing from `@qeetrix/ui`.
+
+- Components must stay **Base UI only** (no Radix). Client components keep their `"use client"`
+  directive — the `tsc` build preserves it.
+
+## Quality gates
+
+```bash
+bunx turbo run lint typecheck build
+bun run --filter @qeetrix/ui test              # Vitest + axe (also runs in CI)
+bun run --filter @qeetrix/ui validate-tokens
+bun run --filter @qeetrix/docs build-storybook
+```
+
+## Releasing
+
+Record a changeset with every user-facing change:
+
+```bash
+bun run changeset
+```
+
+Commit the generated file. Merging to `main` opens a **Version Packages** PR; merging that
+publishes the changed public packages to npm. See [.changeset/README.md](.changeset/README.md).
+
+## Decisions (ADRs)
+
+Significant, hard-to-reverse choices are recorded in [`docs/adr/`](docs/adr/) (single-package
+strategy, Base UI, the token pipeline, the brand color, releases). Read them before proposing an
+architectural change; to revisit a past decision, add a *new* ADR that supersedes it rather than
+rewriting the old one.
