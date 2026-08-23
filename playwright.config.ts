@@ -5,9 +5,6 @@ import { defineConfig, devices } from "@playwright/test";
  * story (× light/dark) against committed baselines. Baselines are OS/font
  * sensitive — generate/update them in the Linux Playwright container (see
  * .github/workflows/vrt.yml and tests/README.md), never from a dev machine.
- *
- * Requires `@playwright/test` (not yet in package.json — see tests/README.md):
- *   bun run --filter @qeetrix/docs add -D @playwright/test
  */
 const PORT = Number(process.env.VRT_PORT ?? 6178);
 
