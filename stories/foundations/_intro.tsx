@@ -31,7 +31,7 @@ export function IntroPage() {
           <div className="qx-intro__meta">
             <QeetLogo size={30} />
             <span className="qx-intro__meta-rule" aria-hidden />
-            <span className="qx-intro__eyebrow">v1.0.0 · @qeetrix/ui</span>
+            <span className="qx-intro__eyebrow">v2.0.0 · @qeetrix/ui</span>
             <span className="qx-intro__meta-spacer" />
             <Badge variant="success">WCAG-AA</Badge>
           </div>
@@ -271,10 +271,6 @@ const BOX = [
     title: "Brand",
     body: "the theme-adaptive Qeet logo and product icons, at @qeetrix/ui/brand.",
   },
-  {
-    title: "Blocks",
-    body: "6 composable multi-component page patterns at @qeetrix/ui/blocks.",
-  },
 ] as const;
 
 const PRINCIPLES = [
@@ -328,13 +324,6 @@ const EXPLORE = [
     desc: "~127 building-block components.",
     grad: "linear-gradient(135deg,#10b981,#059669)",
     icon: "UI",
-  },
-  {
-    href: "?path=/docs/blocks-dashboardshell--docs",
-    label: "Blocks",
-    desc: "6 composed page-level patterns.",
-    grad: "linear-gradient(135deg,#f43f5e,#e11d48)",
-    icon: "⊟",
   },
   {
     href: "?path=/docs/brand-logo-icons--docs",
