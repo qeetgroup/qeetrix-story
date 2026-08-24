@@ -10,7 +10,11 @@ import tailwindcss from "@tailwindcss/vite";
 
 /** Absolute path inside the @qeetrix/ui package. */
 const ui = (p: string) =>
-  fileURLToPath(new URL(`../../../packages/qeetrix-ui/${p}`, import.meta.url));
+  fileURLToPath(new URL(`../../qeetrix-ui/${p}`, import.meta.url));
+
+/** Absolute path inside the @qeetrix/icons package (uses local dist so fixes are visible without a publish). */
+const icons = (p: string) =>
+  fileURLToPath(new URL(`../../qeetrix-icons/${p}`, import.meta.url));
 
 const config: StorybookConfig = {
   stories: ["../stories/**/*.mdx", "../stories/**/*.stories.@(ts|tsx)"],
@@ -35,7 +39,7 @@ const config: StorybookConfig = {
     // hooks/*, fonts/*) to src/<subpath>; the bare specifier maps to the barrel.
     const src = ui("src");
     const sourceAliases = [
-      { find: /^@qeetrix\/ui\/styles\.css$/, replacement: ui("src/index.css") },
+      { find: /^@qeetrix\/ui\/styles\.css$/, replacement: ui("src/styles/index.css") },
       {
         find: /^@qeetrix\/ui\/tokens\.css$/,
         replacement: ui("src/styles/tokens.raw.css"),
@@ -51,6 +55,10 @@ const config: StorybookConfig = {
       { find: /^@qeetrix\/ui\/(.+)$/, replacement: `${src}/$1` },
       { find: /^@qeetrix\/ui$/, replacement: ui("src/index.ts") },
       { find: /^@\/(.+)$/, replacement: `${src}/$1` },
+      // Icons: resolve from local dist so fixes are visible without a publish.
+      { find: /^@qeetrix\/icons\/metadata$/, replacement: icons("dist/metadata.js") },
+      { find: /^@qeetrix\/icons\/icons\/(.+)$/, replacement: icons("dist/icons/$1") },
+      { find: /^@qeetrix\/icons$/, replacement: icons("dist/index.js") },
     ];
     const existing = cfg.resolve?.alias;
     const existingArray = Array.isArray(existing)
