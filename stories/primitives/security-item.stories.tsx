@@ -1,6 +1,6 @@
 import { Button, SecurityItem } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { KeyRoundIcon, LaptopIcon, ShieldCheckIcon } from "lucide-react";
+import { Key, Monitor, ShieldTick } from "@qeetrix/icons";
 
 const meta: Meta<typeof SecurityItem> = {
   title: "Primitives/SecurityItem",
@@ -26,7 +26,7 @@ export const Resources: Story = {
         title="MacBook Pro"
         description="Current browser session"
         status="active"
-        icon={<LaptopIcon />}
+        icon={<Monitor />}
         details={[
           { label: "Location", value: "Minneapolis, MN" },
           { label: "Last active", value: "Just now" },
@@ -41,7 +41,7 @@ export const Resources: Story = {
         title="Touch ID passkey"
         description="Synced credential"
         status="verified"
-        icon={<ShieldCheckIcon />}
+        icon={<ShieldTick />}
         details={[{ label: "Added", value: "August 18, 2026" }]}
         actions={
           <Button variant="outline" size="sm">
@@ -53,7 +53,7 @@ export const Resources: Story = {
         title="Reporting API key"
         description="Read-only analytics integration"
         status="expiring"
-        icon={<KeyRoundIcon />}
+        icon={<Key />}
         details={[
           { label: "Prefix", value: "qx_live_4f2a" },
           { label: "Expires", value: "September 1, 2026" },

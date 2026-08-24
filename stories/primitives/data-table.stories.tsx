@@ -8,7 +8,7 @@ import {
   StatusPill,
 } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { PlusIcon, Trash2Icon } from "lucide-react";
+import { Add, Trash } from "@qeetrix/icons";
 import * as React from "react";
 
 type Member = {
@@ -168,12 +168,12 @@ export const WithSelectionAndActions: Story = {
       searchPlaceholder="Search members…"
       toolbarActions={
         <Button size="sm">
-          <PlusIcon /> New member
+          <Add /> New member
         </Button>
       }
       bulkActions={(rows) => (
         <Button variant="destructive" size="sm">
-          <Trash2Icon /> Delete {rows.length}
+          <Trash /> Delete {rows.length}
         </Button>
       )}
     />

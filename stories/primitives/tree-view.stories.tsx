@@ -1,57 +1,57 @@
 import { type TreeNode, TreeView } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { BuildingIcon, FileIcon, FolderIcon, UserIcon, UsersIcon } from "lucide-react";
+import { Building, Document, Folder, People, User } from "@qeetrix/icons";
 
 const data: TreeNode[] = [
   {
     id: "src",
     label: "src",
-    icon: FolderIcon,
+    icon: Folder,
     defaultOpen: true,
     children: [
       {
         id: "components",
         label: "components",
-        icon: FolderIcon,
+        icon: Folder,
         children: [
-          { id: "button", label: "button.tsx", icon: FileIcon },
-          { id: "card", label: "card.tsx", icon: FileIcon },
+          { id: "button", label: "button.tsx", icon: Document },
+          { id: "card", label: "card.tsx", icon: Document },
         ],
       },
-      { id: "index", label: "index.ts", icon: FileIcon },
+      { id: "index", label: "index.ts", icon: Document },
     ],
   },
-  { id: "pkg", label: "package.json", icon: FileIcon },
+  { id: "pkg", label: "package.json", icon: Document },
 ];
 
 const orgData: TreeNode[] = [
   {
     id: "acme",
     label: "Acme Inc.",
-    icon: BuildingIcon,
+    icon: Building,
     defaultOpen: true,
     children: [
       {
         id: "engineering",
         label: "Engineering",
-        icon: UsersIcon,
+        icon: People,
         defaultOpen: true,
         children: [
-          { id: "ada", label: "Ada Lovelace", icon: UserIcon },
-          { id: "alan", label: "Alan Turing", icon: UserIcon },
+          { id: "ada", label: "Ada Lovelace", icon: User },
+          { id: "alan", label: "Alan Turing", icon: User },
         ],
       },
       {
         id: "product",
         label: "Product",
-        icon: UsersIcon,
-        children: [{ id: "grace", label: "Grace Hopper", icon: UserIcon }],
+        icon: People,
+        children: [{ id: "grace", label: "Grace Hopper", icon: User }],
       },
       {
         id: "finance",
         label: "Finance",
-        icon: UsersIcon,
-        children: [{ id: "katherine", label: "Katherine Johnson", icon: UserIcon }],
+        icon: People,
+        children: [{ id: "katherine", label: "Katherine Johnson", icon: User }],
       },
     ],
   },
@@ -79,7 +79,7 @@ export const Default: Story = {
     docs: {
       description: {
         story:
-          "File-system tree for a small TypeScript project. Folder nodes use `FolderIcon` and are collapsible; leaf nodes use `FileIcon`. `defaultOpen: true` on the root node ensures the first level is visible without user interaction.",
+          "File-system tree for a small TypeScript project. Folder nodes use `Folder` and are collapsible; leaf nodes use `Document`. `defaultOpen: true` on the root node ensures the first level is visible without user interaction.",
       },
     },
   },
@@ -95,7 +95,7 @@ export const OrgHierarchy: Story = {
     docs: {
       description: {
         story:
-          "Organisation chart for a qeet-people HCM tenant. Department nodes (`UsersIcon`) are collapsible; individual members (`UserIcon`) are leaf nodes. Use `defaultOpen: true` on the top-level org node and selected departments to surface the most relevant structure without overwhelming the view.",
+          "Organisation chart for a qeet-people HCM tenant. Department nodes (`People`) are collapsible; individual members (`User`) are leaf nodes. Use `defaultOpen: true` on the top-level org node and selected departments to surface the most relevant structure without overwhelming the view.",
       },
     },
   },

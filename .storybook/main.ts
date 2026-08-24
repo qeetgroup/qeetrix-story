@@ -12,9 +12,6 @@ import tailwindcss from "@tailwindcss/vite";
 const ui = (p: string) =>
   fileURLToPath(new URL(`../../qeetrix-ui/${p}`, import.meta.url));
 
-/** Absolute path inside the @qeetrix/icons package (uses local dist so fixes are visible without a publish). */
-const icons = (p: string) =>
-  fileURLToPath(new URL(`../../qeetrix-icons/${p}`, import.meta.url));
 
 const config: StorybookConfig = {
   stories: ["../stories/**/*.mdx", "../stories/**/*.stories.@(ts|tsx)"],
@@ -55,10 +52,6 @@ const config: StorybookConfig = {
       { find: /^@qeetrix\/ui\/(.+)$/, replacement: `${src}/$1` },
       { find: /^@qeetrix\/ui$/, replacement: ui("src/index.ts") },
       { find: /^@\/(.+)$/, replacement: `${src}/$1` },
-      // Icons: resolve from local dist so fixes are visible without a publish.
-      { find: /^@qeetrix\/icons\/metadata$/, replacement: icons("dist/metadata.js") },
-      { find: /^@qeetrix\/icons\/icons\/(.+)$/, replacement: icons("dist/icons/$1") },
-      { find: /^@qeetrix\/icons$/, replacement: icons("dist/index.js") },
     ];
     const existing = cfg.resolve?.alias;
     const existingArray = Array.isArray(existing)
@@ -73,6 +66,19 @@ const config: StorybookConfig = {
       ...cfg.resolve,
       alias: [...sourceAliases, ...existingArray],
     };
+
+    // Allow Vite's dev server to serve files from outside the default project root.
+    // Setting fs.allow explicitly replaces Vite's workspace-root discovery, so we
+    // must re-add the Storybook project root alongside the qeetrix-ui sibling.
+    const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+    cfg.server = {
+      ...cfg.server,
+      fs: {
+        ...cfg.server?.fs,
+        allow: [...(cfg.server?.fs?.allow ?? []), projectRoot, ui("")],
+      },
+    };
+
     return cfg;
   },
 };

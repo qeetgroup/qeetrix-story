@@ -1,6 +1,6 @@
 import { Icon, Link } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { ExternalLink } from "lucide-react";
+import { LinkSquare } from "@qeetrix/icons";
 
 const meta: Meta<typeof Link> = {
   title: "Primitives/Link",
@@ -161,7 +161,7 @@ export const ExternalLinkExample: Story = {
   render: () => (
     <Link href="https://docs.qeet.in" target="_blank" rel="noopener noreferrer">
       Qeetrix documentation
-      <Icon icon={ExternalLink} size="sm" aria-hidden />
+      <Icon icon={LinkSquare} size="sm" aria-hidden />
     </Link>
   ),
 };

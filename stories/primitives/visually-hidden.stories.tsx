@@ -1,6 +1,6 @@
 import { Button, Icon, VisuallyHidden } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Bell, Download, Settings, Trash2 } from "lucide-react";
+import { Bell, DocumentDownload, Settings, Trash } from "@qeetrix/icons";
 
 const meta: Meta<typeof VisuallyHidden> = {
   title: "Primitives/VisuallyHidden",
@@ -57,11 +57,11 @@ export const IconButtonGallery: Story = {
         <VisuallyHidden>Settings</VisuallyHidden>
       </Button>
       <Button variant="ghost" size="icon">
-        <Icon icon={Download} />
-        <VisuallyHidden>Download report</VisuallyHidden>
+        <Icon icon={DocumentDownload} />
+        <VisuallyHidden>DocumentDownload report</VisuallyHidden>
       </Button>
       <Button variant="ghost" size="icon" className="text-destructive">
-        <Icon icon={Trash2} />
+        <Icon icon={Trash} />
         <VisuallyHidden>Delete record</VisuallyHidden>
       </Button>
     </div>

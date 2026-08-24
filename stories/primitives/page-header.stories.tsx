@@ -1,6 +1,6 @@
 import { Button, PageHeader } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { PlusIcon } from "lucide-react";
+import { Add } from "@qeetrix/icons";
 
 const meta: Meta<typeof PageHeader> = {
   title: "Primitives/PageHeader",
@@ -28,7 +28,7 @@ export const Default: Story = {
         description="Manage the keys used to authenticate machine-to-machine requests to the Qeet ID API. Keys with the client_credentials grant never expire unless manually revoked."
         actions={
           <Button>
-            <PlusIcon /> New key
+            <Add /> New key
           </Button>
         }
       />

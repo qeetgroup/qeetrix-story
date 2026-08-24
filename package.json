@@ -22,7 +22,7 @@
     "clean": "rm -rf storybook-static screenshots test-results playwright-report"
   },
   "dependencies": {
-    "@qeetrix/icons": "^1.0.1",
+    "@qeetrix/icons": "1.0.2",
     "@qeetrix/ui": "^2.0.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
@@ -39,7 +39,6 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "lucide-react": "^0.577.0",
     "playwright": "^1.61.0",
     "storybook": "^10.4.1",
     "tailwindcss": "^4.3.0",

@@ -1,6 +1,6 @@
 import { Toggle, ToggleGroup } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { BoldIcon, ItalicIcon, UnderlineIcon } from "lucide-react";
+import { TextBold, TextItalic, TextUnderline } from "@qeetrix/icons";
 
 const meta: Meta<typeof Toggle> = {
   title: "Primitives/Toggle",
@@ -30,7 +30,7 @@ export const Default: Story = {
   },
   render: () => (
     <Toggle aria-label="Toggle bold" defaultPressed>
-      <BoldIcon />
+      <TextBold />
     </Toggle>
   ),
 };
@@ -46,7 +46,7 @@ export const Outline: Story = {
   },
   render: () => (
     <Toggle variant="outline" aria-label="Toggle italic">
-      <ItalicIcon />
+      <TextItalic />
     </Toggle>
   ),
 };
@@ -63,13 +63,13 @@ export const Group: Story = {
   render: () => (
     <ToggleGroup defaultValue={["bold"]} aria-label="Text formatting">
       <Toggle value="bold" variant="outline" aria-label="Bold">
-        <BoldIcon />
+        <TextBold />
       </Toggle>
       <Toggle value="italic" variant="outline" aria-label="Italic">
-        <ItalicIcon />
+        <TextItalic />
       </Toggle>
       <Toggle value="underline" variant="outline" aria-label="Underline">
-        <UnderlineIcon />
+        <TextUnderline />
       </Toggle>
     </ToggleGroup>
   ),

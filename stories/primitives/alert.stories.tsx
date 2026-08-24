@@ -1,6 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CheckCircle2Icon, InfoIcon, TriangleAlertIcon, XCircleIcon } from "lucide-react";
+import { CloseCircle, Danger, InfoCircle, TickCircle } from "@qeetrix/icons";
 
 const meta: Meta<typeof Alert> = {
   title: "Primitives/Alert",
@@ -29,7 +29,7 @@ export const Default: Story = {
   args: { variant: "info" },
   render: (args) => (
     <Alert {...args} className="max-w-md">
-      <InfoIcon />
+      <InfoCircle />
       <AlertTitle>Heads up</AlertTitle>
       <AlertDescription>
         Your API keys rotate automatically every 90 days. No action needed.
@@ -58,24 +58,24 @@ export const Variants: Story = {
   render: () => (
     <div className="flex max-w-md flex-col gap-3">
       <Alert variant="info">
-        <InfoIcon />
+        <InfoCircle />
         <AlertTitle>Scheduled maintenance</AlertTitle>
         <AlertDescription>
           We&apos;ll be performing upgrades on Sunday at 02:00 UTC.
         </AlertDescription>
       </Alert>
       <Alert variant="success">
-        <CheckCircle2Icon />
+        <TickCircle />
         <AlertTitle>Payment received</AlertTitle>
         <AlertDescription>Your invoice has been settled.</AlertDescription>
       </Alert>
       <Alert variant="warning">
-        <TriangleAlertIcon />
+        <Danger />
         <AlertTitle>Approaching quota</AlertTitle>
         <AlertDescription>You&apos;ve used 80% of your monthly event budget.</AlertDescription>
       </Alert>
       <Alert variant="danger">
-        <XCircleIcon />
+        <CloseCircle />
         <AlertTitle>Connection failed</AlertTitle>
         <AlertDescription>We couldn&apos;t reach the upstream service. Retrying…</AlertDescription>
       </Alert>
@@ -94,7 +94,7 @@ export const TitleOnly: Story = {
   },
   render: () => (
     <Alert variant="warning" className="max-w-md">
-      <TriangleAlertIcon />
+      <Danger />
       <AlertTitle>Your trial ends in 3 days.</AlertTitle>
     </Alert>
   ),
