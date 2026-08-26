@@ -1,0 +1,189 @@
+import { Z_INDEX } from "@qeetrix/ui";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+
+import { Page, Section } from "../_helpers";
+import { Callout, Code, Prose, TokenTable } from "./_foundation";
+
+const meta: Meta = {
+  title: "Foundations/Z-Index",
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      description: {
+        component:
+          "One ladder, fifteen rungs, spaced a thousand apart. Every floating surface in Qeetrix reads `--qx-z-*` (via Tailwind's `z-(--qx-z-popover)` arbitrary-property syntax) instead of picking a number, which is what stops a codebase accumulating `z-index: 9999` as the only reliable way to be on top. The gaps are deliberate: a product can slot its own layer between two rungs without touching the design system. The same ladder is published as the typed `Z_INDEX` constant for portals and virtualisers that have to compute a layer.",
+      },
+    },
+  },
+  tags: ["autodocs"],
+};
+export default meta;
+type Story = StoryObj;
+
+interface Layer {
+  token: keyof typeof Z_INDEX;
+  cssVar: string;
+  usedBy: string;
+}
+
+/** The ladder in ascending order, with what actually reads each rung today. */
+const LADDER: Layer[] = [
+  { token: "base", cssVar: "--qx-z-base", usedBy: "In-flow content. Reserved as the floor." },
+  { token: "dropdown", cssVar: "--qx-z-dropdown", usedBy: "Reserved — no component reads it yet." },
+  {
+    token: "sticky",
+    cssVar: "--qx-z-sticky",
+    usedBy: "Reserved for sticky table headers and rails.",
+  },
+  { token: "fixed", cssVar: "--qx-z-fixed", usedBy: "FloatingWindow, ActionBar" },
+  { token: "modalBackdrop", cssVar: "--qx-z-modal-backdrop", usedBy: "Dialog, AlertDialog" },
+  { token: "modal", cssVar: "--qx-z-modal", usedBy: "Dialog, AlertDialog" },
+  { token: "drawerBackdrop", cssVar: "--qx-z-drawer-backdrop", usedBy: "Sheet" },
+  { token: "drawer", cssVar: "--qx-z-drawer", usedBy: "Sheet" },
+  {
+    token: "popover",
+    cssVar: "--qx-z-popover",
+    usedBy:
+      "Popover, Tooltip, DropdownMenu, ContextMenu, Menubar, Select, Combobox, NavigationMenu",
+  },
+  { token: "toast", cssVar: "--qx-z-toast", usedBy: "Toast viewport" },
+  {
+    token: "commandPalette",
+    cssVar: "--qx-z-command-palette",
+    usedBy: "Reserved — no component reads it yet.",
+  },
+  { token: "tourBackdrop", cssVar: "--qx-z-tour-backdrop", usedBy: "Tour" },
+  { token: "tour", cssVar: "--qx-z-tour", usedBy: "Tour" },
+  { token: "skipNav", cssVar: "--qx-z-skip-nav", usedBy: "SkipNav" },
+  {
+    token: "debug",
+    cssVar: "--qx-z-debug",
+    usedBy: "Development overlays only. Never ship on it.",
+  },
+];
+
+/** The six rungs worth stacking visually — the rest read the same at a glance. */
+const STACK = [
+  { label: "fixed", cssVar: "--qx-z-fixed", offset: 0, tint: "bg-muted" },
+  { label: "modal-backdrop", cssVar: "--qx-z-modal-backdrop", offset: 28, tint: "bg-secondary" },
+  { label: "modal", cssVar: "--qx-z-modal", offset: 56, tint: "bg-card" },
+  { label: "popover", cssVar: "--qx-z-popover", offset: 84, tint: "bg-accent" },
+  { label: "toast", cssVar: "--qx-z-toast", offset: 112, tint: "bg-primary/15" },
+  { label: "skip-nav", cssVar: "--qx-z-skip-nav", offset: 140, tint: "bg-success/15" },
+];
+
+export const Ladder: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The stack, rendered as a stack. Each card sets only `z-index` from its token — the paint order you see is the paint order a real overlay gets.",
+      },
+    },
+  },
+  render: () => (
+    <Page>
+      <Section title="Stacking order">
+        <Prose>
+          Cards are laid out in source order, front to back, and reordered purely by{" "}
+          <Code>z-index</Code>. The rung a surface sits on is a design decision — a toast has to
+          survive a dialog, and a skip link has to survive everything, or keyboard users cannot
+          escape a full-screen overlay.
+        </Prose>
+        <div className="relative isolate h-64">
+          {STACK.map((layer) => (
+            <div
+              key={layer.label}
+              className={`absolute flex h-24 w-64 flex-col justify-center rounded-xl border border-border px-4 shadow-popover ${layer.tint}`}
+              style={{
+                zIndex: `var(${layer.cssVar})`,
+                insetInlineStart: `${layer.offset}px`,
+                top: `${layer.offset * 0.55}px`,
+              }}
+            >
+              <span className="text-sm font-medium text-foreground">{layer.label}</span>
+              <code className="text-[10px] text-muted-foreground">{layer.cssVar}</code>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="The full ladder">
+        <TokenTable
+          caption="--qx-z-* in ascending order, with the typed constant and current consumers."
+          columns={["CSS variable", "Value", "Typed constant", "Read by"]}
+          rows={LADDER.map((layer) => ({
+            token: layer.cssVar,
+            cells: [
+              String(Z_INDEX[layer.token]),
+              `Z_INDEX.${layer.token}`,
+              <span key={layer.token} className="font-sans">
+                {layer.usedBy}
+              </span>,
+            ],
+          }))}
+        />
+      </Section>
+    </Page>
+  ),
+};
+
+export const Rules: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The three things that actually go wrong with layering, and what the ladder does about each.",
+      },
+    },
+  },
+  render: () => (
+    <Page>
+      <Section title="Backdrop and content are two rungs, not one">
+        <Prose>
+          A dialog owns <Code>--qx-z-modal-backdrop</Code> and <Code>--qx-z-modal</Code>; a sheet
+          owns <Code>--qx-z-drawer-backdrop</Code> and <Code>--qx-z-drawer</Code>. The backdrop
+          always sits exactly one rung below its own surface, so a surface is never dimmed by the
+          scrim it casts — and because the drawer pair sits above the modal pair, a sheet opened
+          from inside a dialog lands on top of it with no per-instance z-index anywhere.
+        </Prose>
+      </Section>
+
+      <Section title="Skip navigation is the top of the ladder">
+        <Prose>
+          <Code>--qx-z-skip-nav</Code> sits above every overlay except the debug rung. That is an
+          accessibility requirement, not a nicety: a skip link that a modal can paint over is a
+          keyboard trap with extra steps.
+        </Prose>
+        <Callout title="--qx-z-debug is not a production layer">
+          It exists so a development overlay — a grid, a hit-box inspector, a performance HUD — has
+          somewhere to live that is unambiguously above everything else. Shipping a component on it
+          removes the only rung that is guaranteed to win.
+        </Callout>
+      </Section>
+
+      <Section title="A stacking context beats any number">
+        <Prose>
+          <Code>z-index</Code> only orders siblings within the same stacking context, so a value of
+          1800 inside a parent with <Code>transform</Code>, <Code>filter</Code>,{" "}
+          <Code>opacity</Code> below 1, or <Code>isolation: isolate</Code> cannot escape that
+          parent. This is why the overlay components render through a portal instead of in place,
+          and why raising a number is almost never the fix for something appearing behind something
+          else.
+        </Prose>
+        <TokenTable
+          caption="Common ways a new stacking context appears without anyone asking for one."
+          columns={["Property", "Creates a context when"]}
+          rows={[
+            { token: "transform", cells: ["any value other than none — including translate-*"] },
+            { token: "filter", cells: ["any value other than none — including backdrop blur"] },
+            { token: "opacity", cells: ["any value below 1 — the Tailwind opacity utilities"] },
+            { token: "isolation", cells: ["isolate — the Tailwind isolate utility"] },
+            { token: "position", cells: ["fixed or sticky, unconditionally"] },
+            { token: "will-change", cells: ["it names a property that would create one"] },
+          ]}
+        />
+      </Section>
+    </Page>
+  ),
+};

@@ -167,12 +167,11 @@
 - typography
 - visually-hidden
 
-## Design tokens (~451 per theme)
+## Design tokens (~609 per theme)
 
-Authored as W3C DTCG JSON (`packages/qeetrix-ui/tokens/**`), compiled by Style Dictionary to
+Authored as W3C DTCG JSON (`qeetrix-ui/src/tokens/**`), compiled by Style Dictionary to
 CSS custom properties (`--qx-*`) + JSON. Colour is OKLCH; every required text/surface
-pair is held to WCAG-AA by a build gate. Brand = Qeet orange (`#F26D0E`). A Tokens
-Studio / Figma export lives at `packages/qeetrix-ui/tokens-studio/`.
+pair is held to WCAG-AA by a build gate. Brand = Qeet orange (`#F26D0E`).
 
 ## Guides
 
@@ -186,7 +185,7 @@ Studio / Figma export lives at `packages/qeetrix-ui/tokens-studio/`.
 
 - Storybook workshop: https://qeetrix.qeet.in
 - Full component + token context: https://qeetrix.qeet.in/llms-full.txt
-- Architecture decisions: docs/adr/ · Accessibility/VPAT: docs/accessibility/
+- Workshop docs: `docs/` · Contributing: `CONTRIBUTING.md` · Source: github.com/qeetgroup/qeetrix-ui
 
 
 ---
@@ -395,10 +394,10 @@ handled by `DirectionProvider`.
 
 ## Import surfaces
 
-- `@qeetrix/ui` — the barrel (components, hooks, `cn`)
+- `@qeetrix/ui` — the barrel (all components, hooks, `cn`)
 - `@qeetrix/ui/styles.css` — tokens + fonts + base layer
 - `@qeetrix/ui/brand` — `QeetLogo` + brand icons
-- `@qeetrix/ui/blocks` — composed multi-component patterns (auth, dashboard shell, …)
+- `@qeetrix/ui/components/<slug>` — deep import for a single component (tree-shaking)
 - `@qeetrix/ui/tokens.css` / `@qeetrix/ui/tokens.json` — raw design tokens
 
 See **Theming** and **Design tokens** for customisation.
@@ -455,71 +454,1030 @@ Wrap in `DirectionProvider` (`direction="rtl"`) — logical properties and the
 `rtl:` variants in components flip automatically.
 
 
+## docs/accessibility.md
+
+# Accessibility
+
+Accessibility in this repo is a **gate**, not a report. It is also honest about what it
+does not yet cover.
+
+## The gate
+
+`.storybook/preview.ts`:
+
+```ts
+a11y: {
+  test: "error",
+  options: { rules: { region: { enabled: false }, "color-contrast": { enabled: false } } },
+}
+```
+
+`test: "error"` means `@storybook/addon-a11y` runs **axe over every story** as part of
+`bun run test`, and **any violation fails the run**. There is no separate a11y command to
+remember and no separate suite to keep in sync — the a11y check rides on the component
+test layer described in [testing.md](./testing.md), so every story is an a11y test for the
+same reason every story is a render test.
+
+The three values `test` can take, for orientation:
+
+| Value | Behaviour |
+| --- | --- |
+| `"off"` | axe does not run in the test layer |
+| `"todo"` | violations are reported, not failed |
+| `"error"` | **current setting** — violations fail `bun run test` |
+
+The setting moved from `"todo"` to `"error"` once the existing violation set had been
+triaged. Some documentation in the repo still describes the `"todo"` behaviour; `preview.ts`
+is authoritative.
+
+## What is excluded, and why
+
+Two axe rules are disabled. Both exclusions are narrow and both are justified — neither is
+"this was noisy so we turned it off".
+
+### `region` — a false positive by construction
+
+axe's `region` rule requires every piece of page content to sit inside a landmark
+(`<main>`, `<nav>`, …). A story renders **a single component into `#storybook-root`** —
+not a full document. Landmark structure is the app shell's responsibility, not a
+primitive's. Left enabled, it flags roughly 85 violations across nearly every story and
+drowns out the real ones.
+
+This one is genuinely not applicable here, and there is nothing to fix.
+
+### `color-contrast` — excluded from the gate, *not* resolved
+
+This is the one to understand properly.
+
+The violations are not distributed across the library — they are **a handful of semantic
+token pairs, repeated everywhere those tokens are used.** The ten worst pairs account for
+the large majority of the total:
+
+| × | Ratio | Foreground on background | Reading |
+| --- | --- | --- | --- |
+| 42 | 4.34:1 | `#737373` on `#f5f5f5` | `muted-foreground` on `muted` — near-miss |
+| 20 | 4.37:1 | `#bb4d00` on `#f8ede6` | warning text on warning surface — near-miss |
+| 18 | **2.88:1** | `#ff6900` on `#ffffff` | brand orange on white — a real failure for body text |
+| 15 | 3.98:1 | `#e7000b` on `#fde5e7` | `destructive` on `bg-destructive/10` |
+| 15 | 4.25:1 | `#737373` on `#fff0e6` | muted text on a tinted surface |
+| 10 | **1.15:1** | `#ffffff` on `#e5f0f6` | white text on a light info surface — a real failure |
+
+So the shorthand "they are all near-misses" — which an inline comment in `preview.ts` still
+repeats — is **not accurate**. Most are (3.98–4.47 against a 4.5 threshold), but there is a
+tail of genuine failures: brand orange on white at 2.88:1, and white-on-tinted-surface pairs
+around 1.15:1.
+
+What *is* true, and is the reason for the exclusion, is that these are **token decisions in
+`@qeetrix/ui`**, not N independent story bugs. Six pairs cause over 70% of the count. They
+cannot be fixed from this repo — patching a story's classes to dodge the rule would hide
+the token problem rather than solve it, and would make the stories stop reflecting what
+real apps render.
+
+Excluding it from the gate must not make it invisible. So it is **reported separately**.
+
+## `bun run verify:a11y` — the contrast report
+
+`scripts/verify-a11y.mjs` runs axe with **only** `color-contrast` enabled, scoped to
+`#storybook-root` so its numbers stay comparable to what the Vitest a11y run would report.
+
+It **never fails**. It is a measurement, not a gate — deliberately, so that the excluded
+rule has a live number attached to it instead of a stale comment.
+
+```bash
+bun run build                        # needs storybook-static
+bun run verify:a11y                  # light theme — the recorded baseline
+A11Y_THEME=dark bun run verify:a11y  # dark is a separate risk surface
+A11Y_GREP=button bun run verify:a11y # scope to matching story ids
+```
+
+`A11Y_PORT` (default 6180) if 6180 is taken. A full pass is 400+ page loads and several
+minutes; progress goes to stderr so the report on stdout stays pipeable.
+
+The report gives you:
+
+- the total, and how many stories are affected,
+- the **worst colour pairings ranked by frequency** — the actionable output, because these
+  are token pairs, so fixing ten pairs fixes a hundred violations,
+- the most affected stories,
+- and, if the count ever reaches zero, an explicit instruction to re-enable the rule in
+  `.storybook/preview.ts` and delete the script.
+
+## Current honest state
+
+Measured with `bun run verify:a11y` against the light theme:
+
+| Metric | Value |
+| --- | --- |
+| Contrast violations | **162** |
+| Stories affected | **85** (of 433) |
+| Distribution | 6 token pairs account for >70% of the count |
+| Severity | mostly near-misses (3.98–4.47:1 against 4.5:1), with a tail of real failures at 2.88:1 and ~1.15:1 |
+| Worst-affected stories | `schedulecalendar--month` (7), `alert--variants` (6), `callout--variants` (6), `statuspill--all-statuses` (6) |
+| Root cause | semantic token values in `@qeetrix/ui` |
+| Fixable from this repo | **no** |
+| Dark theme | separate surface, not part of the recorded baseline — run `A11Y_THEME=dark` |
+
+These numbers move as stories are added and as `@qeetrix/ui` tokens change. **Run the
+script rather than trusting this table.** Inline comments elsewhere in the repo quote
+different figures (e.g. "149 violations across 47 story files") because they were measured
+at a different time and counted story *files* rather than story ids.
+
+The path to closing this: correct the token values in `qeetrix-ui`, re-run
+`verify:a11y` until it reports zero, then re-enable `color-contrast` in the gate and
+retire the script.
+
+## What is *not* covered
+
+axe is a **floor, not a grade.** It catches a minority of WCAG failures — roughly the
+machine-checkable ones. A story passing the gate has not been audited.
+
+| Not covered | Note |
+| --- | --- |
+| Screen-reader announcement quality | no automated check exists for this anywhere |
+| Keyboard flows | only where a `play` function asserts them — 22 of 70 interactive components |
+| Focus order and focus-trap correctness | partially, via overlay `play` tests |
+| RTL | a Direction toolbar global and a `DirectionProvider` decorator exist; there is **no** RTL test matrix — nothing runs axe, or anything else, in RTL |
+| Dark theme contrast | reportable via `A11Y_THEME=dark`, not gated, not baselined |
+| Responsive / zoom / reflow | four viewport presets exist in the toolbar; the only automated assertion is the single mobile `Container` check in `verify-foundations.mjs` |
+| Forced colors / high contrast | one assertion in `verify-foundations.mjs` (currently failing earlier in that script) |
+| Reduced motion | not tested here |
+| Audited conformance grade (VPAT) | belongs to `qeetrix-ui`, not this repo |
+
+This is why the story contract has **no `accessibility` field**. A declared grade like
+`"AA"` would have to mean an audit happened; "axe passed" is not that, and conflating the
+two is worse than having no field. See [governance.md](./governance.md#extending-the-contract).
+
+## Writing an accessible story
+
+The gate catches machine-checkable failures. These are the ones authors trip most:
+
+- Icon-only controls need an accessible name (`aria-label`) — `IconButton`, `CloseButton`.
+- Images and decorative SVGs need `alt` or `aria-hidden="true"`.
+- Every form control needs an associated label (`FieldLabel` + `htmlFor`, or `aria-label`).
+- Don't invent ARIA the component already provides — `@qeetrix/ui` is built on Base UI,
+  which implements the WAI-ARIA APG behaviour. Adding roles on top usually breaks it.
+- Query by **role and accessible name** in `play` functions. An assertion that can only
+  pass for a keyboard- and screen-reader-reachable element is worth more than one that
+  reaches into the DOM — the test doubles as an accessibility assertion for free.
+- If you can't reach it with Tab, it isn't done.
+
+The narrative `Guides/Accessibility` page in `stories/guides/accessibility.mdx` covers the
+design system's standards commitments and the `qeetrix-ui`-side tooling. This document
+covers what *this repo* enforces.
+
+
+## docs/architecture.md
+
+# Architecture
+
+How `qeetrix-story` fits into the Qeetrix stack, and where the boundary is.
+
+## The boundary
+
+**Storybook consumes Qeetrix. The design system does not live here.**
+
+This repo (`@qeetrix/stories`, `private: true`, never published) contains documentation,
+tests and governance for a component library that is developed and released somewhere
+else. Nothing in `stories/**` defines a component; every story imports from
+`@qeetrix/ui` and renders it the way a product app would.
+
+| Concern | Lives in | Not in |
+| --- | --- | --- |
+| Component source, tokens, brand assets | `qeetrix-ui` | here |
+| Stories, docs pages, guides | here | — |
+| Component tests (Vitest browser) | here | — |
+| Visual regression baselines | here (`tests/`) | — |
+| Story contract + verification scripts | here (`stories/_contract.ts`, `scripts/`) | — |
+| Unit tests for component internals | `qeetrix-ui` | here |
+
+The practical rule: if a story reveals a bug, the fix goes in `qeetrix-ui`. This repo
+only ever changes how the bug is demonstrated. `scripts/verify-a11y.mjs` says the same
+thing in its output — *"These are @qeetrix/ui token values — do not patch them from this
+repo."*
+
+## The layers
+
+```
+  design tokens          W3C DTCG JSON  ──Style Dictionary──▶  --qx-* CSS custom properties
+  (inside qeetrix-ui)                                          + tokens.json + typed constants
+          │
+          ▼
+  @qeetrix/ui            React components (Base UI + Tailwind v4), brand, hooks
+          │              published to npm as @qeetrix/ui (v2.x)
+          ▼
+  qeetrix-story          stories, docs, a11y gate, VRT, contract verification
+```
+
+There is **no separate `@qeetrix/tokens` package**. Tokens are a layer *inside*
+`@qeetrix/ui`, surfaced through subpath exports:
+
+| Specifier | Contents |
+| --- | --- |
+| `@qeetrix/ui` | component barrel, hooks, `cn`, typed token constants (`CHART_COLOR`, `Z_INDEX`, `SHADOW`, …) |
+| `@qeetrix/ui/styles.css` | the full app layer — *semantic* tokens (`--background`, `--foreground`), fonts, base |
+| `@qeetrix/ui/tokens.css` | the raw primitive ramp (`--qx-color-*`), which apps do not normally load |
+| `@qeetrix/ui/qeetrix.css` | the semantic token layer on its own |
+| `@qeetrix/ui/tokens.json` | the same values as data (used by `Foundations/Colors`) |
+| `@qeetrix/ui/brand` | `QeetLogo` + brand icons |
+
+`.storybook/styles.css` imports both `styles.css` and `tokens.css` — the second only so
+the Foundations swatch galleries can resolve the primitive ramp, which a real app would
+never pull in.
+
+## `@qeetrix/ui` is resolved from a sibling checkout
+
+This is the single most surprising thing about the repo.
+
+`package.json` lists `"@qeetrix/ui": "^2.0.0"` as a dependency, and it *is* installed into
+`node_modules`. **It is not what the workshop renders.** `.storybook/main.ts` rewrites
+every `@qeetrix/ui` specifier to `../qeetrix-ui/src` — a sibling git checkout on disk:
+
+```
+QG/qeetrix/
+├── qeetrix-ui/      ← the design system, resolved from src/
+└── qeetrix-story/   ← this repo
+```
+
+**Without `../qeetrix-ui` checked out next to this repo, nothing works** — not `dev`, not
+`build`, not `test`. `scripts/gen-llms.mjs` fails loudly with clone instructions; the Vite
+aliases fail less loudly.
+
+### The alias table (`.storybook/main.ts` → `viteFinal`)
+
+Order matters: specific subpaths must precede the generic rule, which must precede the
+bare specifier.
+
+| Pattern | Resolves to | Why it needs its own rule |
+| --- | --- | --- |
+| `@qeetrix/ui/styles.css` | `src/styles/index.css` | source filename differs from the published one |
+| `@qeetrix/ui/tokens.css` | `src/styles/tokens.raw.css` | published export is renamed |
+| `@qeetrix/ui/qeetrix.css` | `src/styles/tokens.css` | published export is renamed |
+| `@qeetrix/ui/tokens.json` | `src/styles/tokens.json` | generated file, not in `dist` layout |
+| `@qeetrix/ui/<anything>` | `src/<anything>` | the generic catch-all: `brand/`, `components/*`, `providers/*`, `lib/*`, `hooks/*`, `fonts/*` |
+| `@qeetrix/ui` | `src/index.ts` | the barrel |
+| `@/<anything>` | `src/<anything>` | `@qeetrix/ui`'s *own* internal path alias, which its source uses and this repo never does |
+
+Why source rather than `dist`: the workshop gets live HMR against the library, and never
+depends on a `dist/` that a `tsc --watch` dev loop can leave holding unresolved `@/`
+aliases.
+
+### The react / react-dom dedupe is load-bearing
+
+```ts
+dedupe: [...(cfg.resolve?.dedupe ?? []), "react", "react-dom"]
+```
+
+Because the aliases pull `@qeetrix/ui` out of a sibling checkout, everything *it* imports
+— React itself, and Base UI's hooks — resolves against `../qeetrix-ui/node_modules`. That
+is a **second physical copy of React**, even though the version numbers match. Two copies
+means two hook dispatchers, and the first hook call inside any Base UI component throws:
+
+```
+Cannot read properties of null (reading 'useRef')
+```
+
+The Vite dev server hides this, because pre-bundling collapses everything into one
+optimized copy. **Vitest browser mode does not.** So the dedupe is what makes
+`bun run test` work at all. It lives in `.storybook/main.ts` rather than
+`vitest.config.ts` deliberately: `vitest.config.ts` reuses `main.ts` wholesale, so dev,
+build and test all resolve identically from one definition.
+
+### `server.fs.allow`
+
+Setting `fs.allow` explicitly *replaces* Vite's automatic workspace-root discovery, so
+`main.ts` re-adds both the Storybook project root and the `qeetrix-ui` sibling. Drop
+either one and the dev server refuses to serve half the files it needs.
+
+## Storybook composition
+
+Storybook 10. Controls, actions, viewport and docs are core in SB10, so only four addons
+are declared: `addon-docs`, `addon-a11y`, `addon-themes`, `addon-vitest`.
+
+| File | Role |
+| --- | --- |
+| `.storybook/main.ts` | stories glob, addons, `viteFinal` (Tailwind plugin + the alias/dedupe/fs block above) |
+| `.storybook/preview.ts` | assembles the decorators, declares the a11y gate and the parameters that belong to no single global |
+| `.storybook/decorators/` | one module per toolbar global — each owns its `globalTypes` entry, its document-level side effect, and its decorator |
+| `.storybook/manager.ts` | brands the Storybook chrome and keeps it in lockstep with the Theme toggle by polling the top-window URL |
+| `.storybook/theme.ts` | the shared Qeetrix Storybook theme object (manager + autodocs) |
+| `.storybook/styles.css` | Qeetrix layer import + `@source "../stories"` + the docs-canvas restyling |
+| `.storybook/public/` | `staticDirs` root — where `llms.txt` / `llms-full.txt` are emitted |
+
+### Toolbar globals
+
+Each global is a module under `.storybook/decorators/`, owning its `globalTypes` entry,
+its document-level side effect, and its decorator. `decorators/index.ts` assembles them;
+`preview.ts` spreads the result.
+
+| Global | Applied as | Module |
+| --- | --- | --- |
+| `theme` | `.dark` class on `<html>` — the same class strategy `ThemeProvider` uses in production, so stories look identical to apps | `theme.decorator.tsx` |
+| `density` | `data-qx-density="comfortable" \| "compact"` on `<html>` (`legacy` removes the attribute) | `density.decorator.tsx` |
+| `direction` | `<html dir>` **plus** `@qeetrix/ui`'s own `DirectionProvider` — `dir` is always written, never removed, so a component cannot inherit a stale `rtl` from a previous toolbar selection in the same iframe | `rtl.decorator.tsx` |
+| `viewport` | nothing — **not a decorator**. Storybook 10 owns the tool, the global and the iframe resizing; the module only supplies `parameters.viewport.options`, replacing the 28 stock devices with four canonical Qeetrix breakpoints (390 / 768 / 1440 / 1920) | `viewport.decorator.tsx` |
+
+The document-level globals are applied **twice over**: from a decorator (first paint of a
+story) *and* straight off the preview channel (`setGlobals`, `globalsUpdated`). The
+decorator alone only fires when a *story* renders, which leaves pure-MDX pages —
+`Foundations/Introduction` has live components but no story exports — stuck on whatever
+theme loaded first. The channel alone would cost an event round-trip, so a story would
+paint one frame in the previous theme. Both are needed. `withDirection` additionally
+supplies a React context that no DOM attribute can.
+
+These are **affordances, not coverage**. There is a Direction toolbar and a viewport
+preset list; nothing runs the suite in RTL or at a non-default width.
+
+## Story layout
+
+| Path | Contents | Contract applies |
+| --- | --- | --- |
+| `stories/components/<category>/*.stories.tsx` | one file per `@qeetrix/ui` component | **yes** — full contract |
+| `stories/foundations/*.stories.tsx` | Colors, Typography, Spacing & Radius, Density, Token Layers, Elevation, Motion | title only |
+| `stories/brand/brand.stories.tsx` | adaptive `QeetLogo` | title only |
+| `stories/icons.stories.tsx` | `@qeetrix/icons` gallery | title only |
+| `stories/patterns/*.stories.tsx` | multi-component patterns (e.g. `Patterns/AuthenticationForm`) | not scanned — see [governance.md](./governance.md) |
+| `stories/recipes/*.stories.tsx` | cross-cutting recipes (loading states, empty states) | not scanned — see [governance.md](./governance.md) |
+| `stories/guides/*.mdx` | narrative guides (5) | n/a |
+| `stories/_contract.ts` | the story contract types + `qx()` helper | n/a |
+| `stories/_helpers.tsx` | shared swatch/copy helpers for the galleries | n/a |
+
+Files prefixed `_` are not matched by the stories glob (`*.mdx`, `*.stories.@(ts|tsx)`).
+
+## Build outputs
+
+| Command | Output |
+| --- | --- |
+| `bun run llms` | `.storybook/public/llms.txt`, `llms-full.txt` (llmstxt.org convention) |
+| `bun run build` | `llms` step, then `storybook-static/` |
+| `bun run shoot` | `screenshots/` (ad-hoc capture, not the VRT layer) |
+
+`bun run build` is `node scripts/gen-llms.mjs && storybook build`, so the llms step gates
+the whole build. That step reads the **sibling checkout**, not `node_modules` — the
+published `@qeetrix/ui` tarball ships `dist/` only (no `src/`, no `tokens.json`), so
+reading `node_modules` cannot work. That correction is landing at the time of writing; if
+`bun run build` fails at `gen-llms`, this is the reason.
+
+## Known repo state
+
+Documented so nobody burns an afternoon rediscovering it.
+
+| Thing | State |
+| --- | --- |
+| `bun run build` | gated on `scripts/gen-llms.mjs`, which is being corrected to read the sibling checkout instead of `node_modules/@qeetrix/ui/src` |
+| `bun run lint` | fails — 4 errors + 25 warnings, all pre-existing, effectively all in `.storybook/styles.css` (`noImportantStyles`, `noDescendingSpecificity`) plus a Biome CSS parse error on Tailwind's `@source` directive, and one `noNonNullAssertion` in `stories/icons.stories.tsx` |
+| `bun run typecheck` | fails — 1 pre-existing error, a `tokens.json` cast in `stories/foundations/colors.stories.tsx` |
+| `bun run verify:foundations` | fails — the rendered `Button` height no longer matches the 36px `comfortable` assertion, and the script also asserts a `Blocks/DashboardShell` story that is not in the current index |
+| CI | `.github/workflows/ci.yml` — checks out **both repos side by side**, builds `@qeetrix/ui`'s generated tokens, then runs lint · typecheck · verify:stories · test · build. `lint` and `typecheck` are expected red (see above) and are deliberately **not** `continue-on-error`; every gate runs even after an earlier failure so one run reports the whole picture. VRT is not in CI. |
+| RTL / dark-mode / responsive test matrices | **do not exist.** There is now a Direction toolbar global, a `DirectionProvider` decorator and four viewport presets — those are affordances for a human clicking around, not automated coverage. Nothing runs the suite in RTL, in dark mode, or at a non-default width. |
+
+
+## docs/governance.md
+
+# Governance — the story contract
+
+147 component story files is past the point where a human can answer "which components
+are still experimental?" by reading them. The **story contract** makes that question
+answerable by tooling.
+
+Source of truth: `stories/_contract.ts`. Validator: `scripts/verify-stories.mjs`
+(`bun run verify:stories`).
+
+## The contract
+
+Every file in `stories/components/<category>/` declares this block on its meta:
+
+```tsx
+import { qx } from "../_contract";
+
+const meta: Meta<typeof Button> = {
+  title: "Components/Button",
+  component: Button,
+  parameters: {
+    qeetrix: qx({ category: "actions", status: "stable" }),
+  },
+  tags: ["autodocs"],
+};
+```
+
+### Why `qx()` and not a type annotation
+
+Storybook types `parameters` as `{ [name: string]: any }`. Annotating it buys **no**
+checking — a typo like `catgory` compiles fine. Passing the object through the identity
+function `qx()` is what makes TypeScript check the contract at the point of authorship.
+That is the helper's entire purpose.
+
+## Vocabularies
+
+Both are TypeScript string unions in `_contract.ts`. `verify-stories.mjs` parses the
+unions out of the AST rather than duplicating them, so the validator cannot drift from the
+type and start accepting values the compiler rejects.
+
+### `QeetrixCategory` (12)
+
+Mirrors the target sidebar taxonomy, so these values can later drive folder structure
+rather than being re-derived.
+
+| Category | For | Current count |
+| --- | --- | --- |
+| `actions` | buttons, toolbars, action bars | 10 |
+| `forms` | form-level composition | 4 |
+| `data-entry` | controls that **take** user input | 37 |
+| `data-display` | components that **present** values back | 24 |
+| `navigation` | breadcrumbs, sidebar, stepper, links | 10 |
+| `feedback` | alerts, toasts, progress, skeletons | 13 |
+| `overlays` | dialogs, popovers, menus, tooltips, drawers | 13 |
+| `layout` | containers, grids, separators | 12 |
+| `typography` | text primitives | 5 |
+| `media` | images, avatars, icons | 6 |
+| `advanced` | composed, application-level components (rich text editors, schedulers, org charts) that are not primitives in any real sense | 9 |
+| `utilities` | non-visual helpers and providers | 4 |
+
+`advanced` exists so the other buckets stay meaningful. Without it, a scheduler ends up
+labelled `data-display` and that label stops telling you anything.
+
+### `QeetrixStatus` (5)
+
+```
+experimental → beta → stable → deprecated → (removed)
+```
+
+`internal` sits outside that flow: shipped and supported, but not part of the public API
+contract — consumers should not reach for it directly.
+
+**All 147 components are currently `stable`.** That is a fact about the declaration, not
+an independent judgement; the vocabulary exists so it can stop being true.
+
+## What `verify:stories` enforces vs reports
+
+It parses each story file with **Storybook's own CSF tooling** — no build, no browser,
+runs in milliseconds. Regex is not an option: several story files contain fixture data
+with its own `title:` / `parameters:` keys that a naive match picks up instead of the real
+meta.
+
+Output has three tiers, deliberately.
+
+### ERRORS — fail the run (exit 1)
+
+Applied to `stories/components/<category>/*.stories.tsx`:
+
+| Check | Message |
+| --- | --- |
+| meta has a `title` | `meta is missing a title` |
+| meta has `tags: ["autodocs"]` | `meta is missing the autodocs tag` |
+| documented — either a meta `component` (gives autodocs a props table) **or** a `docs.description.component` string | `undocumented — needs a meta component or a docs description` |
+| `parameters.qeetrix` block exists | `no parameters.qeetrix contract — add qx({ category, status })` |
+| `category` present and in the vocabulary | `contract is missing "category"` / `unknown category "…"` |
+| `status` present and in the vocabulary | `contract is missing "status"` / `unknown status "…"` |
+
+Applied to `stories/*.stories.tsx`, `stories/brand/`, `stories/foundations/` — galleries
+with no single component, so **only a title is required**.
+
+> **Gap:** `stories/patterns/` and `stories/recipes/` are newer than the validator and are
+> **not scanned at all** — not for the contract, not even for a title. Some of those files
+> declare `qx({ … })` voluntarily; nothing checks that they do. Extend the directory list
+> in `verify-stories.mjs` when deciding which tier those trees belong to.
+
+The either/or on documentation matters: composite stories legitimately have no single
+`component` (Chart documents ChartContainer/ChartTooltip; Sidebar documents
+SidebarProvider/SidebarGroup/…), so there is no props table to generate. Those carry a
+written description instead, and that is what makes them documented. 144 of 147 have a
+props table; 3 are composite.
+
+### WARNINGS — printed, never fail
+
+| Check | Why it is only a warning |
+| --- | --- |
+| title segment contains a space (`Components/Radio Group`) | fixing it changes the story id, which breaks bookmarks and VRT baselines — a call to make deliberately, not a side effect of a metadata check |
+
+Currently 2: `radio-group.stories.tsx`, `scroll-area.stories.tsx`.
+
+### REPORT — measured coverage, never fails
+
+Counts per category, counts per status, total stories, and interaction-test coverage.
+
+Interaction coverage is computed **only against categories that have behaviour** —
+`actions`, `overlays`, `navigation`, `data-entry`. A `Separator` or a `Skeleton` has
+nothing to assert, so counting it in the denominator produces a number that can never
+reach 100% and therefore never means anything.
+
+Snapshot at time of writing (run the command for live figures):
+
+```
+147 components, 7 doc pages, 425 stories
+interaction tests   22/70 interactive components (31%)
+
+  actions       5/10   50%
+  overlays      6/13   46%
+  navigation    4/10   40%
+  data-entry    7/37   19%
+```
+
+The report also names the *uncovered* components per category, so "what should I write
+next?" has a printed answer.
+
+## The declared-vs-measured rule
+
+**The contract holds only what a human decides. It never holds what a tool can measure.**
+
+| Kind | Example | Where it lives |
+| --- | --- | --- |
+| Decided | which category a component belongs to; whether it is beta or stable | declared in `qx({ … })` |
+| Measured | whether a story has an interaction test; whether it passes axe; whether it has a visual baseline | derived at verify time |
+
+This is the rule that keeps the contract honest. A declared `hasInteractionTest: true`
+becomes a lie the moment someone deletes the `play` function, and nothing catches it.
+A *measured* number cannot go stale — it is recomputed on every run from the file it
+describes. Concretely, `verify-stories.mjs` detects interaction tests by looking for the
+`play-fn` tag Storybook's CSF tooling attaches to stories that have a `play` function.
+
+If you find yourself wanting to add a boolean to `qx()`, check first whether a script
+could just look. If it could, write the script instead.
+
+## Extending the contract
+
+Fields are added **by the item that makes them true**, never speculatively. These are
+reserved and deliberately absent until something verifies them:
+
+| Field | Blocked on |
+| --- | --- |
+| `rtl`, `darkMode`, `responsive` | those test **matrices** existing. A Direction toolbar global and viewport presets now exist; a matrix that runs stories in RTL or at a given width does not, so there is still nothing for a declared flag to mean |
+| `accessibility` | an audited grade, e.g. `"AA"`. **Not** "axe passes" — axe catches a minority of WCAG failures, so a clean run is not a grade |
+| `visualCriticality` | `"critical" \| "standard" \| "low"`, added by the VRT tiering work, which will use it to decide snapshot coverage |
+| `since` / `deprecatedSince` | per-component release metadata |
+
+If you need one before its item lands, **add it to `_contract.ts` first** so there is one
+contract rather than two competing conventions.
+
+## Related verification
+
+| Script | Command | Gate? | State |
+| --- | --- | --- | --- |
+| `verify-stories.mjs` | `bun run verify:stories` | **yes** (exit 1 on contract violation) | passing; runs in CI |
+| `verify-a11y.mjs` | `bun run verify:a11y` | no — reports only, by design | reports violations, see [accessibility.md](./accessibility.md) |
+| `verify-foundations.mjs` | `bun run verify:foundations` | **yes** (Node `assert`, throws) | **currently failing** — asserts a `comfortable` Button renders at 36px, which it no longer does, and also references a `Blocks/DashboardShell` story that is not in the current index |
+
+`verify-foundations.mjs` is a different kind of check from the other two: it boots
+`storybook-static` in Playwright and asserts *computed* foundation invariants — density
+variables and real geometry, mobile `Container` gutters and reflow, the dark surface
+hierarchy in OKLCH, the 8 distinct chart series colours, `--qx-z-*` stacking values, and
+forced-colors semantics with keyboard focus. It is the only place those cross-cutting
+guarantees are tested at all.
+
+## Story ids are an interface
+
+Story ids are derived from `title` + export name, and three separate systems consume
+them: VRT baseline filenames (`tests/vrt.spec.ts-snapshots/<id>-<theme>.png`), the
+`A11Y_GREP` / `VRT_GREP` scoping filters, and any bookmarked or linked docs URL. Renaming
+a title or an export is an interface change, not a cosmetic one.
+
+
+## docs/testing.md
+
+# Testing
+
+Two independent layers. They answer different questions, use different runners, and are
+run separately. Neither is a superset of the other.
+
+| Layer | Question | Runner | Config | Command |
+| --- | --- | --- | --- | --- |
+| Component tests | Does every story render, behave, and pass axe? | Vitest 4, browser mode | `vitest.config.ts` | `bun run test` |
+| Visual regression | Does anything *look* different from the committed baseline? | Playwright | `playwright.config.ts` | `bun run vrt` |
+
+---
+
+## Layer 1 — component tests (Vitest browser mode)
+
+### Every story is a test
+
+`@storybook/addon-vitest`'s `storybookTest` plugin turns **every export under
+`stories/**`** into a Vitest case. No test file is written by hand. Each case:
+
+1. mounts the component in a real headless Chromium page,
+2. fails on any error thrown during render,
+3. runs the story's `play` function, if it has one,
+4. runs axe over the result (via `addon-a11y`) and fails on violations — see
+   [accessibility.md](./accessibility.md).
+
+Adding a story therefore adds a test. Deleting one deletes a test. There is no separate
+list to keep in sync.
+
+### Commands
+
+| Command | Does |
+| --- | --- |
+| `bun run test` | the whole suite, headless (`vitest run`) |
+| `bun run test:storybook` | same, pinned to the `storybook` project |
+| `bun run test:watch` | watch mode; also boots the workshop so failures get a clickable link into it |
+| `bun run test:coverage` | v8 coverage over the `@qeetrix/ui` source the stories exercise |
+| `bunx vitest run stories/components/actions/button.stories.tsx` | a single file |
+
+### Three things to know before editing `vitest.config.ts`
+
+**1. It reuses `.storybook/main.ts` wholesale.** The plugin applies our `viteFinal`, so
+`@qeetrix/ui` resolves to `../qeetrix-ui/src` in tests exactly as it does in the dev
+server — including the `react`/`react-dom` dedupe, without which every Base UI component
+throws on its first hook. Tests exercise the same source the workshop renders. See
+[architecture.md](./architecture.md#the-react--react-dom-dedupe-is-load-bearing).
+
+**2. There is deliberately no `.storybook/vitest.setup.ts`.** Most Storybook + Vitest
+tutorials tell you to create one that calls `setProjectAnnotations(...)`. **Do not.**
+Since **Storybook 10.3** the addon applies preview annotations automatically; a setup file
+now *double-applies* them and logs a warning. Its absence is a decision, not an omission —
+if you are here because a tutorial said the file should exist, this paragraph is why it
+does not.
+
+**3. Vitest 4, not 3.** This repo is on Vite 8, which Vitest 3 does not support. Vitest 4
+also moved browser providers into their own package, hence the `@vitest/browser-playwright`
+devDependency and `provider: playwright()` in the browser block.
+
+### Browser matrix
+
+Headless **Chromium only**. That is intentional: the wider browser matrix (Firefox/WebKit)
+belongs to the visual layer, and the two layers are independent by design.
+
+### Coverage
+
+`bun run test:coverage` → v8, `text` + `html`, into `coverage/`.
+
+The interesting question is *which `@qeetrix/ui` components the stories actually exercise* —
+and that source lives outside this repo, so the config sets `allowExternal: true` and
+points `include` at `../qeetrix-ui/src/**/*.{ts,tsx}`.
+
+Coverage is **deliberately un-thresholded**. It reports a number; it does not gate on one.
+
+---
+
+## Interaction tests (`play`)
+
+A `play` function runs in two places from one definition: the **Interactions panel** in the
+running workshop, and as a real **Vitest case** in headless Chromium under `bun run test`.
+
+`stories/components/actions/button.stories.tsx` is the reference — copy that shape:
+
+```tsx
+import { expect } from "storybook/test";
+
+export const ClickInteraction: Story = {
+  name: "Interaction: click focuses",
+  args: { children: "Continue" },
+  play: async ({ canvas, userEvent }) => {
+    const button = canvas.getByRole("button", { name: "Continue" });
+    await userEvent.click(button);
+    await expect(button).toHaveFocus();
+  },
+};
+```
+
+Rules that come out of the existing 22 interaction tests:
+
+| Rule | Why |
+| --- | --- |
+| Take `canvas` and `userEvent` from the play context — don't import them | they are scoped to the story's own render |
+| Import `expect`, `screen`, `waitFor`, `waitForElementToBeRemoved` from `storybook/test` | not from `@testing-library/*` |
+| Query by **accessible role and name**, not test ids | an assertion that can only pass for a keyboard- and screen-reader-reachable element is worth more than one that reaches into the DOM |
+| Name the export `…Interaction` and give it a human `name: "Interaction: …"` | the story list stays readable, and the intent is visible in the sidebar |
+| Assert the thing most likely to break silently | for overlays that is *dismissal*, not opening |
+
+### `canvas` vs `screen` — the portal rule
+
+**This is the single most common way an interaction test fails.**
+
+| Content | Query with | Because |
+| --- | --- | --- |
+| Rendered inside the story | `canvas` | `canvas` is scoped to the story's root element |
+| Rendered into a **portal** — dialogs, popovers, menus, tooltips, selects, sheets, comboboxes, date pickers | `screen` | portalled content mounts on `document.body`, **outside** `canvas`, so `canvas` will never find it |
+
+Overlays also **animate in from `opacity: 0`**, so visibility must be *polled*, not asserted
+on the first frame. jsdom would never surface this; a real browser does.
+
+`stories/components/overlays/dialog.stories.tsx` is the reference overlay test:
+
+```tsx
+import { expect, screen, waitFor, waitForElementToBeRemoved } from "storybook/test";
+
+play: async ({ canvas, userEvent }) => {
+  await userEvent.click(canvas.getByRole("button", { name: "Edit profile" }));
+
+  // Dialog content is portalled to document.body, so it is outside `canvas`.
+  const dialog = await screen.findByRole("dialog");
+  await waitFor(() => expect(dialog).toBeVisible());
+
+  await userEvent.keyboard("{Escape}");
+
+  await waitForElementToBeRemoved(() => screen.queryByRole("dialog"));
+},
+```
+
+Note the shape: the **trigger** is in-canvas (`canvas.getByRole`), the **overlay** is
+portalled (`screen.findByRole`). One test, both queries. Eleven story files currently
+import `screen`, and every one of them is an overlay.
+
+---
+
+## Layer 2 — visual regression (VRT)
+
+Snapshot every story × light/dark and diff against committed baselines with Playwright's
+`toHaveScreenshot`. No paid SaaS.
+
+### How it works
+
+- `tests/vrt.spec.ts` enumerates stories from `storybook-static/index.json` — the same
+  source `scripts/verify-a11y.mjs` and `scripts/shoot.mjs` use — and generates one test per
+  story per theme by navigating to `iframe.html?id=…&globals=theme:light|dark`.
+- `tests/serve-static.mjs` serves `storybook-static/` on `VRT_PORT` (default **6178**);
+  Playwright's `webServer` block starts it and waits for `/index.json`.
+- Viewport `900×640` at `deviceScaleFactor: 2`, Chromium only.
+- Tolerance: `maxDiffPixelRatio: 0.01`, `animations: "disabled"`, `caret: "hide"`.
+
+### Commands
+
+```bash
+bun run build                 # storybook-static must exist first
+bun run vrt                   # compare against baselines
+bun run vrt:update            # (re)generate baselines
+VRT_GREP=button bun run vrt   # scope to matching story ids (substring match)
+```
+
+### Baselines must be generated in Linux — and there is nowhere to do that yet
+
+Screenshots are OS- and font-sensitive. Baselines committed from a dev Mac will diff
+against the Linux/Playwright-container renderer.
+
+**`bun run vrt` is not part of CI.** `.github/workflows/ci.yml` runs lint, typecheck,
+`verify:stories`, `test` and `build` — there is no VRT job and no snapshot-generation job.
+Until one exists, `tests/vrt.spec.ts-snapshots/` cannot be generated reproducibly, and
+`bun run vrt` is only meaningful locally against locally-generated baselines.
+
+**Do not commit dev-machine baselines.** When a container job lands, start scoped (a few
+primitives), confirm stability, then expand.
+
+---
+
+## In CI
+
+`.github/workflows/ci.yml` runs on push and PR to `main` / `develop`. The setup is
+unusual for the reason described in [architecture.md](./architecture.md#qeetrixui-is-resolved-from-a-sibling-checkout):
+it checks out **two repos side by side** (`qeetrix-story/` and `qeetrix-ui/`) to reproduce
+the `../qeetrix-ui` relative path, installs both, and runs `bun run build:tokens` in
+`qeetrix-ui` — its `tokens.css` / `tokens.json` / `token-values.ts` are generated and
+gitignored, so a fresh clone does not contain them.
+
+| Gate | Expected |
+| --- | --- |
+| `bun run lint` | **red** — known pre-existing failures |
+| `bun run typecheck` | **red** — known pre-existing failure |
+| `bun run verify:stories` | green |
+| `bun run test` | green |
+| `bun run build` | green |
+| `bun run vrt` | **not run in CI** |
+
+Every gate runs even after an earlier one fails (`if: !cancelled()`), so one run tells you
+the state of all of them instead of one fix-and-rerun cycle per gate. The job still fails
+overall — the lint/typecheck gates are deliberately not `continue-on-error`, because a
+green tick on a broken tree is worse than no CI.
+
+CI tracks `qeetrix-ui@main`, so a red build here can be caused by a commit in the other
+repo.
+
+## What these layers do *not* cover
+
+Stated so nobody assumes coverage that isn't there:
+
+- **RTL** — there is a Direction toolbar global and a `DirectionProvider` decorator, so a
+  human can flip a story to RTL. There is **no RTL test matrix** — nothing runs the suite
+  in RTL.
+- **Dark mode** — the VRT layer would cover it once baselines exist, but the component/a11y
+  run only exercises the default (light) theme. `A11Y_THEME=dark bun run verify:a11y` is the
+  only dark-mode check that exists today, and it reports rather than gates.
+- **Responsive / viewport matrices** — four canonical viewport presets exist in the
+  toolbar (390 / 768 / 1440 / 1920). Nothing runs stories at them automatically. The only
+  automated responsive assertion anywhere is a single mobile `Container` check in
+  `scripts/verify-foundations.mjs`.
+- **Component internals** — unit tests for `@qeetrix/ui` live in `qeetrix-ui`, not here.
+
+
 ## CONTRIBUTING.md
 
-# Contributing to Qeetrix
+# Contributing to qeetrix-story
+
+This is the Storybook workshop for the Qeetrix design system. It **documents and tests**
+`@qeetrix/ui`; it does not contain it.
+
+> **If your change is to a component's behaviour or styling, it belongs in `qeetrix-ui`,
+> not here.** This repo only changes how that component is demonstrated and verified.
+
+Deeper background: [`docs/architecture.md`](./docs/architecture.md) ·
+[`docs/testing.md`](./docs/testing.md) ·
+[`docs/accessibility.md`](./docs/accessibility.md) ·
+[`docs/governance.md`](./docs/governance.md)
+
+---
 
 ## Setup
 
-```bash
-bun install
-bun run build
+**`@qeetrix/ui` is resolved from a sibling checkout, not from `node_modules`.** Nothing
+works without it.
+
+```
+QG/qeetrix/
+├── qeetrix-ui/      ← clone this too
+└── qeetrix-story/   ← you are here
 ```
 
-Node ≥ 20, Bun ≥ 1.3 (the sole package manager — `bun@>=1.3` in `engines`).
-
-## Add or change a token
-
-Tokens live in [`packages/ui/tokens`](packages/ui/tokens) as W3C Design Tokens JSON
-(`primitive/` → `theme/{light,dark}/{semantic,bridge}.json`). Edit those, then:
-
 ```bash
-bun run --filter @qeetrix/ui build-tokens      # regenerates src/styles/tokens.{css,raw.css,json}
-bun run --filter @qeetrix/ui validate-tokens   # WCAG-AA contrast guard
+git clone https://github.com/qeetgroup/qeetrix-ui.git ../qeetrix-ui
+bun install          # bun, not pnpm or npm — bun >= 1.3, node >= 20
+bun run dev          # workshop on http://localhost:6006
 ```
 
-- The neutral, status, and **brand** ramps are real. Brand is **Qeet orange** (`#F26D0E`,
-  OD-DS-03 — see [docs/adr/0004](docs/adr/0004-brand-color-od-ds-03.md)); the `accent` and
-  `passkey` sub-ramps are still neutral placeholders. Re-brand by re-pointing only the primitive
-  ramps in `primitive/color.json` — semantic, bridge and component layers are untouched.
-- Never hand-edit `:root` / `.dark` in `@qeetrix/ui` — those come from the generated `src/styles/tokens.css`.
+## Local commands
 
-## Add a component
+Only these exist. Do not assume a script that isn't in `package.json`.
 
-```bash
-cd packages/ui
-npx shadcn@latest add <component>   # drops Base UI variants into src/components/ui
+| Command | Does |
+| --- | --- |
+| `bun run dev` | dev server on :6006, no auto-open |
+| `bun run storybook` | dev server on :6006, opens a browser |
+| `bun run build` | `gen-llms` + `storybook build` → `storybook-static/` |
+| `bun run llms` | regenerate `llms.txt` / `llms-full.txt` only |
+| `bun run test` | component tests — every story, headless Chromium, includes the axe gate |
+| `bun run test:watch` | watch mode, with links back into the running workshop |
+| `bun run test:coverage` | v8 coverage over the `@qeetrix/ui` source the stories exercise |
+| `bun run verify:stories` | story-contract validation + measured coverage report |
+| `bun run verify:a11y` | colour-contrast report (never fails; needs `storybook-static`) |
+| `bun run verify:foundations` | computed foundation invariants (needs `storybook-static`) |
+| `bun run vrt` / `bun run vrt:update` | visual regression compare / regenerate baselines |
+| `bun run lint` | Biome check |
+| `bun run typecheck` | `tsc --noEmit` |
+| `bun run shoot` | ad-hoc screenshot capture into `screenshots/` |
+| `bun run clean` | remove build + test artefacts |
+
+**Known-failing before you touch anything** — do not chase these unless they are your task:
+
+| Command | State |
+| --- | --- |
+| `bun run lint` | 4 errors + 25 warnings, effectively all in `.storybook/styles.css`, plus one `noNonNullAssertion` in `stories/icons.stories.tsx` |
+| `bun run typecheck` | 1 error — a `tokens.json` cast in `stories/foundations/colors.stories.tsx` |
+| `bun run verify:foundations` | fails on a density geometry assertion, and references a `Blocks/DashboardShell` story not in the current index |
+| `bun run build` | gated on `scripts/gen-llms.mjs`, which is being corrected to read the sibling checkout rather than `node_modules/@qeetrix/ui/src` (the published tarball ships `dist/` only) |
+
+**CI** (`.github/workflows/ci.yml`) runs lint · typecheck · `verify:stories` · `test` ·
+`build` on every push and PR to `main` / `develop`. It checks out `qeetrix-ui` alongside
+this repo and builds its generated tokens first. `lint` and `typecheck` are expected red
+until their pre-existing issues are fixed; every gate still runs, so one CI run reports
+the state of all of them. **VRT is not in CI.**
+
+---
+
+## Adding a component story
+
+Copy **`stories/components/actions/button.stories.tsx`**. It is the reference template: its
+`argTypes` block doubles as a usage cheat-sheet, and its `ClickInteraction` export is the
+reference interaction test.
+
+One file per component: `stories/components/<category>/<kebab-case-name>.stories.tsx`.
+
+`stories/patterns/` (multi-component patterns) and `stories/recipes/` (cross-cutting
+recipes) also exist. Note that **`verify:stories` does not scan them yet** — declare
+`qx({ category, status })` there anyway so nothing has to be retrofitted when it does.
+
+### Required metadata
+
+`bun run verify:stories` fails the run without all of these:
+
+```tsx
+import { Widget } from "@qeetrix/ui";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { qx } from "../_contract";
+
+const meta: Meta<typeof Widget> = {
+  title: "Components/Widget",          // required — no spaces after the slash
+  component: Widget,                   // required*
+  parameters: {
+    qeetrix: qx({ category: "…", status: "…" }),   // required
+    layout: "centered",
+    docs: { description: { component: "…" } },     // required* (see below)
+  },
+  tags: ["autodocs"],                  // required
+};
+export default meta;
+type Story = StoryObj<typeof Widget>;
 ```
 
-Then export it from `src/index.ts`, build (`bun run --filter @qeetrix/ui build`), and add a story in
-`apps/qeetrix-story/stories/primitives/<component>.stories.tsx` importing from `@qeetrix/ui`.
+| Field | Rule |
+| --- | --- |
+| `title` | `Components/<Name>`. **No spaces** in the name segment — it warns, and it makes the story id ugly |
+| `component` | required *unless* the story is composite (documents several exports, e.g. Chart, Sidebar) — in that case a `docs.description.component` string is required instead |
+| `parameters.qeetrix` | `qx({ category, status })`. Vocabularies in [`stories/_contract.ts`](./stories/_contract.ts) — see [`docs/governance.md`](./docs/governance.md) |
+| `tags` | must include `"autodocs"` |
 
-- Components must stay **Base UI only** (no Radix). Client components keep their `"use client"`
-  directive — the `tsc` build preserves it.
+Wrapping in `qx()` is what makes TypeScript check the block — `parameters` is typed
+`any`, so a bare object literal would let `catgory: "actions"` compile.
 
-## Quality gates
+Do **not** add fields the contract doesn't define (`rtl`, `darkMode`, `accessibility`,
+`visualCriticality`, …). If you need one, add it to `_contract.ts` first so there is one
+convention rather than two.
 
-```bash
-bunx turbo run lint typecheck build
-bun run --filter @qeetrix/ui test              # Vitest + axe (also runs in CI)
-bun run --filter @qeetrix/ui validate-tokens
-bun run --filter @qeetrix/docs build-storybook
+### Required states
+
+Every component story should show the states a consumer has to make a decision about.
+Prefer named exports over control-only variation — a state that only exists behind a
+control is not in the docs, not in the test suite, and not in VRT.
+
+| State | When |
+| --- | --- |
+| `Default` | always — the shape a consumer should reach for first |
+| `Variants` | the component has a `variant` prop |
+| `Sizes` | the component has a `size` prop |
+| `Disabled` | the component can be disabled |
+| `Loading` | the component has an async/pending state |
+| `Empty` | the component can render with no data |
+| Error / invalid | the component has a validation or error state |
+| `Interaction: …` | the component has behaviour — see below |
+
+Give each story a `docs.description.story` when the *reason* it exists isn't obvious from
+its name. `dialog.stories.tsx` is a good example of description-per-story.
+
+### Interaction tests
+
+Required for anything in `actions`, `overlays`, `navigation` or `data-entry` — those are
+the categories `verify:stories` measures coverage against.
+
+```tsx
+export const ClickInteraction: Story = {
+  name: "Interaction: click focuses",
+  play: async ({ canvas, userEvent }) => {
+    const button = canvas.getByRole("button", { name: "Continue" });
+    await userEvent.click(button);
+    await expect(button).toHaveFocus();
+  },
+};
 ```
 
-## Releasing
+- Import `expect` / `screen` / `waitFor` / `waitForElementToBeRemoved` from
+  **`storybook/test`**, never `@testing-library/*`.
+- Take `canvas` and `userEvent` from the play context; don't import them.
+- Query by **accessible role and name**, not test ids.
+- **Overlay content is portalled to `document.body` and is not in `canvas` — use
+  `screen`.** In-canvas content uses `canvas`. Getting this wrong is the most common
+  cause of a failing interaction test. `dialog.stories.tsx` is the reference: trigger via
+  `canvas`, dialog via `screen`.
+- Overlays animate in from `opacity: 0` — poll with `waitFor` rather than asserting on
+  the first frame.
+- Assert what breaks silently. For overlays that is **dismissal** (Escape closes it), not
+  opening.
 
-Record a changeset with every user-facing change:
+The `play` function runs in both the Interactions panel and as a real Vitest case under
+`bun run test` — one definition, two consumers.
 
-```bash
-bun run changeset
-```
+### Accessibility requirements
 
-Commit the generated file. Merging to `main` opens a **Version Packages** PR; merging that
-publishes the changed public packages to npm. See [.changeset/README.md](.changeset/README.md).
+The axe gate is set to **`test: "error"`** in `.storybook/preview.ts`. **Any axe violation
+fails `bun run test`.** A new story that trips axe does not merge.
 
-## Decisions (ADRs)
+- Every image/icon needs a text alternative, or `aria-hidden` if decorative.
+- Icon-only controls need an accessible name (`aria-label`).
+- Every form control needs an associated `<label>` / `FieldLabel`.
+- If you can't reach it with Tab, it isn't done.
+- Two rules are excluded from the gate — `region` and `color-contrast`. Read
+  [`docs/accessibility.md`](./docs/accessibility.md) before assuming a contrast problem is
+  yours to fix; the current ones are `@qeetrix/ui` token decisions and cannot be fixed
+  from this repo.
+- axe is a floor, not a grade. It catches a minority of WCAG failures. A clean run does
+  not mean the component is accessible.
 
-Significant, hard-to-reverse choices are recorded in [`docs/adr/`](docs/adr/) (single-package
-strategy, Base UI, the token pipeline, the brand color, releases). Read them before proposing an
-architectural change; to revisit a past decision, add a *new* ADR that supersedes it rather than
-rewriting the old one.
+### Visual regression
+
+Do not commit VRT baselines. They are OS- and font-sensitive and there is no Linux CI
+container to generate them in yet. See [`docs/testing.md`](./docs/testing.md#layer-2--visual-regression-vrt).
+
+---
+
+## PR checklist
+
+- [ ] The change belongs in this repo, not in `qeetrix-ui`.
+- [ ] `bun run verify:stories` passes (no new contract errors, no new title warnings).
+- [ ] `bun run test` passes for the stories you touched — including the axe gate.
+- [ ] New component stories declare `qx({ category, status })`, `tags: ["autodocs"]`, and
+      a `component` or a prose `docs.description.component`.
+- [ ] Required states are covered as named exports, not control-only variation.
+- [ ] Interactive components (`actions` / `overlays` / `navigation` / `data-entry`) have a
+      `play` interaction test, using `screen` for portalled content.
+- [ ] Icon-only controls have accessible names; form controls have labels.
+- [ ] `bun run lint` and `bun run typecheck` introduce **no new** findings (both have a
+      known-failing baseline in CI — see above; do not treat a red tick as your fault
+      without checking which gate and which file).
+- [ ] No VRT baselines committed.
+- [ ] No new fields invented on `parameters.qeetrix` — extend `stories/_contract.ts` first.
+- [ ] Story `title` / export names unchanged, or the id change is intentional (ids are an
+      interface — VRT filenames, grep filters, bookmarked URLs).
+
+## Conventions
+
+- **Bun**, not pnpm or npm.
+- Biome for formatting and linting: 2-space indent, 100-column lines, double quotes,
+  semicolons, trailing commas. Imports are auto-organised.
+- Files prefixed `_` (`_contract.ts`, `_helpers.tsx`, `_intro.tsx`) are not matched by the
+  stories glob — that is how shared helpers stay out of the sidebar.
+- Comments in this repo explain *why*, not *what*. The existing config files are unusually
+  well commented on purpose; match that bar when you change one.

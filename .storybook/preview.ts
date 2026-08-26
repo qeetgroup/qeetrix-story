@@ -1,52 +1,21 @@
 import type { Preview } from "@storybook/react-vite";
-import { addons } from "storybook/preview-api";
 
+import { decorators, globalTypes, syncGlobalsFromChannel, viewportParameters } from "./decorators";
 import { qeetrixTheme } from "./theme";
 import "./styles.css";
 
 /**
- * Drives light/dark via the `.dark` class on <html> — the same class strategy
- * the Qeetrix ThemeProvider uses in production, so stories look identical to apps.
+ * Each toolbar global — theme, density, direction — is a module under ./decorators,
+ * owning its `globalTypes` entry, its document-level side effect, and its decorator.
+ * Viewport is the exception: Storybook 10 provides the tool and the global itself, so
+ * that module contributes parameters only. This file assembles them and owns the
+ * parameters that belong to no single global.
  *
- * A decorator alone only runs when a *story* renders, which leaves pure-MDX pages
- * (e.g. Foundations → Introduction, which has live components but no story exports)
- * stuck on the initial theme. So we also toggle the class straight from the preview
- * channel: `setGlobals` on first load and `globalsUpdated` on every toolbar change.
- * That covers canvas, autodocs, and MDX uniformly — they all share this one iframe,
- * whose `:root`/`.dark` variables come from @qeetrix/ui/styles.css.
+ * Must run at import time, before the first story renders, so pure-MDX pages pick up
+ * the initial `setGlobals`.
  */
-const applyTheme = (theme?: string) => {
-  if (typeof document !== "undefined") {
-    document.documentElement.classList.toggle("dark", theme === "dark");
-  }
-};
+syncGlobalsFromChannel();
 
-const applyDensity = (density?: string) => {
-  if (typeof document === "undefined") return;
-  if (density === "comfortable" || density === "compact") {
-    document.documentElement.setAttribute("data-qx-density", density);
-  } else {
-    document.documentElement.removeAttribute("data-qx-density");
-  }
-};
-
-const applyGlobals = (globals?: { theme?: string; density?: string }) => {
-  applyTheme(globals?.theme);
-  applyDensity(globals?.density);
-};
-
-try {
-  const channel = addons.getChannel();
-  channel.on("setGlobals", ({ globals }: { globals?: { theme?: string; density?: string } }) =>
-    applyGlobals(globals),
-  );
-  channel.on("globalsUpdated", ({ globals }: { globals?: { theme?: string; density?: string } }) =>
-    applyGlobals(globals),
-  );
-} catch {
-  // Channel not ready (or unavailable in this context); the decorator below still
-  // syncs the class on story renders.
-}
 const preview: Preview = {
   parameters: {
     controls: { expanded: true },
@@ -55,55 +24,40 @@ const preview: Preview = {
     // Autodocs pages adopt the shared brand theme (typography + accent) so the
     // docs read as Qeet product docs, not stock Storybook.
     docs: { theme: qeetrixTheme },
+    // Replaces Storybook's 28 stock devices with the four canonical Qeetrix
+    // breakpoints. See decorators/viewport.decorator.tsx.
+    viewport: viewportParameters,
     a11y: {
-      // A story renders a single component into #storybook-root — not a full
-      // document — so axe's "region" rule (every bit of page content must sit
-      // inside a landmark like <main>/<nav>) is a false positive here: that's
-      // the app shell's responsibility, not a primitive's. Left on, it flags
-      // ~85 violations across nearly every story and drowns out the real ones.
-      options: { rules: { region: { enabled: false } } },
-    },
-  },
-  globalTypes: {
-    theme: {
-      description: "Light / dark",
-      defaultValue: "light",
-      toolbar: {
-        title: "Theme",
-        icon: "circlehollow",
-        items: [
-          { value: "light", title: "Light" },
-          { value: "dark", title: "Dark" },
-        ],
-        dynamicTitle: true,
-      },
-    },
-    density: {
-      description: "Legacy / comfortable / compact",
-      defaultValue: "legacy",
-      toolbar: {
-        title: "Density",
-        icon: "component",
-        items: [
-          { value: "legacy", title: "Legacy" },
-          { value: "comfortable", title: "Comfortable" },
-          { value: "compact", title: "Compact" },
-        ],
-        dynamicTitle: true,
+      // Accessibility is a gate: any axe violation fails `bun run test`.
+      test: "error",
+      options: {
+        rules: {
+          // A story renders a single component into #storybook-root — not a full
+          // document — so axe's "region" rule (every bit of page content must sit
+          // inside a landmark like <main>/<nav>) is a false positive here: that's
+          // the app shell's responsibility, not a primitive's. Left on, it flags
+          // ~85 violations across nearly every story and drowns out the real ones.
+          region: { enabled: false },
+          // Excluded from the gate, NOT resolved. 162 violations across 85 story
+          // files, all tracing to semantic token pairings in @qeetrix/ui rather than
+          // to anything a story can fix — so they cannot be addressed from this repo.
+          //
+          // The severity is bimodal, and the bad half is genuinely bad:
+          //   4.34:1  #737373 on #f5f5f5  (muted-foreground on muted) — a near-miss
+          //   2.88:1  #ff6900 on #ffffff  — well short
+          //   1.15:1  #ffffff on #e5f0f6  — Callout pairs *-foreground tokens (pure
+          //           white, meant for solid fills) with 10% tints, so info/success/
+          //           warning callout text is effectively invisible in light mode.
+          //
+          // `bun run verify:a11y` reports the live number; re-enable this rule once
+          // the tokens are corrected.
+          "color-contrast": { enabled: false },
+        },
       },
     },
   },
-  decorators: [
-    (Story, ctx) => {
-      // First-paint sync for story renders (the channel listeners handle MDX +
-      // subsequent toolbar changes).
-      applyGlobals({
-        theme: (ctx.globals as { theme?: string }).theme ?? "light",
-        density: (ctx.globals as { density?: string }).density ?? "legacy",
-      });
-      return Story();
-    },
-  ],
+  globalTypes,
+  decorators,
 };
 
 export default preview;

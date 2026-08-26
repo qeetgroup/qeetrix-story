@@ -1,0 +1,136 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Visual regression baselines (referenced by tests/README.md and the header of
+# playwright.config.ts, which have pointed at this file since before it existed).
+#
+# Screenshots are OS- and font-sensitive: a baseline captured on a dev Mac will
+# diff against any Linux renderer. So this job runs inside the OFFICIAL PLAYWRIGHT
+# CONTAINER, which is the only environment allowed to produce or compare
+# `tests/vrt.spec.ts-snapshots/`. Never commit baselines from a laptop.
+#
+# Manual only (workflow_dispatch), deliberately:
+#   * `update` — (re)generates baselines and uploads them as an artifact for a
+#     human to download and commit. The job does not push; that keeps a review
+#     step between "pixels changed" and "pixels approved".
+#   * `check`  — compares the current build against the committed baselines.
+# Once `tests/vrt.spec.ts-snapshots/` is populated and stable, `check` is a
+# reasonable thing to promote onto pull_request in ci.yml. It is not on PRs yet
+# because there are no committed baselines to compare against.
+#
+# The two-checkout layout mirrors ci.yml — see the long note at the top of that
+# file for why the sibling qeetrix-ui checkout and its `build:tokens` step are
+# mandatory rather than an optimisation.
+#
+# The container tag MUST match the resolved @playwright/test version in bun.lock;
+# a mismatch silently changes the renderer and invalidates every baseline.
+# ─────────────────────────────────────────────────────────────────────────────
+name: VRT baselines
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "update = regenerate baselines · check = diff against committed baselines"
+        type: choice
+        options: [update, check]
+        default: update
+      grep:
+        description: "Optional story-id filter (VRT_GREP), e.g. `button`. Empty = all stories."
+        type: string
+        default: ""
+
+concurrency:
+  group: vrt-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: 1.3.14
+
+jobs:
+  vrt:
+    name: ${{ inputs.mode }} baselines (Linux container)
+    runs-on: ubuntu-24.04
+    # Browsers + system fonts are preinstalled here, which is the whole point:
+    # deterministic rasterisation. Keep the tag in step with bun.lock.
+    container: mcr.microsoft.com/playwright:v1.62.1-noble
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: qeetrix-story
+
+    steps:
+      - name: Checkout qeetrix-story
+        uses: actions/checkout@v4
+        with:
+          path: qeetrix-story
+
+      - name: Checkout qeetrix-ui (sibling source @qeetrix/ui resolves to)
+        uses: actions/checkout@v4
+        with:
+          repository: qeetgroup/qeetrix-ui
+          ref: main
+          path: qeetrix-ui
+
+      # setup-bun extracts a .zip via @actions/tool-cache, which shells out to
+      # `unzip`. The runner image has it; the Playwright container may not.
+      - name: Ensure unzip is present
+        working-directory: .
+        run: apt-get update -qq && apt-get install -y -qq --no-install-recommends unzip
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - name: Cache Bun install cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-vrt-${{ env.BUN_VERSION }}-${{ hashFiles('qeetrix-story/bun.lock', 'qeetrix-ui/bun.lock') }}
+          restore-keys: |
+            bun-vrt-${{ env.BUN_VERSION }}-
+
+      - name: Install workshop dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install @qeetrix/ui dependencies
+        working-directory: qeetrix-ui
+        run: bun install --frozen-lockfile
+
+      - name: Build @qeetrix/ui design tokens
+        working-directory: qeetrix-ui
+        run: bun run build:tokens
+
+      # VRT diffs the built site, not the dev server — storybook-static must exist
+      # before playwright.config.ts's webServer (tests/serve-static.mjs) can serve it.
+      - name: Build Storybook
+        run: bun run build
+
+      - name: Run VRT (${{ inputs.mode }})
+        env:
+          VRT_GREP: ${{ inputs.grep }}
+        run: bun run ${{ inputs.mode == 'update' && 'vrt:update' || 'vrt' }}
+
+      - name: Upload baselines for review
+        if: ${{ inputs.mode == 'update' && !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrt-baselines
+          path: qeetrix-story/tests/vrt.spec.ts-snapshots
+          if-no-files-found: error
+          retention-days: 14
+
+      # Diff images + traces for a failed `check`; this is what you look at to
+      # decide whether a visual change is a regression or an intended update.
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            qeetrix-story/playwright-report
+            qeetrix-story/test-results
+          if-no-files-found: ignore
+          retention-days: 14

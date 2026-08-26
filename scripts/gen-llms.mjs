@@ -2,45 +2,66 @@
  * gen-llms.mjs — generate llms.txt + llms-full.txt for the Qeetrix docs site
  * (Gap 6 — AI-agent-ready docs; llmstxt.org convention).
  *
- * Reads the @qeetrix/ui barrel (export surface), the generated token summary,
- * and the narrative guides, then writes:
+ * Reads the @qeetrix/ui component tree, the generated token summary, and the
+ * narrative guides, then writes:
  *   .storybook/public/llms.txt      — concise index with links (for discovery)
  *   .storybook/public/llms-full.txt — guides + key docs concatenated (full ctx)
  *
  * staticDirs:["./public"] ships these at the docs-site root. Runs before
- * `storybook build` (see the docs `build` script) and via `bun run ... llms`.
+ * `storybook build` (see the docs `build` script) and via `bun run llms`.
+ *
+ * SOURCE OF TRUTH for the component list + token count: the sibling ../qeetrix-ui
+ * checkout, NOT node_modules. The published @qeetrix/ui tarball ships only dist/ —
+ * no src/, no tokens.json — so nothing this script reads is in node_modules. The
+ * workshop already renders that sibling source (see the alias block in
+ * `.storybook/main.ts`, reused by `vitest.config.ts`), so resolving it the same way
+ * here keeps one convention: the docs describe exactly what the workshop renders.
+ * Prose sources (guides, docs/, CONTRIBUTING.md) come from this repo.
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DOCS = join(dirname(fileURLToPath(import.meta.url)), "..");
-const UI = join(DOCS, "node_modules/@qeetrix/ui");
 const OUT = join(DOCS, ".storybook/public");
 const SITE = "https://qeetrix.qeet.in"; // docs site origin (adjust if it moves)
 
+/** Absolute path inside the sibling @qeetrix/ui checkout — mirrors `.storybook/main.ts`. */
+const ui = (p) => fileURLToPath(new URL(`../../qeetrix-ui/${p}`, import.meta.url));
+
+const UI_COMPONENTS = ui("src/components");
+
+if (!existsSync(UI_COMPONENTS)) {
+  console.error(
+    `✖ gen-llms: @qeetrix/ui source not found at ${UI_COMPONENTS}\n` +
+      "  This workshop resolves @qeetrix/ui from a sibling checkout, not from node_modules\n" +
+      "  (the published tarball ships dist/ only). Clone it next to this repo:\n" +
+      "    git clone https://github.com/qeetgroup/qeetrix-ui.git ../qeetrix-ui\n" +
+      "  See the alias block in .storybook/main.ts — `storybook build` needs it too.",
+  );
+  process.exit(1);
+}
+
 const read = (p) => (existsSync(p) ? readFileSync(p, "utf8") : "");
 
-// --- export surface from the barrel -----------------------------------------
-const barrel = read(join(UI, "src/index.ts"));
-const exportNames = new Set();
-for (const m of barrel.matchAll(/export\s+(?:type\s+)?\{([^}]*)\}/g)) {
-  for (const raw of m[1].split(",")) {
-    const spec = raw.trim().replace(/\s+as\s+/, " as ");
-    if (!spec) continue;
-    const name = spec.includes(" as ") ? spec.split(" as ")[1].trim() : spec;
-    if (/^[A-Za-z_$][\w$]*$/.test(name)) exportNames.add(name);
-  }
-}
-const components = readdirSync(join(UI, "src/components/ui"))
-  .filter((f) => /\.tsx$/.test(f) && !/\.(test|stories)\.tsx$/.test(f))
-  .map((f) => f.replace(/\.tsx$/, ""))
+// --- component modules -------------------------------------------------------
+// Components are organised component-first: src/components/<Family>/<module>.tsx
+// (e.g. Button/{button,button-group,icon-button,…}.tsx). A family is a directory,
+// so recurse one level and collect the kebab-case module files. `index.ts` is the
+// family barrel and `__tests__/` holds specs — neither is a component.
+const components = readdirSync(UI_COMPONENTS, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && e.name !== "__tests__")
+  .flatMap((family) =>
+    readdirSync(join(UI_COMPONENTS, family.name))
+      .filter((f) => /\.tsx$/.test(f) && !/\.(test|spec|stories)\.tsx$/.test(f))
+      .map((f) => f.replace(/\.tsx$/, "")),
+  )
   .sort();
 
 // --- token summary -----------------------------------------------------------
 let tokenCount = 0;
 try {
-  const tokens = JSON.parse(read(join(UI, "src/styles/tokens.json")));
+  const tokens = JSON.parse(read(ui("src/styles/tokens.json")));
   tokenCount = (JSON.stringify(tokens.light).match(/"[^"]+":\s*"/g) || []).length;
 } catch {
   // tokens.json not generated yet — leave count at 0
@@ -87,10 +108,9 @@ ${components.map((c) => `- ${c}`).join("\n")}
 
 ## Design tokens (~${tokenCount} per theme)
 
-Authored as W3C DTCG JSON (\`packages/qeetrix-ui/tokens/**\`), compiled by Style Dictionary to
+Authored as W3C DTCG JSON (\`qeetrix-ui/src/tokens/**\`), compiled by Style Dictionary to
 CSS custom properties (\`--qx-*\`) + JSON. Colour is OKLCH; every required text/surface
-pair is held to WCAG-AA by a build gate. Brand = Qeet orange (\`#F26D0E\`). A Tokens
-Studio / Figma export lives at \`packages/qeetrix-ui/tokens-studio/\`.
+pair is held to WCAG-AA by a build gate. Brand = Qeet orange (\`#F26D0E\`).
 
 ## Guides
 
@@ -100,16 +120,31 @@ ${guides.length ? guides.map((g) => `- [${guideTitle(g)}](${SITE}/?path=/docs/gu
 
 - Storybook workshop: ${SITE}
 - Full component + token context: ${SITE}/llms-full.txt
-- Architecture decisions: docs/adr/ · Accessibility/VPAT: docs/accessibility/
+- Workshop docs: \`docs/\` · Contributing: \`CONTRIBUTING.md\` · Source: github.com/qeetgroup/qeetrix-ui
 `;
 
 // --- compose llms-full.txt ---------------------------------------------------
+// Everything concatenated here is checked into THIS repo, so the full-context file
+// can never drift against an unrelated checkout: the narrative guides, then the
+// long-form docs. `docs/` is enumerated rather than listed so adding a doc ships it
+// automatically instead of silently missing it.
+const docsDir = join(DOCS, "docs");
+const longDocs = [
+  ...(existsSync(docsDir)
+    ? readdirSync(docsDir)
+        .filter((f) => f.endsWith(".md"))
+        .sort()
+        .map((f) => `docs/${f}`)
+    : []),
+  "CONTRIBUTING.md",
+];
+
 const parts = [llms, "\n\n---\n\n# Full context\n"];
 for (const g of guides) {
   parts.push(`\n\n## Guide: ${guideTitle(g)}\n\n${read(join(guidesDir, g))}`);
 }
-for (const doc of ["docs/accessibility/README.md", "docs/adr/README.md", "CONTRIBUTING.md"]) {
-  const body = read(join(ROOT, doc));
+for (const doc of longDocs) {
+  const body = read(join(DOCS, doc));
   if (body) parts.push(`\n\n## ${doc}\n\n${body}`);
 }
 
