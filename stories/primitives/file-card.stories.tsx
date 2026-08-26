@@ -1,6 +1,6 @@
 import { Button, FileCard } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { DownloadIcon } from "lucide-react";
+import { DocumentDownload } from "@qeetrix/icons";
 
 const meta: Meta<typeof FileCard> = {
   title: "Primitives/FileCard",
@@ -21,7 +21,7 @@ type Story = StoryObj<typeof FileCard>;
 
 const action = (
   <Button variant="ghost" size="icon-sm" aria-label="Download">
-    <DownloadIcon />
+    <DocumentDownload />
   </Button>
 );
 

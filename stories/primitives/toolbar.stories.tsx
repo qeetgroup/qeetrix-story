@@ -1,13 +1,6 @@
 import { Toolbar, ToolbarButton, ToolbarGroup, ToolbarSeparator } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import {
-  AlignCenterIcon,
-  AlignLeftIcon,
-  AlignRightIcon,
-  BoldIcon,
-  ItalicIcon,
-  UnderlineIcon,
-} from "lucide-react";
+import { TextBold, TextItalic, TextUnderline, TextalignCenter, TextalignLeft, TextalignRight } from "@qeetrix/icons";
 
 const meta: Meta<typeof Toolbar> = {
   title: "Primitives/Toolbar",
@@ -39,25 +32,25 @@ export const Default: Story = {
     <Toolbar aria-label="Formatting">
       <ToolbarGroup>
         <ToolbarButton aria-label="Bold">
-          <BoldIcon />
+          <TextBold />
         </ToolbarButton>
         <ToolbarButton aria-label="Italic">
-          <ItalicIcon />
+          <TextItalic />
         </ToolbarButton>
         <ToolbarButton aria-label="Underline">
-          <UnderlineIcon />
+          <TextUnderline />
         </ToolbarButton>
       </ToolbarGroup>
       <ToolbarSeparator />
       <ToolbarGroup>
         <ToolbarButton aria-label="Align left">
-          <AlignLeftIcon />
+          <TextalignLeft />
         </ToolbarButton>
         <ToolbarButton aria-label="Align center">
-          <AlignCenterIcon />
+          <TextalignCenter />
         </ToolbarButton>
         <ToolbarButton aria-label="Align right">
-          <AlignRightIcon />
+          <TextalignRight />
         </ToolbarButton>
       </ToolbarGroup>
     </Toolbar>

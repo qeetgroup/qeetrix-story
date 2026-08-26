@@ -1,6 +1,6 @@
 import { Button, EmptyState } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { InboxIcon, PlusIcon, SearchXIcon } from "lucide-react";
+import { Add, DirectInbox, SearchNormal } from "@qeetrix/icons";
 
 const meta: Meta<typeof EmptyState> = {
   title: "Primitives/EmptyState",
@@ -31,12 +31,12 @@ export const Default: Story = {
   render: () => (
     <div className="rounded-xl ring-1 ring-foreground/10">
       <EmptyState
-        icon={InboxIcon}
+        icon={DirectInbox}
         title="No API keys yet"
         description="Create your first key to start authenticating requests to the Qeet ID API."
         action={
           <Button>
-            <PlusIcon /> New API key
+            <Add /> New API key
           </Button>
         }
       />
@@ -56,7 +56,7 @@ export const NoResults: Story = {
   render: () => (
     <div className="rounded-xl ring-1 ring-foreground/10">
       <EmptyState
-        icon={SearchXIcon}
+        icon={SearchNormal}
         title="No matches"
         description="No results for “acme-prod”. Try a different search term."
       />

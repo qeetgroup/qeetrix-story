@@ -65,7 +65,7 @@ export const WithImage: Story = {
       </PreviewCardTrigger>
       <PreviewCardContent
         imageUrl="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=640&q=80"
-        title="Qeetrix 1.0.3 — 145 UI modules"
+        title="Qeetrix 2.0.0 — 145 UI modules"
         description="Ships Timer, QRCode, Tour, PreviewCard, ToggleTip, and ActionBar. All components pass WCAG AA colour-contrast checks."
         url="ui.qeet.in/changelog#v0.4.0"
       />

@@ -10,7 +10,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 /** Absolute path inside the @qeetrix/ui package. */
 const ui = (p: string) =>
-  fileURLToPath(new URL(`../../../packages/qeetrix-ui/${p}`, import.meta.url));
+  fileURLToPath(new URL(`../../qeetrix-ui/${p}`, import.meta.url));
+
 
 const config: StorybookConfig = {
   stories: ["../stories/**/*.mdx", "../stories/**/*.stories.@(ts|tsx)"],
@@ -35,7 +36,7 @@ const config: StorybookConfig = {
     // hooks/*, fonts/*) to src/<subpath>; the bare specifier maps to the barrel.
     const src = ui("src");
     const sourceAliases = [
-      { find: /^@qeetrix\/ui\/styles\.css$/, replacement: ui("src/index.css") },
+      { find: /^@qeetrix\/ui\/styles\.css$/, replacement: ui("src/styles/index.css") },
       {
         find: /^@qeetrix\/ui\/tokens\.css$/,
         replacement: ui("src/styles/tokens.raw.css"),
@@ -65,6 +66,19 @@ const config: StorybookConfig = {
       ...cfg.resolve,
       alias: [...sourceAliases, ...existingArray],
     };
+
+    // Allow Vite's dev server to serve files from outside the default project root.
+    // Setting fs.allow explicitly replaces Vite's workspace-root discovery, so we
+    // must re-add the Storybook project root alongside the qeetrix-ui sibling.
+    const projectRoot = fileURLToPath(new URL("..", import.meta.url));
+    cfg.server = {
+      ...cfg.server,
+      fs: {
+        ...cfg.server?.fs,
+        allow: [...(cfg.server?.fs?.allow ?? []), projectRoot, ui("")],
+      },
+    };
+
     return cfg;
   },
 };

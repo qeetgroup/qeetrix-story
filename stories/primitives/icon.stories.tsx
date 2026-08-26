@@ -1,6 +1,6 @@
 import { ICON_SIZE, ICON_STROKE, Icon } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { Bell, Check, Lock, Search, Settings, Star, User, Zap } from "lucide-react";
+import { Bell, Check, Flash, Lock, Search, Settings, Star, User } from "@qeetrix/icons";
 
 const meta: Meta<typeof Icon> = {
   title: "Primitives/Icon",
@@ -10,7 +10,7 @@ const meta: Meta<typeof Icon> = {
     docs: {
       description: {
         component:
-          "Wrapper that places any lucide-react icon (or brand icon) onto the Qeetrix size/stroke scale. Decorative by default (`aria-hidden`); pass `title` for an accessible label. The scale mirrors `tokens/primitive/icon.json` — `xs` 14px · `sm` 16px · `md` 20px (default) · `lg` 24px.",
+          "Wrapper that places any Qeetrix icon onto the Qeetrix size scale. Decorative by default (`aria-hidden`); pass `title` for an accessible label. The scale mirrors `tokens/primitive/icon.json` — `xs` 14px · `sm` 16px · `md` 20px (default) · `lg` 24px.",
       },
     },
   },
@@ -47,7 +47,7 @@ export const Strokes: Story = {
     docs: {
       description: {
         story:
-          "`regular` (2px) is the default and matches Lucide's out-of-the-box weight. Use `thin` (1.5px) for display-scale icons inside hero headings or large stat tiles.",
+          "`regular` (2px) is the default stroke weight for the Icon wrapper. Use `thin` (1.5px) for display-scale icons inside hero headings or large stat tiles.",
       },
     },
   },
@@ -55,7 +55,7 @@ export const Strokes: Story = {
     <div className="flex items-center gap-8">
       {(Object.entries(ICON_STROKE) as [keyof typeof ICON_STROKE, number][]).map(([key, sw]) => (
         <div key={key} className="flex flex-col items-center gap-2">
-          <Icon icon={Zap} size="lg" stroke={key} />
+          <Icon icon={Flash} size="lg" stroke={key} />
           <code className="text-xs text-muted-foreground">
             {key} · {sw}px
           </code>
@@ -93,16 +93,16 @@ export const Gallery: Story = {
     docs: {
       description: {
         story:
-          "Common lucide-react icons at `md` size with the `regular` stroke — the default configuration. Pass the icon constructor directly as the `icon` prop.",
+          "Common Qeetrix icons at `md` size — the default configuration. Pass the icon constructor directly as the `icon` prop.",
       },
     },
   },
   render: () => (
     <div className="grid grid-cols-4 gap-6">
-      {[Search, Bell, User, Settings, Check, Star, Lock, Zap].map((Ic) => (
-        <div key={Ic.displayName} className="flex flex-col items-center gap-2">
+      {[Search, Bell, User, Settings, Check, Star, Lock, Flash].map((Ic) => (
+        <div key={Ic.name} className="flex flex-col items-center gap-2">
           <Icon icon={Ic} />
-          <code className="text-xs text-muted-foreground">{Ic.displayName}</code>
+          <code className="text-xs text-muted-foreground">{Ic.name}</code>
         </div>
       ))}
     </div>

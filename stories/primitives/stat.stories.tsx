@@ -1,12 +1,6 @@
 import { Stat } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import {
-  ActivityIcon,
-  CreditCardIcon,
-  KeyRoundIcon,
-  TrendingUpIcon,
-  UsersIcon,
-} from "lucide-react";
+import { Activity, Card, Key, People, TrendUp } from "@qeetrix/icons";
 
 const meta: Meta<typeof Stat> = {
   title: "Primitives/Stat",
@@ -49,7 +43,7 @@ export const Grid: Story = {
     docs: {
       description: {
         story:
-          "Three Qeet ID identity-platform metrics side-by-side. Pass an `icon` from lucide-react to anchor the tile visually and give quick-scan recognition in dense dashboards.",
+          "Three Qeet ID identity-platform metrics side-by-side. Pass an `icon` from @qeetrix/icons to anchor the tile visually and give quick-scan recognition in dense dashboards.",
       },
     },
   },
@@ -61,7 +55,7 @@ export const Grid: Story = {
         delta="+12.5%"
         trend="up"
         hint="vs. last 30 days"
-        icon={UsersIcon}
+        icon={People}
       />
       <Stat
         label="Failed logins"
@@ -69,7 +63,7 @@ export const Grid: Story = {
         delta="-4.1%"
         trend="down"
         hint="vs. last 30 days"
-        icon={ActivityIcon}
+        icon={Activity}
       />
       <Stat
         label="Active API keys"
@@ -77,7 +71,7 @@ export const Grid: Story = {
         delta="0%"
         trend="neutral"
         hint="no change"
-        icon={KeyRoundIcon}
+        icon={Key}
       />
     </div>
   ),
@@ -100,7 +94,7 @@ export const PaymentMetrics: Story = {
         delta="+9.3%"
         trend="up"
         hint="vs. last month"
-        icon={TrendingUpIcon}
+        icon={TrendUp}
       />
       <Stat
         label="Transactions"
@@ -108,7 +102,7 @@ export const PaymentMetrics: Story = {
         delta="+5.2%"
         trend="up"
         hint="vs. last month"
-        icon={CreditCardIcon}
+        icon={Card}
       />
       <Stat
         label="Failed payments"
@@ -116,7 +110,7 @@ export const PaymentMetrics: Story = {
         delta="+2"
         trend="down"
         hint="vs. last month"
-        icon={ActivityIcon}
+        icon={Activity}
       />
     </div>
   ),

@@ -1,6 +1,6 @@
 import { Callout } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { KeyRoundIcon } from "lucide-react";
+import { Key } from "@qeetrix/icons";
 
 const meta: Meta<typeof Callout> = {
   title: "Primitives/Callout",
@@ -122,7 +122,7 @@ export const CustomIcon: Story = {
   render: () => (
     <Callout
       variant="info"
-      icon={<KeyRoundIcon className="mt-0.5 size-4 shrink-0" />}
+      icon={<Key width={16} height={16} className="mt-0.5 shrink-0" />}
       title="API key format"
       className="max-w-lg"
     >

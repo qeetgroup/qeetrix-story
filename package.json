@@ -22,19 +22,21 @@
     "clean": "rm -rf storybook-static screenshots test-results playwright-report"
   },
   "dependencies": {
-    "@qeetrix/ui": "^1.0.3",
+    "@qeetrix/icons": "1.0.2",
+    "@qeetrix/ui": "^2.0.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.0",
-    "lucide-react": "^0.577.0",
+    "@playwright/test": "^1.61.0",
     "@storybook/addon-a11y": "^10.4.1",
     "@storybook/addon-docs": "^10.4.1",
     "@storybook/addon-themes": "^10.4.1",
     "@storybook/react-vite": "^10.4.1",
     "@tailwindcss/vite": "^4.3.0",
+    "@types/node": "^26.2.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "playwright": "^1.61.0",
