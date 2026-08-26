@@ -167,12 +167,11 @@
 - typography
 - visually-hidden
 
-## Design tokens (~451 per theme)
+## Design tokens (~609 per theme)
 
-Authored as W3C DTCG JSON (`packages/qeetrix-ui/tokens/**`), compiled by Style Dictionary to
+Authored as W3C DTCG JSON (`qeetrix-ui/src/tokens/**`), compiled by Style Dictionary to
 CSS custom properties (`--qx-*`) + JSON. Colour is OKLCH; every required text/surface
-pair is held to WCAG-AA by a build gate. Brand = Qeet orange (`#F26D0E`). A Tokens
-Studio / Figma export lives at `packages/qeetrix-ui/tokens-studio/`.
+pair is held to WCAG-AA by a build gate. Brand = Qeet orange (`#F26D0E`).
 
 ## Guides
 
@@ -186,4 +185,4 @@ Studio / Figma export lives at `packages/qeetrix-ui/tokens-studio/`.
 
 - Storybook workshop: https://qeetrix.qeet.in
 - Full component + token context: https://qeetrix.qeet.in/llms-full.txt
-- Architecture decisions: docs/adr/ · Accessibility/VPAT: docs/accessibility/
+- Workshop docs: `docs/` · Contributing: `CONTRIBUTING.md` · Source: github.com/qeetgroup/qeetrix-ui

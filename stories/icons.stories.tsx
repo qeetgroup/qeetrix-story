@@ -105,19 +105,19 @@ function IconTile({
       title={`${name}\nClick to copy import`}
       aria-label={`Copy import for ${name}`}
       onClick={() => onCopy(importLine, name)}
-      className="group relative flex flex-col items-center gap-2 rounded-xl border border-white/10 bg-neutral-900 p-3 text-center transition-all duration-150 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-white/25 hover:bg-neutral-800 active:scale-[0.96]"
+      className="group relative flex flex-col items-center gap-2 rounded-xl border border-neutral-200 bg-neutral-100 p-3 text-center transition-all duration-150 ease-[cubic-bezier(0.32,0.72,0,1)] hover:border-neutral-300 hover:bg-neutral-200 active:scale-[0.96] dark:border-white/10 dark:bg-neutral-900 dark:hover:border-white/25 dark:hover:bg-neutral-800"
     >
       {isCopied && (
-        <span className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/10">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M20 6 9 17l-5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <span className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-neutral-900/10 dark:bg-white/10">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-neutral-900 dark:text-white">
+            <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </span>
       )}
       <span className="flex h-10 w-10 items-center justify-center">
-        <Comp width={px} height={px} variant={variant} />
+        <Comp width={px} height={px} variant={variant} className="text-neutral-900 dark:text-white" />
       </span>
-      <span className="w-full truncate text-[10px] leading-tight text-neutral-400">
+      <span className="w-full truncate text-[10px] leading-tight text-neutral-500 dark:text-neutral-400">
         {kebab}
       </span>
     </button>
@@ -194,6 +194,7 @@ function AllIconsPage() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Size</span>
             <select
+              aria-label="Icon size"
               value={px}
               onChange={(e) => setPx(Number(e.target.value))}
               className="h-8 rounded-lg border border-border bg-muted px-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"

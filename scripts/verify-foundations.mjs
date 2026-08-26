@@ -94,7 +94,7 @@ try {
   console.log("PASS density variables and component geometry");
 
   await page.setViewportSize({ width: 375, height: 812 });
-  await openStory("primitives-container--default");
+  await openStory("components-layout-container--default");
   const container = await page.evaluate(() => {
     const element = document.querySelector('[data-slot="container"]');
     const rect = element.getBoundingClientRect();
@@ -164,7 +164,7 @@ try {
   console.log("PASS semantic token layers and generated runtime parity");
 
   await page.emulateMedia({ colorScheme: "dark", forcedColors: "active" });
-  await openStory("primitives-button--default", "theme:dark;density:comfortable");
+  await openStory("components-actions-button--default", "theme:dark;density:comfortable");
   await page.keyboard.press("Tab");
   const forcedColors = await page.evaluate(() => {
     const root = getComputedStyle(document.documentElement);

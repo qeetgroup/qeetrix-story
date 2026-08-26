@@ -5,17 +5,22 @@ import tailwindcss from "@tailwindcss/vite";
 /**
  * Storybook 10 workshop for the Qeetrix design system.
  * Controls / actions / viewport / docs are built into core in SB10, so only
- * a11y and themes are added explicitly. Tailwind v4 is wired via its Vite plugin.
+ * a11y, themes and vitest are added explicitly. Tailwind v4 is wired via its Vite
+ * plugin. `addon-vitest` powers the Testing widget in the sidebar; the run itself
+ * is configured in `vitest.config.ts`.
  */
 
 /** Absolute path inside the @qeetrix/ui package. */
-const ui = (p: string) =>
-  fileURLToPath(new URL(`../../qeetrix-ui/${p}`, import.meta.url));
-
+const ui = (p: string) => fileURLToPath(new URL(`../../qeetrix-ui/${p}`, import.meta.url));
 
 const config: StorybookConfig = {
   stories: ["../stories/**/*.mdx", "../stories/**/*.stories.@(ts|tsx)"],
-  addons: ["@storybook/addon-docs", "@storybook/addon-a11y", "@storybook/addon-themes"],
+  addons: [
+    "@storybook/addon-docs",
+    "@storybook/addon-a11y",
+    "@storybook/addon-themes",
+    "@storybook/addon-vitest",
+  ],
   framework: {
     name: "@storybook/react-vite",
     options: {},
@@ -62,9 +67,18 @@ const config: StorybookConfig = {
             replacement: replacement as string,
           }))
         : [];
+    // Because the aliases above pull @qeetrix/ui from a sibling checkout, anything
+    // that package imports (React itself, and Base UI's hooks) resolves against
+    // ../qeetrix-ui/node_modules — a second physical copy of React, even though the
+    // versions match. Two copies means two dispatchers, so the first hook call in a
+    // Base UI component throws "Cannot read properties of null (reading 'useRef')".
+    // The dev server hides this by pre-bundling everything into one optimized copy;
+    // Vitest's browser mode does not, so it must be deduped explicitly. Shared here
+    // rather than in vitest.config.ts so dev, build and test resolve identically.
     cfg.resolve = {
       ...cfg.resolve,
       alias: [...sourceAliases, ...existingArray],
+      dedupe: [...(cfg.resolve?.dedupe ?? []), "react", "react-dom"],
     };
 
     // Allow Vite's dev server to serve files from outside the default project root.

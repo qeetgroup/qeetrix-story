@@ -9,6 +9,7 @@ storybook-static
 screenshots
 test-results
 playwright-report
+coverage
 
 # Logs
 *.log
