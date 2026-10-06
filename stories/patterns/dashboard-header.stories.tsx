@@ -1,4 +1,12 @@
-import { Activity, Add, Danger, Key, People, RefreshCircle, Wallet } from "@qeetrix/icons";
+import {
+  ActivityIcon,
+  KeyRoundIcon,
+  PlusIcon,
+  RefreshCwIcon,
+  TriangleAlertIcon,
+  UsersIcon,
+  WalletIcon,
+} from "@qeetrix/icons";
 import {
   Alert,
   AlertDescription,
@@ -93,7 +101,7 @@ function StatsRow() {
         value="12,480"
         delta="+8.2%"
         trend="up"
-        icon={People}
+        icon={UsersIcon}
         hint="vs. the previous 30 days"
       />
       <Stat
@@ -101,7 +109,7 @@ function StatsRow() {
         value="94.1%"
         delta="+3.4 pts"
         trend="up"
-        icon={Key}
+        icon={KeyRoundIcon}
         hint="Target for FY26 is 95%"
       />
       <Stat
@@ -109,7 +117,7 @@ function StatsRow() {
         value="318"
         delta="+41%"
         trend="down"
-        icon={Activity}
+        icon={ActivityIcon}
         hint="Mostly one IP range in ap-south-1"
       />
       <Stat
@@ -117,7 +125,7 @@ function StatsRow() {
         value="₹4,86,200"
         delta="+2.1%"
         trend="neutral"
-        icon={Wallet}
+        icon={WalletIcon}
         hint="Invoiced by Qeet Pay on 01 Apr"
       />
     </div>
@@ -181,7 +189,7 @@ export const Default: Story = {
             <RangePicker />
             <OverflowMenu />
             <Button>
-              <Add />
+              <PlusIcon />
               Invite member
             </Button>
           </>
@@ -230,11 +238,11 @@ export const WithStatusAndFreshness: Story = {
         actions={
           <>
             <Button variant="outline">
-              <RefreshCircle color="currentColor" />
+              <RefreshCwIcon />
               Refresh
             </Button>
             <Button>
-              <Add />
+              <PlusIcon />
               Invite member
             </Button>
           </>
@@ -270,13 +278,13 @@ export const WithIncidentBanner: Story = {
         description="Identity and access for the Acme Technologies tenant."
         actions={
           <Button>
-            <Add />
+            <PlusIcon />
             Invite member
           </Button>
         }
       />
       <Alert variant="warning">
-        <Danger color="currentColor" />
+        <TriangleAlertIcon />
         <AlertTitle>Figures are 6 hours behind</AlertTitle>
         <AlertDescription>
           Qeet Logs aggregation for ap-south-1 is catching up after a maintenance window. Sign-in
@@ -305,7 +313,7 @@ export const Loading: Story = {
         description="Identity and access for the Acme Technologies tenant."
         actions={
           <Button disabled>
-            <Add />
+            <PlusIcon />
             Invite member
           </Button>
         }

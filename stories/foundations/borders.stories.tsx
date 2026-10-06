@@ -10,7 +10,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "A border in Qeetrix is three decisions with three token families behind them: how thick (`--qx-stroke-width-*`), what line (`--qx-stroke-*`), and what it means (`--qx-color-border-*`). The colour roles are the interesting part — `default`, `subtle` and `strong` are a hierarchy, `hover` and `focused` are states, and `danger`/`success`/`warning`/`info` are status. Because the host-global base layer applies `border-border` to every element, a bare `border` utility already lands on the right colour and only the width has to be stated. Corner rounding is the fourth decision and has its own semantic layer, `--qx-corner-*`, on top of the raw radius ramp documented in Spacing & Radius.",
+          "A border in Qeetrix is three decisions with three token families behind them: how thick (`--qx-stroke-width-*`), what line (`--qx-stroke-*`), and what it means (`--qx-color-border-*`). The colour roles are the interesting part — `default`, `subtle` and `strong` are a decorative hierarchy, `control` is the 3:1 boundary that identifies an interactive control, `brand` is the Qeet indicator, `control-hover`, `hover` and `focused` are states, and `danger`/`success`/`warning`/`info` are status. Because the host-global base layer applies `border-border` to every element, a bare `border` utility already lands on the right colour and only the width has to be stated. Corner rounding is the fourth decision and has its own semantic layer, `--qx-corner-*`, on top of the raw radius ramp documented in Spacing & Radius.",
       },
     },
   },
@@ -30,13 +30,13 @@ const WIDTHS = [
     token: "--qx-stroke-width-thin",
     value: "2px",
     utility: "border-2",
-    note: "Emphasis — a selected card, an active step in a stepper.",
+    note: "Emphasis — a selected card, an active step in a stepper. Also the focus indicator's weight: --qx-focus-outline-width aliases it.",
   },
   {
     token: "--qx-stroke-width-thick",
     value: "3px",
-    utility: "border-4 / ring-3",
-    note: "What --qx-focus-ring-width aliases. Rarely a border; almost always the focus ring.",
+    utility: "border-3",
+    note: "What --qx-focus-ring-width aliases — a token no component draws with since the focus-ring utilities replaced the 3px halo. Rarely right for a border.",
   },
 ];
 
@@ -58,6 +58,9 @@ const COLOUR_ROLES: Array<[string, string]> = [
   ["--qx-color-border-subtle", "subtle"],
   ["--qx-color-border-default", "default"],
   ["--qx-color-border-strong", "strong"],
+  ["--qx-color-border-control", "control"],
+  ["--qx-color-border-control-hover", "control-hover"],
+  ["--qx-color-border-brand", "brand"],
   ["--qx-color-border-hover", "hover"],
   ["--qx-color-border-focused", "focused"],
   ["--qx-color-border-danger", "danger"],
@@ -86,7 +89,7 @@ const CORNERS = [
   { token: "--qx-corner-chip", value: "var(--radius-md)", note: "Badges and tags." },
   { token: "--qx-corner-control", value: "var(--radius-lg)", note: "Buttons and other controls." },
   { token: "--qx-corner-field", value: "var(--radius-lg)", note: "Inputs, selects, textareas." },
-  { token: "--qx-corner-overlay", value: "var(--radius-lg)", note: "Menus, popovers, dialogs." },
+  { token: "--qx-corner-overlay", value: "var(--radius-xl)", note: "Menus, popovers, dialogs." },
   {
     token: "--qx-corner-surface",
     value: "var(--radius-xl)",
@@ -170,7 +173,7 @@ export const ColourRoles: Story = {
     docs: {
       description: {
         story:
-          "Nine border roles, painted from their live variables so they follow the theme toolbar. Hierarchy, state and status are three separate axes — do not borrow across them.",
+          "Twelve border roles, painted from their live variables so they follow the theme toolbar. Hierarchy, the control boundary, state and status are separate axes — do not borrow across them.",
       },
     },
   },
@@ -180,11 +183,15 @@ export const ColourRoles: Story = {
         <Prose>
           <Code>subtle</Code>, <Code>default</Code> and <Code>strong</Code> are a hierarchy: use{" "}
           <Code>subtle</Code> for divisions inside a surface that already has an edge, and{" "}
-          <Code>strong</Code> only when a border has to compete with a busy background.{" "}
-          <Code>hover</Code> and <Code>focused</Code> are interaction states. <Code>danger</Code>,{" "}
-          <Code>success</Code>, <Code>warning</Code> and <Code>info</Code> carry status — and status
-          must never be carried by the border alone, since a colour-blind user reading a form has
-          nothing else to go on.
+          <Code>strong</Code> only when a border has to compete with a busy background. All three
+          are decoration. <Code>control</Code> is not: it is the edge that tells a user an input,
+          select, checkbox or switch track is there, so it reaches 3:1 against every surface it sits
+          on (WCAG 1.4.11) — never draw a field with <Code>default</Code>. <Code>brand</Code> is the
+          Qeet indicator that has to be visible without a fill, such as the active-navigation bar.{" "}
+          <Code>control-hover</Code>, <Code>hover</Code> (its compatibility alias) and{" "}
+          <Code>focused</Code> are interaction states. <Code>danger</Code>, <Code>success</Code>,{" "}
+          <Code>warning</Code> and <Code>info</Code> carry status — and status must never be carried
+          by the border alone, since a colour-blind user reading a form has nothing else to go on.
         </Prose>
         <Grid>
           {COLOUR_ROLES.map(([variable, name]) => (
@@ -200,6 +207,8 @@ export const ColourRoles: Story = {
               ["subtle", "--qx-color-border-subtle"],
               ["default", "--qx-color-border-default"],
               ["strong", "--qx-color-border-strong"],
+              ["control", "--qx-color-border-control"],
+              ["brand", "--qx-color-border-brand"],
               ["danger", "--qx-color-border-danger"],
               ["success", "--qx-color-border-success"],
               ["info", "--qx-color-border-info"],
@@ -226,7 +235,7 @@ export const ColourRoles: Story = {
 
       <Section title="Bridge variables">
         <TokenTable
-          caption="The shadcn-compatible bridge variables the Tailwind utilities are generated from."
+          caption="The border-colour utilities: the shadcn bridge first, then the Qeet roles mapped directly."
           columns={["Utility", "Theme variable", "Source token"]}
           rows={[
             {
@@ -235,7 +244,27 @@ export const ColourRoles: Story = {
             },
             {
               token: "border-input",
-              cells: ["--color-input → --input", "same value as --qx-color-border-default"],
+              cells: ["--color-input → --input", "same value as --qx-color-border-control"],
+            },
+            {
+              token: "border-control",
+              cells: ["--color-control", "--qx-color-border-control"],
+            },
+            {
+              token: "border-control-hover",
+              cells: ["--color-control-hover", "--qx-color-border-control-hover"],
+            },
+            {
+              token: "border-border-subtle",
+              cells: ["--color-border-subtle", "--qx-color-border-subtle"],
+            },
+            {
+              token: "border-border-strong",
+              cells: ["--color-border-strong", "--qx-color-border-strong"],
+            },
+            {
+              token: "border-border-brand",
+              cells: ["--color-border-brand", "--qx-color-border-brand"],
             },
             {
               token: "border-ring",
@@ -247,8 +276,8 @@ export const ColourRoles: Story = {
           Under <Code>forced-colors: active</Code> every <Code>box-shadow</Code> is stripped and{" "}
           <Code>--border</Code> is remapped to <Code>CanvasText</Code>. A surface that relies on a
           shadow for separation disappears; a surface with a real border does not. This is why every
-          Qeetrix elevation value carries a hairline <Code>0 0 0 1px</Code> ring, and why a card
-          that matters should also carry a border.
+          Qeetrix elevation role from <Code>raised</Code> up carries a hairline{" "}
+          <Code>0 0 0 1px</Code> ring, and why a card that matters should also carry a border.
         </Callout>
       </Section>
     </Page>
@@ -315,7 +344,11 @@ export const CornerRoles: Story = {
             { token: "--qx-component-button-corner-xs", cells: ["min(var(--radius-md), 10px)"] },
             { token: "--qx-component-input-corner", cells: ["var(--radius-lg)"] },
             { token: "--qx-component-card-corner", cells: ["var(--radius-xl)"] },
-            { token: "--qx-component-dialog-corner", cells: ["var(--radius-lg)"] },
+            { token: "--qx-component-dialog-corner", cells: ["var(--radius-xl)"] },
+            { token: "--qx-component-menu-corner", cells: ["var(--radius-xl)"] },
+            { token: "--qx-component-menu-item-corner", cells: ["var(--radius-md)"] },
+            { token: "--qx-component-popover-corner", cells: ["var(--radius-xl)"] },
+            { token: "--qx-component-tooltip-corner", cells: ["var(--radius-md)"] },
             { token: "--qx-component-badge-corner", cells: ["var(--radius-md)"] },
             { token: "--qx-component-kbd-corner", cells: ["min(var(--radius-md), 6px)"] },
           ]}

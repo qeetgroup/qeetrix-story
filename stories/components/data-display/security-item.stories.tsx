@@ -1,4 +1,4 @@
-import { Key, Monitor, ShieldTick } from "@qeetrix/icons";
+import { KeyRoundIcon, MonitorIcon, ShieldCheckIcon } from "@qeetrix/icons";
 import { Button, SecurityItem } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { qx } from "../../_contract";
@@ -28,7 +28,7 @@ export const Resources: Story = {
         title="MacBook Pro"
         description="Current browser session"
         status="active"
-        icon={<Monitor />}
+        icon={<MonitorIcon />}
         details={[
           { label: "Location", value: "Minneapolis, MN" },
           { label: "Last active", value: "Just now" },
@@ -43,7 +43,7 @@ export const Resources: Story = {
         title="Touch ID passkey"
         description="Synced credential"
         status="verified"
-        icon={<ShieldTick />}
+        icon={<ShieldCheckIcon />}
         details={[{ label: "Added", value: "August 18, 2026" }]}
         actions={
           <Button variant="outline" size="sm">
@@ -55,7 +55,7 @@ export const Resources: Story = {
         title="Reporting API key"
         description="Read-only analytics integration"
         status="expiring"
-        icon={<Key />}
+        icon={<KeyRoundIcon />}
         details={[
           { label: "Prefix", value: "qx_live_4f2a" },
           { label: "Expires", value: "September 1, 2026" },

@@ -1,5 +1,28 @@
 # @qeetrix/docs
 
+## Unreleased
+
+### Minor Changes
+
+- **`@qeetrix/ui` 2.1.0.** Stories cover the 2.1.0 API: new parts (`DialogBody`, `DrawerBody`,
+  `SheetBody`, `AlertAction`, `TableEmpty`, `TimelineHeader`, `ToolbarSpacer`, `FieldSuccess`,
+  `FieldWarning`, `InputGroupButton`, `CarouselControls`, `CarouselIndicators`, `CommentMention`,
+  `DescriptionItem`, `FeedItem`, `AuditEventMetadata`) and new variants and sizes (Alert
+  `emphasis`, Badge `brand`/`info`, Callout `muted`, Card variants and `interactive`, Dialog,
+  EmptyState, Notification, Progress and Stat sizes, Tabs `line`, Toolbar `ghost`, and more).
+  425 → 511 stories, 519 → 615 tests. Foundations document the Ember + Graphite colour roles,
+  the `focus-ring*` utilities, motion duration utilities and the new elevation roles.
+- **Icons.** Upgraded `@qeetrix/icons` 1.0.3 → 1.0.10 and moved every demo to its `…Icon` names
+  with root imports (`import { TrashIcon } from "@qeetrix/icons"`). The white-icon workarounds
+  are gone, since 1.0.10 paints with `currentColor`. The icon catalogue page
+  (`stories/icons.stories.tsx`) is removed — this workshop documents the component library; the
+  icon catalogue lives in `qeetrix-icons`. Storybook resolves the root import to the package's
+  icons-only index so the ~7,400 brand logos are never pre-bundled.
+- **Fixes.** `typecheck` and `verify:foundations` pass. `@qeetrix/ui/styles.css` now resolves to
+  the full entry, base layer included. Overlay dismissal tests poll for absence instead of
+  racing `waitForElementToBeRemoved`. Docs record the 2.1.0 contrast baseline (13 violations
+  across 10 stories, down from 162 across 85).
+
 ## 0.0.9
 
 ### Patch Changes

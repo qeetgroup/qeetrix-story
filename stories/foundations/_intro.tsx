@@ -31,7 +31,7 @@ export function IntroPage() {
           <div className="qx-intro__meta">
             <QeetLogo size={30} />
             <span className="qx-intro__meta-rule" aria-hidden />
-            <span className="qx-intro__eyebrow">v2.0.0 · @qeetrix/ui</span>
+            <span className="qx-intro__eyebrow">v2.1.0 · @qeetrix/ui</span>
             <span className="qx-intro__meta-spacer" />
             <Badge variant="success">WCAG-AA</Badge>
           </div>
@@ -51,7 +51,7 @@ export function IntroPage() {
           {/* CTA row */}
           <div className="qx-intro__cta-row">
             <span className="qx-intro__install">bun add @qeetrix/ui</span>
-            <a className="qx-intro__cta" href="?path=/docs/primitives-button--docs">
+            <a className="qx-intro__cta" href="?path=/docs/components-actions-button--docs">
               Browse Components
               <span className="qx-intro__cta-icon" aria-hidden>
                 ↗
@@ -176,10 +176,13 @@ export function IntroPage() {
         Light and dark are first-class, driven by the{" "}
         <span className="qx-intro__code-inline">.dark</span> class on the root element — the same
         strategy the Qeetrix <span className="qx-intro__code-inline">ThemeProvider</span> uses in
-        production, so this workshop renders identically to your app. Colours are currently a
-        neutral / greyscale ramp; the Qeet brand palette is a documented open decision (
-        <span className="qx-intro__code-inline">OD-DS-03</span>) and drops in by editing only the
-        primitive ramps in the token source.
+        production, so this workshop renders identically to your app. Neutrals are the{" "}
+        <strong className="qx-intro__strong">Graphite</strong> ramp, so dark mode is a neutral
+        near-black rather than a warm charcoal. The brand is Qeet orange,{" "}
+        <span className="qx-intro__code-inline">#F26D0E</span>; primary actions use the deeper{" "}
+        <strong className="qx-intro__strong">Qeet Ember</strong>,{" "}
+        <span className="qx-intro__code-inline">#D04800</span>, the shade that carries a white label
+        at WCAG AA.
       </p>
 
       {/* ── EXPLORE ───────────────────────────────────────────────────── */}
@@ -252,16 +255,17 @@ function CodeCard({
 /* ── content ───────────────────────────────────────────────────────────── */
 
 const STATS: { value: string; label: string; accent?: string }[] = [
-  { value: "140", label: "Components" },
-  { value: "6", label: "Block patterns" },
-  { value: "AA", label: "WCAG contrast", accent: "#16a34a" },
+  { value: "145", label: "Components" },
+  { value: "6", label: "Patterns" },
+  // The success text role, not a literal green: it is the shade that holds 4.5:1 in both themes.
+  { value: "AA", label: "WCAG contrast", accent: "var(--qx-color-text-success)" },
   { value: "2", label: "Color schemes" },
 ];
 
 const BOX = [
   {
     title: "Components",
-    body: "the ~127 React primitives you're browsing in this workshop at @qeetrix/ui.",
+    body: "the 145 React components you're browsing in this workshop, from @qeetrix/ui.",
   },
   {
     title: "Tokens",
@@ -287,7 +291,7 @@ const PRINCIPLES = [
   {
     Icon: IconApiKey,
     title: "Composable",
-    body: "Small, predictable parts that snap together. The six higher-level Blocks are assembled entirely from the same primitives you use directly.",
+    body: "Small, predictable parts that snap together. The patterns in this workshop are assembled entirely from the same components you use directly.",
   },
   {
     Icon: IconWebhook,
@@ -300,14 +304,14 @@ const EXPLORE = [
   {
     href: "?path=/docs/foundations-colors--docs",
     label: "Colors",
-    desc: "Semantic + primitive ramps, theme-reactive.",
+    desc: "Graphite, Qeet and the semantic roles, theme-reactive.",
     grad: "linear-gradient(135deg,#f59e0b,#f26d0e)",
     icon: "Aa",
   },
   {
     href: "?path=/docs/foundations-typography--docs",
     label: "Typography",
-    desc: "The Cal Sans type scale and weights.",
+    desc: "The Qeet type families, scale and roles.",
     grad: "linear-gradient(135deg,#8b5cf6,#6366f1)",
     icon: "Tt",
   },
@@ -319,9 +323,9 @@ const EXPLORE = [
     icon: "⊞",
   },
   {
-    href: "?path=/docs/primitives-button--docs",
-    label: "Primitives",
-    desc: "~127 building-block components.",
+    href: "?path=/docs/components-actions-button--docs",
+    label: "Components",
+    desc: "145 building-block components.",
     grad: "linear-gradient(135deg,#10b981,#059669)",
     icon: "UI",
   },
@@ -337,6 +341,9 @@ const EXPLORE = [
 /* ── scoped styles ─────────────────────────────────────────────────────── */
 
 const styles = `
+/* --qx-brand is the brand orange for decoration only (glows, bullets). Anything that carries text
+ * reads a role instead: the CTA is an action, so Ember via --primary; the eyebrows are brand text,
+ * so --qx-color-text-brand. #F26D0E holds white at only 3.0:1 and text on white at the same. */
 .qx-intro {
   --qx-brand: #F26D0E;
   max-width: 72rem;
@@ -415,12 +422,12 @@ const styles = `
 }
 .qx-intro__cta {
   display: inline-flex; align-items: center; gap: 0.625rem;
-  border-radius: 0.75rem; background: var(--qx-brand); color: #fff;
+  border-radius: 0.75rem; background: var(--primary); color: var(--primary-foreground);
   padding: 0.7rem 1.5rem; font-size: 0.875rem; font-weight: 600; text-decoration: none;
   transition: transform 0.25s cubic-bezier(0.32,0.72,0,1), box-shadow 0.25s cubic-bezier(0.32,0.72,0,1);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.15);
 }
-.qx-intro__cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgb(242 109 14 / 0.35); }
+.qx-intro__cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgb(208 72 0 / 0.35); }
 .qx-intro__cta:active { transform: scale(0.985); }
 .qx-intro__cta-icon {
   display: inline-flex; align-items: center; justify-content: center;
@@ -449,7 +456,7 @@ const styles = `
 .qx-intro__section { margin: 3.5rem 0 1.25rem; }
 .qx-intro__section-eyebrow {
   font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--qx-brand); margin-bottom: 0.5rem;
+  color: var(--qx-color-text-brand); margin-bottom: 0.5rem;
   font-family: var(--font-mono, "Fira Code", ui-monospace, monospace);
 }
 .qx-intro .qx-intro__section-title {
@@ -481,7 +488,7 @@ const styles = `
 .qx-intro__code-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
 .qx-intro .qx-intro__code {
   margin: 0; border-radius: 1rem; overflow: hidden;
-  background: #14130F; border: 1px solid rgb(255 255 255 / 0.08);
+  background: #131312; border: 1px solid rgb(255 255 255 / 0.08);
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.2), 0 12px 32px rgb(0 0 0 / 0.12);
 }
 .qx-intro__code-bar {

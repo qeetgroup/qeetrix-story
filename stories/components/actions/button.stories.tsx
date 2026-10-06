@@ -21,13 +21,15 @@ const meta: Meta<typeof Button> = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["default", "destructive", "outline", "secondary", "ghost", "link"],
+      options: ["default", "outline", "secondary", "ghost", "destructive", "link"],
     },
     size: {
       control: "select",
-      options: ["default", "sm", "lg", "icon"],
+      options: ["default", "xs", "sm", "lg", "icon", "icon-xs", "icon-sm", "icon-lg"],
     },
     disabled: { control: "boolean" },
+    loading: { control: "boolean" },
+    loadingLabel: { control: "text" },
   },
   tags: ["autodocs"],
 };
@@ -56,9 +58,18 @@ export const Outline: Story = {
 };
 
 export const Loading: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "`loading` is not `disabled`: the button keeps its colour, shows a spinner in the leading slot, reports `aria-busy` and ignores activation while keeping focus. `loadingLabel` replaces the label for the duration and becomes the accessible name; the button holds the wider of the two widths, so it does not jump.",
+      },
+    },
+  },
   args: {
-    children: "Working…",
-    disabled: true,
+    children: "Save changes",
+    loading: true,
+    loadingLabel: "Saving…",
   },
 };
 

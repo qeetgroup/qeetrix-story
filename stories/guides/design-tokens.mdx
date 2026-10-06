@@ -5,38 +5,61 @@ import { Meta } from "@storybook/addon-docs/blocks";
 # Design tokens
 
 Tokens are the single source of truth. Everything downstream (components, themes, the
-Figma export) is generated or composed from them.
+typed constants) is generated or composed from them.
 
 ## Pipeline
 
-W3C **DTCG JSON** (`packages/ui/tokens/**`) → **Style Dictionary**
-(`scripts/build-tokens.mjs`) → generated CSS + JSON. Three layers:
+W3C **DTCG JSON** (`src/tokens/**` in `qeetrix-ui`) → **Style Dictionary**
+(`scripts/build/tokens.mjs`, run by `bun run build:tokens`) → generated CSS, JSON and typed
+TypeScript. The layers:
 
-- **primitive** — raw ramps (OKLCH colour, spacing, radius, shadow, motion, …)
-- **semantic** — meaning (`text.primary`, `surface.canvas`, `action.primary`, …), per theme
-- **bridge** — the shadcn/Base-UI variables (`--primary`, `--ring`, …), per theme
+- **primitive** — raw ramps (OKLCH colour — Graphite, Qeet, status, the Tailwind palette —
+  spacing, radius, shadow, motion, …)
+- **semantic** — meaning, per theme. Colour roles are grouped `surface.*`, `text.*`,
+  `border.*`, `action.*`, `feedback.*` (each status also `-subtle` and `-strong`) and `data.*`,
+  plus focus, overlay, selection, rating and syntax. The CSS name is
+  `--qx-color-<group>-<role>`: `--qx-color-surface-canvas`, `--qx-color-feedback-error-strong`
+- **component** — per-component decisions (`--qx-component-button-primary-background`, …),
+  including the **bridge**: the shadcn/Base-UI variables (`--primary`, `--ring`, …), each
+  pointing at a semantic role
 
 ## Consuming tokens
 
-- `@qeetrix/ui/styles.css` — the semantic `:root` / `.dark` variables, baked in
-- `@qeetrix/ui/tokens.css` — the raw `--qx-*` ramp
+- `@qeetrix/ui/styles.css` — the semantic and component layers for `:root` / `.dark`, the
+  Tailwind theme mapping, fonts and the base layer. **No primitives.**
+- `@qeetrix/ui/qeetrix.css` — the same semantic `:root` / `.dark` variables on their own
+- `@qeetrix/ui/tokens.css` — every `--qx-*` variable, raw primitive ramps included
 - `@qeetrix/ui/tokens.json` — resolved values per theme (cross-platform)
 
+Name a role, not a ramp step. A role re-themes with the document; a primitive is only defined
+when `tokens.css` is loaded as well.
+
 ```css
-.badge { background: var(--qx-color-brand-500); }
-.hero  { background: var(--qx-gradient-brand); } /* composite gradient token */
+.plan-badge {
+  background: var(--qx-color-surface-brand-subtle);
+  color: var(--qx-color-text-brand);
+}
+.panel-footer {
+  background: var(--qx-gradient-surface-fade); /* composite gradient token, theme-aware */
+}
 ```
+
+In Tailwind the roles are utilities — `bg-canvas`, `bg-surface-sunken`, `bg-brand-subtle`,
+`text-link`, `border-control`, `bg-destructive-strong text-on-feedback-strong`, … — and
+**Foundations / Colors** lists the utility for every role.
 
 ## Guarantees
 
 - Colour is authored in **OKLCH**.
-- A **WCAG-AA contrast gate** (`bun run tokens:validate`) fails the build if a required
-  text/surface pair drops below AA.
+- A **WCAG-AA contrast test** (`src/__tests__/token-governance.test.ts`, part of
+  `bun run test` in `qeetrix-ui`) fails if a designed text/surface, control-boundary, focus or
+  chart pair drops below its minimum in either theme.
 - **Composite tokens** (`gradient`, `strokeStyle`) serialize to real CSS
   (`linear-gradient(…)`, `dashed`) — see `--qx-gradient-*` / `--qx-stroke-*`.
+- **Typed constants** (`DURATION`, `EASING`, `SHADOW`, `Z_INDEX`, `CHART_COLOR`, …) are
+  generated from the same source as the CSS, so a value read in JavaScript cannot drift.
 
-## Figma / Tokens Studio
+## Figma
 
-`bun run --filter @qeetrix/ui tokens:studio` exports the tokens into
-`packages/ui/tokens-studio/` (DTCG sets + `$themes.json`/`$metadata.json`) for the
-Tokens Studio Figma plugin to import as Variables.
+`@qeetrix/ui/tokens.json` is the cross-platform export: resolved values for each theme, which
+is what a Figma Variables import should read.

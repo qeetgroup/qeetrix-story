@@ -52,8 +52,23 @@ This one is genuinely not applicable here, and there is nothing to fix.
 This is the one to understand properly.
 
 The violations are not distributed across the library — they are **a handful of semantic
-token pairs, repeated everywhere those tokens are used.** The ten worst pairs account for
-the large majority of the total:
+token pairs, repeated everywhere those tokens are used.**
+
+**`@qeetrix/ui` 2.1 changed the picture.** The Ember + Graphite foundation (an AA Ember
+primary with white text, stronger status tints, `text.on-feedback-strong`) took the count
+from 162 violations across 85 stories to **13 across 10**. What is left, measured against
+2.1.0:
+
+| × | Ratio | Foreground on background | Reading |
+| --- | --- | --- | --- |
+| 6 | 4.37:1 | `#d04800` on `#fbfaf9` | Ember as text on a tinted surface (HoverCard, PreviewCard) — passes on white (4.55:1), not on the tint |
+| 3 | 3.46:1 | `#848483` on `#f7f6f4` | TagInput's disabled state |
+| 2 | 2.10:1 | `#fdfcfc` on `#e6a17d` | the Opacity foundation's deliberately faded specimen |
+| 1 | 3.65:1 | `#009966` on `#ffffff` | a positive-tone Sparkline label |
+| 1 | 3.79:1 | `#62605f` on `#cacbb9` | the Z-index foundation's ladder |
+
+For the record, the 2.0 baseline this replaced — the ten worst pairs accounted for the
+large majority of the total:
 
 | × | Ratio | Foreground on background | Reading |
 | --- | --- | --- | --- |
@@ -64,7 +79,7 @@ the large majority of the total:
 | 15 | 4.25:1 | `#737373` on `#fff0e6` | muted text on a tinted surface |
 | 10 | **1.15:1** | `#ffffff` on `#e5f0f6` | white text on a light info surface — a real failure |
 
-So the shorthand "they are all near-misses" — which an inline comment in `preview.ts` still
+So the shorthand "they are all near-misses" — which an inline comment in `preview.ts` once
 repeats — is **not accurate**. Most are (3.98–4.47 against a 4.5 threshold), but there is a
 tail of genuine failures: brand orange on white at 2.88:1, and white-on-tinted-surface pairs
 around 1.15:1.
@@ -110,11 +125,11 @@ Measured with `bun run verify:a11y` against the light theme:
 
 | Metric | Value |
 | --- | --- |
-| Contrast violations | **162** |
-| Stories affected | **85** (of 433) |
-| Distribution | 6 token pairs account for >70% of the count |
-| Severity | mostly near-misses (3.98–4.47:1 against 4.5:1), with a tail of real failures at 2.88:1 and ~1.15:1 |
-| Worst-affected stories | `schedulecalendar--month` (7), `alert--variants` (6), `callout--variants` (6), `statuspill--all-statuses` (6) |
+| Contrast violations | **13** (162 on `@qeetrix/ui` 2.0) |
+| Stories affected | **10** (of 615) |
+| Distribution | one pair — Ember text on a tinted surface — is 6 of the 13 |
+| Severity | a near-miss at 4.37:1, then a short tail down to 2.10:1 (see the table above) |
+| Worst-affected stories | `taginput--disabled` (3), `opacity--alpha-versus-opacity` (2), then the HoverCard / PreviewCard stories (1 each) |
 | Root cause | semantic token values in `@qeetrix/ui` |
 | Fixable from this repo | **no** |
 | Dark theme | separate surface, not part of the recorded baseline — run `A11Y_THEME=dark` |

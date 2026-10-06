@@ -1,4 +1,4 @@
-import { Clock, Key, Receipt, Search, User } from "@qeetrix/icons";
+import { ClockIcon, KeyRoundIcon, ReceiptIcon, SearchIcon, UserIcon } from "@qeetrix/icons";
 import {
   Badge,
   Button,
@@ -79,9 +79,9 @@ const RESULTS: Result[] = [
 ];
 
 const GROUP_ICON = {
-  People: User,
-  "API keys": Key,
-  Billing: Receipt,
+  People: UserIcon,
+  "API keys": KeyRoundIcon,
+  Billing: ReceiptIcon,
 } as const;
 
 const RECENT = [
@@ -110,7 +110,7 @@ function SearchField({
   return (
     <InputGroup>
       <InputGroupAddon>
-        <Search color="currentColor" />
+        <SearchIcon />
       </InputGroupAddon>
       <InputGroupInput
         type="search"
@@ -171,7 +171,7 @@ function ResultGroups({ query, results }: { query: string; results: Result[] }) 
               id={headingId}
               className="flex items-center gap-1.5 px-4 pb-1 text-xs font-medium tracking-wide uppercase"
             >
-              <GroupIcon color="currentColor" className="size-3.5" />
+              <GroupIcon className="size-3.5" />
               {group}
             </Typography>
             <ul className="flex flex-col">
@@ -312,7 +312,7 @@ export const Idle: Story = {
             id="search-recent-heading"
             className="flex items-center gap-1.5 text-xs font-medium tracking-wide uppercase"
           >
-            <Clock color="currentColor" className="size-3.5" />
+            <ClockIcon className="size-3.5" />
             Recent searches
           </Typography>
           <ul className="flex flex-col gap-1">
@@ -370,7 +370,7 @@ export const NoResults: Story = {
           0 results for “dorothy vaughan”
         </p>
         <EmptyState
-          icon={(props) => <Search color="currentColor" {...props} />}
+          icon={SearchIcon}
           title="Nothing matched “dorothy vaughan”"
           description="Search covers people, API keys and invoices in this tenant. Archived records and other tenants are excluded — widen the scope, or invite them."
           action={

@@ -1,4 +1,10 @@
-import { DescriptionDetails, DescriptionList, DescriptionTerm, StatusPill } from "@qeetrix/ui";
+import {
+  DescriptionDetails,
+  DescriptionItem,
+  DescriptionList,
+  DescriptionTerm,
+  StatusPill,
+} from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { qx } from "../../_contract";
 
@@ -11,9 +17,16 @@ const meta: Meta<typeof DescriptionList> = {
     docs: {
       description: {
         component:
-          "Semantic `<dl>` wrapper for key/value metadata panels. Pairs `DescriptionTerm` (`<dt>`) with `DescriptionDetails` (`<dd>`) to present structured record details such as tenant settings, API key metadata, or employee profiles.",
+          "Semantic `<dl>` wrapper for key/value metadata panels. Pairs `DescriptionTerm` (`<dt>`) with `DescriptionDetails` (`<dd>`) to present structured record details such as tenant settings, API key metadata, or employee profiles. The term is a quiet muted label and the value is the data.\n\nTwo axes, from `descriptionListVariants`: `layout` — `horizontal` (term and value columns from `sm`, stacked below; the default), `vertical` (term above value at every width, for drawers and side sheets) and `grid` (a responsive grid of term-over-value cells for summary panels) — and `divided`, which rules a hairline between pairs. Wrap a pair in `DescriptionItem` (a `<div>`, which `<dl>` permits) to group it: the term sits tight against its own value, the rule runs under the whole pair, and one term can carry several values. `DescriptionItem` is optional for `horizontal` and `vertical` and required for `grid`. Spacing follows density.",
       },
     },
+  },
+  argTypes: {
+    layout: {
+      control: "select",
+      options: ["horizontal", "vertical", "grid"],
+    },
+    divided: { control: "boolean" },
   },
   tags: ["autodocs"],
 };
@@ -29,8 +42,9 @@ export const Default: Story = {
       },
     },
   },
-  render: () => (
-    <DescriptionList className="max-w-xl">
+  args: { layout: "horizontal", divided: false },
+  render: (args) => (
+    <DescriptionList {...args} className="max-w-xl">
       <DescriptionTerm>Tenant</DescriptionTerm>
       <DescriptionDetails>Acme Inc.</DescriptionDetails>
 
@@ -123,6 +137,139 @@ export const EmployeeProfile: Story = {
       <DescriptionDetails>
         <StatusPill status="active" />
       </DescriptionDetails>
+    </DescriptionList>
+  ),
+};
+
+export const Layouts: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The three `layout` values on the same Qeet ID tenant record. `horizontal` splits term and value into columns from `sm`; `vertical` stacks them at every width, which is what a narrow drawer or side sheet needs; `grid` fills the width with term-over-value cells, and needs each pair wrapped in a `DescriptionItem`.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-3xl flex-col gap-8">
+      <section aria-label="Horizontal layout" className="flex flex-col gap-2">
+        <p className="text-caption font-medium text-muted-foreground">horizontal</p>
+        <DescriptionList layout="horizontal">
+          <DescriptionTerm>Tenant</DescriptionTerm>
+          <DescriptionDetails>Acme Inc.</DescriptionDetails>
+          <DescriptionTerm>Primary domain</DescriptionTerm>
+          <DescriptionDetails>auth.acme.com</DescriptionDetails>
+          <DescriptionTerm>Region</DescriptionTerm>
+          <DescriptionDetails>Mumbai (ap-south-1)</DescriptionDetails>
+        </DescriptionList>
+      </section>
+      <section aria-label="Vertical layout" className="flex w-72 flex-col gap-2">
+        <p className="text-caption font-medium text-muted-foreground">vertical</p>
+        <DescriptionList layout="vertical">
+          <DescriptionTerm>Tenant</DescriptionTerm>
+          <DescriptionDetails>Acme Inc.</DescriptionDetails>
+          <DescriptionTerm>Primary domain</DescriptionTerm>
+          <DescriptionDetails>auth.acme.com</DescriptionDetails>
+          <DescriptionTerm>Region</DescriptionTerm>
+          <DescriptionDetails>Mumbai (ap-south-1)</DescriptionDetails>
+        </DescriptionList>
+      </section>
+      <section aria-label="Grid layout" className="flex flex-col gap-2">
+        <p className="text-caption font-medium text-muted-foreground">grid</p>
+        <DescriptionList layout="grid">
+          <DescriptionItem>
+            <DescriptionTerm>Plan</DescriptionTerm>
+            <DescriptionDetails>Enterprise</DescriptionDetails>
+          </DescriptionItem>
+          <DescriptionItem>
+            <DescriptionTerm>Region</DescriptionTerm>
+            <DescriptionDetails>Mumbai (ap-south-1)</DescriptionDetails>
+          </DescriptionItem>
+          <DescriptionItem>
+            <DescriptionTerm>Monthly active users</DescriptionTerm>
+            <DescriptionDetails>27,400</DescriptionDetails>
+          </DescriptionItem>
+          <DescriptionItem>
+            <DescriptionTerm>Status</DescriptionTerm>
+            <DescriptionDetails>
+              <StatusPill status="active" />
+            </DescriptionDetails>
+          </DescriptionItem>
+          <DescriptionItem>
+            <DescriptionTerm>Created</DescriptionTerm>
+            <DescriptionDetails>March 4, 2026</DescriptionDetails>
+          </DescriptionItem>
+          <DescriptionItem>
+            <DescriptionTerm>Owner</DescriptionTerm>
+            <DescriptionDetails>Ada Lovelace</DescriptionDetails>
+          </DescriptionItem>
+        </DescriptionList>
+      </section>
+    </div>
+  ),
+};
+
+export const Divided: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A qeet-pay invoice summary with `divided` rules between pairs. Each pair is a `DescriptionItem`, so the rule runs under the whole pair across both columns, and a term can carry more than one value — the GST line holds both its components. `divided` also works on bare term/value siblings.",
+      },
+    },
+  },
+  render: () => (
+    <DescriptionList divided className="max-w-xl">
+      <DescriptionItem>
+        <DescriptionTerm>Invoice</DescriptionTerm>
+        <DescriptionDetails className="font-mono">INV-2026-0418</DescriptionDetails>
+      </DescriptionItem>
+      <DescriptionItem>
+        <DescriptionTerm>Billed to</DescriptionTerm>
+        <DescriptionDetails>Acme Retail Pvt Ltd · GSTIN 29AAACA1234F1Z5</DescriptionDetails>
+      </DescriptionItem>
+      <DescriptionItem>
+        <DescriptionTerm>Taxable value</DescriptionTerm>
+        <DescriptionDetails>₹42,500.00</DescriptionDetails>
+      </DescriptionItem>
+      <DescriptionItem>
+        <DescriptionTerm>GST</DescriptionTerm>
+        <DescriptionDetails>CGST 9% · ₹3,825.00</DescriptionDetails>
+        <DescriptionDetails>SGST 9% · ₹3,825.00</DescriptionDetails>
+      </DescriptionItem>
+      <DescriptionItem>
+        <DescriptionTerm>Total</DescriptionTerm>
+        <DescriptionDetails className="font-medium">₹50,150.00</DescriptionDetails>
+      </DescriptionItem>
+      <DescriptionItem>
+        <DescriptionTerm>Status</DescriptionTerm>
+        <DescriptionDetails>
+          <StatusPill status="pending" />
+        </DescriptionDetails>
+      </DescriptionItem>
+    </DescriptionList>
+  ),
+};
+
+export const DividedVertical: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`divided` with `layout="vertical"` in a Qeet People side sheet — bare term/value siblings, no `DescriptionItem` needed. The first pair has no rule above it and the last none below, so the list sits flush in its panel.',
+      },
+    },
+  },
+  render: () => (
+    <DescriptionList layout="vertical" divided className="w-72">
+      <DescriptionTerm>Employee ID</DescriptionTerm>
+      <DescriptionDetails className="font-mono">QP-004127</DescriptionDetails>
+      <DescriptionTerm>Department</DescriptionTerm>
+      <DescriptionDetails>Engineering</DescriptionDetails>
+      <DescriptionTerm>Reports to</DescriptionTerm>
+      <DescriptionDetails>Ada Lovelace</DescriptionDetails>
+      <DescriptionTerm>Leave balance</DescriptionTerm>
+      <DescriptionDetails>14 days earned · 6 days casual</DescriptionDetails>
     </DescriptionList>
   ),
 };

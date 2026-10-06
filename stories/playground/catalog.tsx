@@ -14,7 +14,8 @@
  *      is the honest output for a default button; `variant="default" size="default"` is
  *      noise a reviewer has to read past.
  */
-import { Add, Bell, Copy, Search, Settings, Trash } from "@qeetrix/icons";
+
+import { BellIcon, CopyIcon, PlusIcon, SearchIcon, SettingsIcon, TrashIcon } from "@qeetrix/icons";
 import {
   Alert,
   AlertDescription,
@@ -34,7 +35,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  Spinner,
   Switch,
 } from "@qeetrix/ui";
 import type { ComponentType, ReactNode } from "react";
@@ -43,16 +43,16 @@ import type { ComponentType, ReactNode } from "react";
 
 /**
  * The icons the `icon` control offers, keyed by their exported name — so a spec can
- * print `<Trash />` and the matching `@qeetrix/icons` import without a second lookup.
+ * print `<TrashIcon />` and the matching `@qeetrix/icons` import without a second lookup.
  */
 export const ICONS = {
   none: null,
-  Add,
-  Bell,
-  Copy,
-  Search,
-  Settings,
-  Trash,
+  PlusIcon,
+  BellIcon,
+  CopyIcon,
+  SearchIcon,
+  SettingsIcon,
+  TrashIcon,
 } satisfies Record<string, ComponentType<{ className?: string }> | null>;
 
 export type IconName = keyof typeof ICONS;
@@ -60,7 +60,7 @@ export const ICON_NAMES = Object.keys(ICONS) as IconName[];
 
 /**
  * The curated set. Nine components chosen to cover every axis the playground drives —
- * variant (Button, Badge, Alert), size (Button, IconButton, Switch, Select, Card),
+ * variant (Button, Badge, Alert), emphasis (Alert), size (Button, IconButton, Switch, Select, Card),
  * disabled (the five form controls), icon slots (Button, IconButton, Badge, Alert),
  * and label/description content (all of them). Overlays such as Dialog are deliberately
  * absent: their interesting state is "open", which a preview tile cannot show without
@@ -90,10 +90,13 @@ export const BUTTON_VARIANTS = [
 ] as const;
 export const BUTTON_SIZES = ["default", "xs", "sm", "lg"] as const;
 export const ICON_BUTTON_SIZES = ["icon-sm", "icon", "icon-lg"] as const;
+/** Ordered as the source groups them: the solid fill, the tints, then the graphite variants. */
 export const BADGE_VARIANTS = [
   "default",
   "secondary",
   "outline",
+  "brand",
+  "info",
   "success",
   "warning",
   "destructive",
@@ -101,6 +104,8 @@ export const BADGE_VARIANTS = [
 ] as const;
 /** `danger` is an accepted alias of `destructive` on Alert; one spelling is enough here. */
 export const ALERT_VARIANTS = ["default", "info", "success", "warning", "destructive"] as const;
+/** `subtle` is the default; `strong` is the solid status fill for messages that must not be missed. */
+export const ALERT_EMPHASES = ["subtle", "strong"] as const;
 /** The shared control scale — Select's trigger, Switch and Card all speak it. */
 export const CONTROL_SIZES = ["default", "sm"] as const;
 
@@ -131,6 +136,7 @@ export interface PlaygroundArgs {
   iconButtonSize: (typeof ICON_BUTTON_SIZES)[number];
   badgeVariant: (typeof BADGE_VARIANTS)[number];
   alertVariant: (typeof ALERT_VARIANTS)[number];
+  alertEmphasis: (typeof ALERT_EMPHASES)[number];
   selectSize: (typeof CONTROL_SIZES)[number];
   switchSize: (typeof CONTROL_SIZES)[number];
   cardSize: (typeof CONTROL_SIZES)[number];
@@ -161,7 +167,7 @@ function attrs(list: Attr[]): string {
     .map(([name, value]) => {
       if (value === undefined || value === false || value === "") return "";
       if (value === true) return ` ${name}`;
-      // Already an expression (`icon={Trash}`) — pass it through unquoted.
+      // Already an expression (`icon={TrashIcon}`) — pass it through unquoted.
       if (value.startsWith("{") && value.endsWith("}")) return ` ${name}=${value}`;
       return ` ${name}=${value.includes('"') ? `{${JSON.stringify(value)}}` : `"${value}"`}`;
     })
@@ -191,9 +197,9 @@ const unique = (names: string[]): string => [...new Set(names)].sort().join(", "
 /** Prepends the imports the snippet needs, in the order Biome would sort them. */
 function snippet(uiExports: string[], iconExports: string[], jsx: string): string {
   const lines: string[] = [];
+  lines.push(`import { ${unique(uiExports)} } from "@qeetrix/ui";`);
   if (iconExports.length > 0)
     lines.push(`import { ${unique(iconExports)} } from "@qeetrix/icons";`);
-  lines.push(`import { ${unique(uiExports)} } from "@qeetrix/ui";`);
   return `${lines.join("\n")}\n\n${jsx}`;
 }
 
@@ -206,21 +212,6 @@ const slug = (value: string): string =>
 
 /** Every label must resolve to something: an empty accessible name is an axe failure. */
 const labelOf = (args: PlaygroundArgs): string => args.content.trim() || "Label";
-
-/**
- * Qeetrix icons ship `color="white"` on their root `<svg>` — it matches the exported
- * artwork — and a presentation attribute outranks the colour inherited from whatever
- * surrounds it. So an unaided glyph is white on a white button. Every icon here opts
- * back into inheritance, and the snippet says so too: code that pastes into a product
- * and then draws nothing is not worth copying.
- */
-const INHERIT = 'color="currentColor"';
-
-/**
- * The same fix for IconButton, which renders the glyph itself and exposes no way to
- * pass it a `color` — the button's own class list is the only reachable surface.
- */
-const ICON_INHERIT = "[&_svg]:text-inherit";
 
 const FIELD = "flex w-72 flex-col gap-2";
 
@@ -236,14 +227,18 @@ const ROLES: Array<[value: string, label: string]> = [
 export const SPECS: Record<ComponentName, ComponentSpec> = {
   Button: {
     summary:
-      "The action primitive — `variant` carries intent, `size` matches the density around it. Note there is no `loading` prop: the house pattern is a Spinner inside a disabled button.",
+      "The action primitive — `variant` carries intent, `size` matches the density around it. `loading` is a prop: the spinner takes the leading icon's slot, the button sets `aria-busy` and stays focusable, and it keeps its colour, because busy is not unavailable.",
     supports: ["content", "icon", "disabled", "loading"],
     render: (a) => {
       const Glyph = ICONS[a.icon];
-      const glyph = Glyph && !a.loading ? <Glyph color="currentColor" /> : null;
+      const glyph = Glyph ? <Glyph /> : null;
       return (
-        <Button variant={a.buttonVariant} size={a.buttonSize} disabled={a.disabled || a.loading}>
-          {a.loading ? <Spinner size="sm" className="text-current" /> : null}
+        <Button
+          variant={a.buttonVariant}
+          size={a.buttonSize}
+          disabled={a.disabled}
+          loading={a.loading}
+        >
           {a.iconPosition === "start" ? glyph : null}
           {a.content}
           {a.iconPosition === "end" ? glyph : null}
@@ -251,22 +246,22 @@ export const SPECS: Record<ComponentName, ComponentSpec> = {
       );
     },
     code: (a) => {
-      const glyph = a.icon !== "none" && !a.loading ? a.icon : null;
+      const glyph = a.icon !== "none" ? a.icon : null;
       return snippet(
-        a.loading ? ["Button", "Spinner"] : ["Button"],
+        ["Button"],
         glyph ? [glyph] : [],
         element(
           "Button",
           attrs([
             ["variant", a.buttonVariant === "default" ? undefined : a.buttonVariant],
             ["size", a.buttonSize === "default" ? undefined : a.buttonSize],
-            ["disabled", a.disabled || a.loading],
+            ["disabled", a.disabled],
+            ["loading", a.loading],
           ]),
           [
-            a.loading ? '<Spinner size="sm" className="text-current" />' : "",
-            glyph && a.iconPosition === "start" ? `<${glyph} ${INHERIT} />` : "",
+            glyph && a.iconPosition === "start" ? `<${glyph} />` : "",
             text(a.content),
-            glyph && a.iconPosition === "end" ? `<${glyph} ${INHERIT} />` : "",
+            glyph && a.iconPosition === "end" ? `<${glyph} />` : "",
           ],
         ),
       );
@@ -275,20 +270,19 @@ export const SPECS: Record<ComponentName, ComponentSpec> = {
 
   IconButton: {
     summary:
-      "Icon-only button whose `aria-label` is required by TypeScript — the Content control becomes that name. Sizes are square (`icon-sm` / `icon` / `icon-lg`) and the default variant is `ghost`. The `[&_svg]:text-inherit` class is not decoration: `icon` renders the glyph for you, so it is the only place left to undo the white that Qeetrix icons ship with.",
+      "Icon-only button whose `aria-label` is required by TypeScript — the Content control becomes that name. Sizes are square (`icon-sm` / `icon` / `icon-lg`) and the default variant is `ghost`. Pass the icon component itself to `icon`; the button renders and sizes the glyph.",
     supports: ["content", "icon", "disabled"],
     render: (a) => (
       <IconButton
-        icon={ICONS[a.icon] ?? Settings}
+        icon={ICONS[a.icon] ?? SettingsIcon}
         aria-label={a.content.trim() || "Open settings"}
         variant={a.iconButtonVariant}
         size={a.iconButtonSize}
         disabled={a.disabled}
-        className={ICON_INHERIT}
       />
     ),
     code: (a) => {
-      const glyph = a.icon === "none" ? "Settings" : a.icon;
+      const glyph = a.icon === "none" ? "SettingsIcon" : a.icon;
       return snippet(
         ["IconButton"],
         [glyph],
@@ -300,7 +294,6 @@ export const SPECS: Record<ComponentName, ComponentSpec> = {
             ["variant", a.iconButtonVariant === "ghost" ? undefined : a.iconButtonVariant],
             ["size", a.iconButtonSize === "icon" ? undefined : a.iconButtonSize],
             ["disabled", a.disabled],
-            ["className", ICON_INHERIT],
           ]),
           [],
         ),
@@ -310,11 +303,11 @@ export const SPECS: Record<ComponentName, ComponentSpec> = {
 
   Badge: {
     summary:
-      "A static status marker, not a control — it has no size, disabled or pressed state. Reach for Chip when the thing needs to be dismissible.",
+      "A static status marker, not a control — it has no size, disabled or pressed state. Three kinds: the solid `default` (use sparingly), quiet tints (`brand`, `info` and the statuses) and graphite (`secondary`, `outline`, `muted`). Reach for Chip when the thing needs to be dismissible.",
     supports: ["content", "icon"],
     render: (a) => {
       const Glyph = ICONS[a.icon];
-      const glyph = Glyph ? <Glyph className="size-3" color="currentColor" /> : null;
+      const glyph = Glyph ? <Glyph /> : null;
       return (
         <Badge variant={a.badgeVariant}>
           {a.iconPosition === "start" ? glyph : null}
@@ -325,8 +318,8 @@ export const SPECS: Record<ComponentName, ComponentSpec> = {
     },
     code: (a) => {
       const glyph = a.icon === "none" ? null : a.icon;
-      // Badge sets no size rule for its own svg children, so the glyph carries one.
-      const tag = glyph ? `<${glyph} className="size-3" ${INHERIT} />` : "";
+      // Badge sizes a direct svg child to 12px itself, so the glyph needs no class of its own.
+      const tag = glyph ? `<${glyph} />` : "";
       return snippet(
         ["Badge"],
         glyph ? [glyph] : [],
@@ -345,13 +338,13 @@ export const SPECS: Record<ComponentName, ComponentSpec> = {
 
   Alert: {
     summary:
-      "Inline, page-level feedback. The icon is always the first child — the component's grid reserves a column for it — so the icon-position control does not apply here.",
+      'Inline, page-level feedback. The icon is always the first child — the component\'s grid reserves a column for it — so the icon-position control does not apply here. `emphasis="strong"` turns a status variant into a solid fill for messages that must not be missed; the neutral `default` variant has no strong form.',
     supports: ["content", "description", "icon"],
     render: (a) => {
       const Glyph = ICONS[a.icon];
       return (
-        <Alert variant={a.alertVariant} className="w-full max-w-md">
-          {Glyph ? <Glyph color="currentColor" /> : null}
+        <Alert variant={a.alertVariant} emphasis={a.alertEmphasis} className="w-full max-w-md">
+          {Glyph ? <Glyph /> : null}
           <AlertTitle>{a.content}</AlertTitle>
           {a.description ? <AlertDescription>{a.description}</AlertDescription> : null}
         </Alert>
@@ -366,9 +359,12 @@ export const SPECS: Record<ComponentName, ComponentSpec> = {
         glyph ? [glyph] : [],
         element(
           "Alert",
-          attrs([["variant", a.alertVariant === "default" ? undefined : a.alertVariant]]),
+          attrs([
+            ["variant", a.alertVariant === "default" ? undefined : a.alertVariant],
+            ["emphasis", a.alertEmphasis === "subtle" ? undefined : a.alertEmphasis],
+          ]),
           [
-            glyph ? `<${glyph} ${INHERIT} />` : "",
+            glyph ? `<${glyph} />` : "",
             element("AlertTitle", "", [text(a.content)]),
             a.description ? element("AlertDescription", "", [text(a.description)]) : "",
           ],

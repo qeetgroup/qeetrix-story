@@ -1,4 +1,4 @@
-import { ReceiptText } from "@qeetrix/icons";
+import { ReceiptTextIcon } from "@qeetrix/icons";
 import {
   Button,
   Card,
@@ -408,7 +408,7 @@ export const EmptyAfterLoading: Story = {
       <CardContent className="flex flex-col gap-4">
         <InvoiceTableSkeleton />
         <div className="flex items-start gap-3 rounded-lg border border-dashed p-4">
-          <ReceiptText aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-foreground" />
+          <ReceiptTextIcon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-foreground" />
           <p className="text-sm text-muted-foreground">
             …resolves to zero rows. Three fake rows, then nothing — the skeleton was the wrong tool
             for a filter that can legitimately match nothing.

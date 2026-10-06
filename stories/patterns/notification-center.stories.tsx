@@ -1,4 +1,10 @@
-import { Bell, CloseCircle, Danger, InfoCircle, TickCircle } from "@qeetrix/icons";
+import {
+  BellIcon,
+  CircleCheckIcon,
+  CircleXIcon,
+  InfoIcon,
+  TriangleAlertIcon,
+} from "@qeetrix/icons";
 import {
   Badge,
   Button,
@@ -34,13 +40,13 @@ interface InboxItem {
   read: boolean;
 }
 
-type ToneIconComponent = React.ComponentType<{ color?: string; className?: string }>;
+type ToneIconComponent = React.ComponentType<{ className?: string }>;
 
 const TONE_ICON: Record<Tone, ToneIconComponent> = {
-  info: InfoCircle,
-  success: TickCircle,
-  warning: Danger,
-  error: CloseCircle,
+  info: InfoIcon,
+  success: CircleCheckIcon,
+  warning: TriangleAlertIcon,
+  error: CircleXIcon,
 };
 
 const TONE_CLASS: Record<Tone, string> = {
@@ -100,7 +106,7 @@ function InboxRow({ item, onDismiss }: { item: InboxItem; onDismiss?: (id: strin
       <span
         className={`mt-0.5 flex size-5 shrink-0 items-center justify-center ${TONE_CLASS[item.tone]}`}
       >
-        <ToneIcon color="currentColor" className="size-5" />
+        <ToneIcon className="size-5" />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-center gap-2">
@@ -123,7 +129,7 @@ function InboxRow({ item, onDismiss }: { item: InboxItem; onDismiss?: (id: strin
           aria-label={`Dismiss ${item.title}`}
           onClick={() => onDismiss(item.id)}
         >
-          <CloseCircle color="currentColor" />
+          <CircleXIcon />
         </Button>
       ) : null}
     </div>
@@ -142,7 +148,7 @@ function InboxList({
   if (items.length === 0) {
     return (
       <EmptyState
-        icon={(props) => <Bell color="currentColor" {...props} />}
+        icon={BellIcon}
         title="You're all caught up"
         description="New sign-in alerts, key expiries and billing events land here."
       />

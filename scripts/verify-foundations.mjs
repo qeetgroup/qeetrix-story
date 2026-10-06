@@ -127,12 +127,14 @@ try {
   });
   assert.deepEqual(
     Object.fromEntries(Object.entries(dark).map(([key, value]) => [key, normalizeOklch(value)])),
+    // @qeetrix/ui 2.1 Graphite: a neutral near-black (hue 60, chroma 0.001), with the sidebar
+    // rail sunk below the canvas and each raised surface stepping up in lightness.
     {
-      background: "oklch(0.106 0 0)",
-      sidebar: "oklch(0.145 0 0)",
-      card: "oklch(0.205 0 0)",
-      popover: "oklch(0.269 0 0)",
-      border: "oklch(0.371 0 0)",
+      background: "oklch(0.160 .001 60)",
+      sidebar: "oklch(0.135 .001 60)",
+      card: "oklch(0.185 .001 60)",
+      popover: "oklch(0.235 .001 60)",
+      border: "oklch(0.268 .001 60)",
     },
   );
   console.log("PASS dark surface hierarchy");

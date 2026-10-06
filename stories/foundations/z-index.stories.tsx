@@ -30,21 +30,21 @@ interface Layer {
 const LADDER: Layer[] = [
   { token: "base", cssVar: "--qx-z-base", usedBy: "In-flow content. Reserved as the floor." },
   { token: "dropdown", cssVar: "--qx-z-dropdown", usedBy: "Reserved — no component reads it yet." },
-  {
-    token: "sticky",
-    cssVar: "--qx-z-sticky",
-    usedBy: "Reserved for sticky table headers and rails.",
-  },
-  { token: "fixed", cssVar: "--qx-z-fixed", usedBy: "FloatingWindow, ActionBar" },
+  { token: "sticky", cssVar: "--qx-z-sticky", usedBy: "AppShell header" },
+  { token: "fixed", cssVar: "--qx-z-fixed", usedBy: "Sidebar, FloatingWindow, ActionBar" },
   { token: "modalBackdrop", cssVar: "--qx-z-modal-backdrop", usedBy: "Dialog, AlertDialog" },
   { token: "modal", cssVar: "--qx-z-modal", usedBy: "Dialog, AlertDialog" },
-  { token: "drawerBackdrop", cssVar: "--qx-z-drawer-backdrop", usedBy: "Sheet" },
-  { token: "drawer", cssVar: "--qx-z-drawer", usedBy: "Sheet" },
+  { token: "drawerBackdrop", cssVar: "--qx-z-drawer-backdrop", usedBy: "Sheet, Drawer" },
+  {
+    token: "drawer",
+    cssVar: "--qx-z-drawer",
+    usedBy: "Sheet, Drawer — and a nested Dialog or Sheet, lifted onto it",
+  },
   {
     token: "popover",
     cssVar: "--qx-z-popover",
     usedBy:
-      "Popover, Tooltip, DropdownMenu, ContextMenu, Menubar, Select, Combobox, NavigationMenu",
+      "Popover, Tooltip, HoverCard, DropdownMenu, ContextMenu, Menubar, NavigationMenu, Select, Combobox, Autocomplete, MentionInput",
   },
   { token: "toast", cssVar: "--qx-z-toast", usedBy: "Toast viewport" },
   {
@@ -145,7 +145,9 @@ export const Rules: Story = {
           owns <Code>--qx-z-drawer-backdrop</Code> and <Code>--qx-z-drawer</Code>. The backdrop
           always sits exactly one rung below its own surface, so a surface is never dimmed by the
           scrim it casts — and because the drawer pair sits above the modal pair, a sheet opened
-          from inside a dialog lands on top of it with no per-instance z-index anywhere.
+          from inside a dialog lands on top of it with no per-instance z-index anywhere. The reverse
+          case is handled too: a nested dialog or sheet lifts onto the drawer rung, backdrop and
+          all, so a dialog opened from a sheet dims its parent instead of painting under it.
         </Prose>
       </Section>
 

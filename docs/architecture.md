@@ -58,7 +58,7 @@ never pull in.
 
 This is the single most surprising thing about the repo.
 
-`package.json` lists `"@qeetrix/ui": "^2.0.0"` as a dependency, and it *is* installed into
+`package.json` lists `"@qeetrix/ui": "^2.1.0"` as a dependency, and it *is* installed into
 `node_modules`. **It is not what the workshop renders.** `.storybook/main.ts` rewrites
 every `@qeetrix/ui` specifier to `../qeetrix-ui/src` — a sibling git checkout on disk:
 
@@ -79,13 +79,14 @@ bare specifier.
 
 | Pattern | Resolves to | Why it needs its own rule |
 | --- | --- | --- |
-| `@qeetrix/ui/styles.css` | `src/styles/index.css` | source filename differs from the published one |
+| `@qeetrix/ui/styles.css` | `src/styles/styles.css` | the full entry: core (`index.css`) plus the host-global `base.css`, which carries the reduced-motion collapse and the forced-colors remapping. `index.css` alone is the opt-out core entry |
 | `@qeetrix/ui/tokens.css` | `src/styles/tokens.raw.css` | published export is renamed |
 | `@qeetrix/ui/qeetrix.css` | `src/styles/tokens.css` | published export is renamed |
 | `@qeetrix/ui/tokens.json` | `src/styles/tokens.json` | generated file, not in `dist` layout |
 | `@qeetrix/ui/<anything>` | `src/<anything>` | the generic catch-all: `brand/`, `components/*`, `providers/*`, `lib/*`, `hooks/*`, `fonts/*` |
 | `@qeetrix/ui` | `src/index.ts` | the barrel |
 | `@/<anything>` | `src/<anything>` | `@qeetrix/ui`'s *own* internal path alias, which its source uses and this repo never does |
+| `@qeetrix/icons` | `node_modules/@qeetrix/icons/dist/generated/icon-index.js` | not a sibling-checkout rule: the package's real root also re-exports ~7,400 brand logos, and Vite pre-bundles a dependency's whole root (~50 s and ~2.8 GB on a cold start). Stories still write the root import; only the bundler is pointed at the icons-only index |
 
 Why source rather than `dist`: the workshop gets live HMR against the library, and never
 depends on a `dist/` that a `tsc --watch` dev loop can leave holding unresolved `@/`
@@ -164,7 +165,6 @@ preset list; nothing runs the suite in RTL or at a non-default width.
 | `stories/components/<category>/*.stories.tsx` | one file per `@qeetrix/ui` component | **yes** — full contract |
 | `stories/foundations/*.stories.tsx` | Colors, Typography, Spacing & Radius, Density, Token Layers, Elevation, Motion | title only |
 | `stories/brand/brand.stories.tsx` | adaptive `QeetLogo` | title only |
-| `stories/icons.stories.tsx` | `@qeetrix/icons` gallery | title only |
 | `stories/patterns/*.stories.tsx` | multi-component patterns (e.g. `Patterns/AuthenticationForm`) | not scanned — see [governance.md](./governance.md) |
 | `stories/recipes/*.stories.tsx` | cross-cutting recipes (loading states, empty states) | not scanned — see [governance.md](./governance.md) |
 | `stories/guides/*.mdx` | narrative guides (5) | n/a |
@@ -184,8 +184,8 @@ Files prefixed `_` are not matched by the stories glob (`*.mdx`, `*.stories.@(ts
 `bun run build` is `node scripts/gen-llms.mjs && storybook build`, so the llms step gates
 the whole build. That step reads the **sibling checkout**, not `node_modules` — the
 published `@qeetrix/ui` tarball ships `dist/` only (no `src/`, no `tokens.json`), so
-reading `node_modules` cannot work. That correction is landing at the time of writing; if
-`bun run build` fails at `gen-llms`, this is the reason.
+reading `node_modules` cannot work. If `bun run build` fails at `gen-llms`, a missing or
+misplaced `../qeetrix-ui` checkout is the reason.
 
 ## Known repo state
 
@@ -193,9 +193,7 @@ Documented so nobody burns an afternoon rediscovering it.
 
 | Thing | State |
 | --- | --- |
-| `bun run build` | gated on `scripts/gen-llms.mjs`, which is being corrected to read the sibling checkout instead of `node_modules/@qeetrix/ui/src` |
-| `bun run lint` | fails — 4 errors + 25 warnings, all pre-existing, effectively all in `.storybook/styles.css` (`noImportantStyles`, `noDescendingSpecificity`) plus a Biome CSS parse error on Tailwind's `@source` directive, and one `noNonNullAssertion` in `stories/icons.stories.tsx` |
-| `bun run typecheck` | fails — 1 pre-existing error, a `tokens.json` cast in `stories/foundations/colors.stories.tsx` |
-| `bun run verify:foundations` | fails — the rendered `Button` height no longer matches the 36px `comfortable` assertion, and the script also asserts a `Blocks/DashboardShell` story that is not in the current index |
-| CI | `.github/workflows/ci.yml` — checks out **both repos side by side**, builds `@qeetrix/ui`'s generated tokens, then runs lint · typecheck · verify:stories · test · build. `lint` and `typecheck` are expected red (see above) and are deliberately **not** `continue-on-error`; every gate runs even after an earlier failure so one run reports the whole picture. VRT is not in CI. |
+| `bun run lint` | fails — all pre-existing, all in `.storybook/styles.css` (`noImportantStyles`, `noDescendingSpecificity`) plus a Biome CSS parse error on Tailwind's `@source` directive — 2 errors + 24 warnings |
+| `bun run typecheck` · `build` · `verify:stories` · `verify:foundations` · `test` | pass |
+| CI | `.github/workflows/ci.yml` — checks out **both repos side by side**, builds `@qeetrix/ui`'s generated tokens, then runs lint · typecheck · verify:stories · test · build. `lint` is expected red (see above) and is deliberately **not** `continue-on-error`; every gate runs even after an earlier failure so one run reports the whole picture. VRT is not in CI. |
 | RTL / dark-mode / responsive test matrices | **do not exist.** There is now a Direction toolbar global, a `DirectionProvider` decorator and four viewport presets — those are affordances for a human clicking around, not automated coverage. Nothing runs the suite in RTL, in dark mode, or at a non-default width. |

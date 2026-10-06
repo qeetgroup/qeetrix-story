@@ -25,7 +25,7 @@ export const DisabledState: Story = {
     docs: {
       description: {
         story:
-          "The single authored token, and the two Tailwind names it is published under. Every disabled control in the library resolves through it, so unavailability looks identical across components.",
+          "The single authored token, and the two Tailwind names it is published under. Disabled controls resolve through it, so unavailability looks the same across components — with one deliberate exception, the primary button.",
       },
     },
   },
@@ -39,11 +39,13 @@ export const DisabledState: Story = {
         </Prose>
         <div className="flex flex-wrap items-end gap-6">
           <div className="flex flex-col gap-2">
-            <Button>Enabled</Button>
+            <Button variant="outline">Enabled</Button>
             <span className="text-xs text-muted-foreground">full opacity</span>
           </div>
           <div className="flex flex-col gap-2">
-            <Button disabled>Disabled</Button>
+            <Button variant="outline" disabled>
+              Disabled
+            </Button>
             <span className="text-xs text-muted-foreground">disabled:opacity-disabled</span>
           </div>
           <div className="flex w-56 flex-col gap-1.5">
@@ -74,6 +76,16 @@ export const DisabledState: Story = {
             },
           ]}
         />
+        <Callout title="The primary button is neutral when disabled, not faded">
+          A disabled primary <Code>Button</Code> keeps full opacity and drops to the neutral
+          interactive fill with the disabled text colour instead. Half an Ember fill over a
+          near-black page reads as brown, and an action that cannot be taken should not carry the
+          loudest colour on the screen.
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Button>Authenticate with Qeet</Button>
+            <Button disabled>Authenticate with Qeet</Button>
+          </div>
+        </Callout>
         <Callout title="opacity-50 is not 50% any more">
           The <Code>@theme</Code> block redefines Tailwind&rsquo;s <Code>--opacity-50</Code> to
           point at the token. Today the two happen to be the same number; the point is that if the
@@ -132,22 +144,41 @@ export const AlphaVersusOpacity: Story = {
       <Section title="The alpha modifier">
         <Prose>
           Any colour utility takes a <Code>/</Code> suffix, and the suffix may be a number or a name
-          from the <Code>--opacity-*</Code> namespace. That second form is how the library keeps its
-          state treatments token-driven: the Button&rsquo;s focus ring is literally{" "}
-          <Code>focus-visible:ring-ring/disabled</Code>, which is the ring colour at the disabled
-          opacity.
+          from the <Code>--opacity-*</Code> namespace — <Code>bg-accent/disabled</Code> is the
+          accent at the disabled opacity. The library has stopped reaching for that named form. The
+          focus halo <Code>ring-ring/disabled</Code> became the solid <Code>focus-ring</Code>{" "}
+          outline, and the navigation menu&rsquo;s current-page <Code>bg-accent/disabled</Code>{" "}
+          became <Code>bg-brand-subtle</Code>: borrowing the disabled opacity for focus or selection
+          ties two unrelated decisions together, and retuning one would quietly move the other.
+        </Prose>
+        <Prose>
+          What remains in component source are small numeric tints over a known surface, where the
+          thing underneath is meant to show through.
         </Prose>
         <TokenTable
           caption="Alpha modifier forms seen in @qeetrix/ui component source."
           columns={["Utility", "Meaning"]}
           rows={[
-            { token: "ring-ring/disabled", cells: ["ring colour at --opacity-disabled"] },
-            { token: "bg-destructive/10", cells: ["destructive at 10% — tinted danger surfaces"] },
-            { token: "ring-foreground/10", cells: ["the hairline ring on popovers and menus"] },
-            { token: "bg-black/10", cells: ["the Sheet backdrop"] },
             {
-              token: "border-destructive/disabled",
-              cells: ["invalid border at the disabled opacity, dark theme only"],
+              token: "hover:bg-foreground/10",
+              cells: ["the hover fill behind a Chip or TagInput remove button"],
+            },
+            { token: "hover:bg-foreground/5", cells: ["the hover fill behind the Banner dismiss"] },
+            {
+              token: "bg-background/95",
+              cells: ["the AppShell sticky header — /60 where backdrop blur is supported"],
+            },
+            {
+              token: "border-s-current/20",
+              cells: ["ButtonGroup dividers: the label colour at low strength, on every variant"],
+            },
+            {
+              token: "border-foreground/15",
+              cells: ["the ColorSwatch edge, which has to show against any colour"],
+            },
+            {
+              token: "bg-surface-sunken/90",
+              cells: ["the CodeBlock copy button, floating over the code"],
             },
           ]}
         />
@@ -169,10 +200,11 @@ export const Scrims: Story = {
     <Page>
       <Section title="Scrim tokens">
         <Prose>
-          <Code>--qx-color-overlay-scrim</Code> is <Code>oklch(0 0 0 / 40%)</Code> — black with the
-          alpha baked in, identical in light and dark. It stays constant across themes on purpose: a
-          scrim&rsquo;s job is to suppress what is behind it, and that job does not change when the
-          page gets darker.
+          <Code>--qx-color-overlay-scrim</Code> is Graphite&rsquo;s near-black (
+          <Code>graphite-1000</Code>) mixed toward transparent — 40% in light, 62% in dark. The
+          alpha is baked into the colour, and it rises in dark mode because a scrim&rsquo;s job is
+          to suppress what is behind it: over a page that is already near-black, 40% barely
+          registers.
         </Prose>
         <div className="relative isolate h-52 max-w-2xl overflow-hidden rounded-xl border border-border">
           <div className="absolute inset-0 grid grid-cols-3 gap-2 p-3">
@@ -197,23 +229,23 @@ export const Scrims: Story = {
           </div>
         </div>
         <TokenTable
-          caption="Transparency that is carried by a colour rather than an opacity property."
+          caption="Scrim transparency, carried by a colour rather than an opacity property."
           columns={["Token", "Value", "Used by"]}
           rows={[
             {
               token: "--qx-color-overlay-scrim",
-              cells: ["oklch(0 0 0 / 40%)", "the scrim role, identical in both themes"],
+              cells: [
+                "color-mix(in oklab, graphite-1000 40% | 62%, transparent)",
+                "the scrim role — light | dark",
+              ],
             },
             {
               token: "--qx-component-dialog-scrim",
-              cells: ["var(--qx-color-overlay-scrim)", "Dialog backdrop"],
+              cells: ["var(--qx-color-overlay-scrim)", "Dialog, AlertDialog and Sheet backdrops"],
             },
             {
-              token: "--qx-component-card-ring",
-              cells: [
-                "color-mix(in oklab, var(--qx-color-text-primary) 10%, transparent)",
-                "Card hairline",
-              ],
+              token: "--qx-component-tour-scrim",
+              cells: ["var(--qx-color-overlay-scrim)", "Tour backdrop"],
             },
           ]}
         />

@@ -11,7 +11,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "Elevation is the *role* a surface plays; shadow is the value it renders with. A component picks `raised`, `overlay` or `modal` — never a shadow number — so the whole ladder can be retuned in one place. Semantic roles live in `--qx-elevation-*`, the raw values in `--qx-shadow-*`, and `@qeetrix/ui/styles.css` overrides Tailwind's `shadow-2xs`…`shadow-xl` scale so even the generic utilities land on the Qeetrix ladder. Every shadow is a stack of two soft drops plus a hairline `0 0 0 1px` ring, which is what keeps a card legible on a tinted surface without a visible border.",
+          "Elevation is the *role* a surface plays; shadow is the value it renders with. A component picks `raised`, `overlay` or `modal` — never a shadow number — so the whole ladder can be retuned in one place. Semantic roles live in `--qx-elevation-*`, the raw values in `--qx-shadow-*`, and `@qeetrix/ui/styles.css` overrides Tailwind's `shadow-2xs`…`shadow-xl` scale so even the generic utilities land on the Qeetrix ladder. Shadows are neutral: cast in a near-black (`rgb(12 12 12)`) rather than pure black in light, kept low and tight so a screen with dozens of surfaces stays calm. Every role from `raised` up stacks soft drops over a hairline `0 0 0 1px` perimeter, which keeps a card legible on a tinted surface without a visible border. Dark mode leans on the surface ladder instead: Graphite steps each plane up in luminance, and its shadows are deeper black with a faint white rim — never a glow.",
       },
     },
   },
@@ -128,6 +128,13 @@ export const Roles: Story = {
           <Code>xs</Code> and <Code>sm</Code> steps of the ramp below. They are there for surfaces
           that need a hint of separation without joining the raised/overlay/modal conversation.
         </Callout>
+        <Callout title="In dark mode, luminance does the lifting">
+          A shadow on near-black is close to invisible, so the dark theme separates surfaces by
+          making each one lighter — <Code>surface-default</Code> to <Code>surface-elevated</Code> to{" "}
+          <Code>surface-overlay</Code> — and keeps the shadow for the edge. A component that pairs
+          its elevation role with the matching surface role gets that for free; one that paints a
+          raised card on <Code>bg-background</Code> loses its depth in dark.
+        </Callout>
       </Section>
     </Page>
   ),
@@ -138,7 +145,7 @@ export const Ramp: Story = {
     docs: {
       description: {
         story:
-          "The generic Tailwind scale. `@qeetrix/ui/styles.css` remaps `--shadow-2xs`…`--shadow-xl` onto `--qx-elevation-ramp-*`, so `shadow-md` in product code is a Qeetrix shadow rather than a stock one.",
+          "The generic Tailwind scale. `@qeetrix/ui/styles.css` remaps `--shadow-2xs`…`--shadow-xl` onto `--qx-elevation-ramp-*`, so `shadow-md` in product code is a Qeetrix shadow rather than a stock one. `shadow-2xs` is the faintest step — a 1px contact shadow for chips and toggles that sit flush with the surface.",
       },
     },
   },
@@ -147,7 +154,8 @@ export const Ramp: Story = {
       <Section title="Shadow ramp">
         <Prose>
           Six evenly-spaced steps for surfaces that have no semantic role. Prefer a role where one
-          fits — the ramp is the escape hatch, not the front door.
+          fits — the ramp is the escape hatch, not the front door. Unlike the roles, the ramp steps
+          carry no hairline perimeter, so a ramp shadow on its own does not give a surface an edge.
         </Prose>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
           {RAMP.map((step) => (
@@ -175,7 +183,7 @@ export const Values: Story = {
     docs: {
       description: {
         story:
-          "The raw values behind the roles, as published in the typed `SHADOW` constant — the same numbers the CSS variables resolve to.",
+          "The raw values behind the roles, as published in the typed `SHADOW` constant — the light-theme numbers the CSS variables resolve to — and the component tokens that pick a role.",
       },
     },
   },
@@ -213,9 +221,20 @@ export const Values: Story = {
           rows={[
             { token: "--qx-component-card-elevation", cells: ["--qx-elevation-raised"] },
             { token: "--qx-component-card-elevation-hover", cells: ["--qx-elevation-hover"] },
+            { token: "--qx-component-card-elevation-elevated", cells: ["--qx-elevation-hover"] },
+            { token: "--qx-component-file-card-elevation", cells: ["--qx-elevation-raised"] },
+            { token: "--qx-component-file-card-elevation-hover", cells: ["--qx-elevation-hover"] },
+            { token: "--qx-component-menu-elevation", cells: ["--qx-elevation-overlay"] },
+            { token: "--qx-component-popover-elevation", cells: ["--qx-elevation-overlay"] },
             { token: "--qx-component-dialog-elevation", cells: ["--qx-elevation-modal"] },
           ]}
         />
+        <Callout title="SHADOW is the light theme only">
+          The typed constant is generated from the light shadow values. Dark shadows exist only as
+          CSS — the <Code>--qx-elevation-*</Code> roles are redeclared under <Code>.dark</Code> — so
+          JavaScript that needs a theme-correct shadow should hand the browser{" "}
+          <Code>var(--qx-elevation-overlay)</Code> rather than a value from <Code>SHADOW</Code>.
+        </Callout>
         <Callout title="Shadows disappear under forced colors">
           The base layer sets <Code>box-shadow: none</Code> on everything inside a{" "}
           <Code>forced-colors: active</Code> media query, because a Windows high-contrast palette

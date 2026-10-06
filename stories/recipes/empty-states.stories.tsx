@@ -1,4 +1,10 @@
-import { Add, ClipboardTick, FilterRemove, Notification, SearchNormal } from "@qeetrix/icons";
+import {
+  BellRingIcon,
+  ClipboardCheckIcon,
+  FunnelXIcon,
+  PlusIcon,
+  SearchXIcon,
+} from "@qeetrix/icons";
 import {
   Badge,
   Button,
@@ -90,13 +96,13 @@ export const FirstRun: Story = {
       <Separator />
       <CardContent>
         <EmptyState
-          icon={Notification}
+          icon={BellRingIcon}
           title="No channels yet"
           description="A channel is a destination — email, SMS, Slack or a webhook. Add one and Qeet Notify will start routing alerts to it within a minute."
           action={
             <>
               <Button>
-                <Add aria-hidden="true" />
+                <PlusIcon aria-hidden="true" />
                 Add channel
               </Button>
               <Button variant="outline">Import from Slack</Button>
@@ -156,7 +162,7 @@ export const NoResults: Story = {
             <Badge variant="secondary">severity: error</Badge>
             <Badge variant="secondary">region: ap-south-1</Badge>
             <Button variant="outline" size="sm">
-              <FilterRemove aria-hidden="true" />
+              <FunnelXIcon aria-hidden="true" />
               Clear filters
             </Button>
           </div>
@@ -165,12 +171,12 @@ export const NoResults: Story = {
           0 of 47 streams match your filters.
         </p>
         <EmptyState
-          icon={SearchNormal}
+          icon={SearchXIcon}
           title="No streams match “qeet-pay-prod”"
           description="47 streams exist in this workspace, but none of them match this search combined with severity “error” in ap-south-1. Try a shorter term, or drop one filter."
           action={
             <Button variant="outline">
-              <FilterRemove aria-hidden="true" />
+              <FunnelXIcon aria-hidden="true" />
               Clear all filters
             </Button>
           }
@@ -212,12 +218,12 @@ export const Cleared: Story = {
       <CardContent>
         <div role="status">
           <EmptyState
-            icon={ClipboardTick}
+            icon={ClipboardCheckIcon}
             title="All caught up"
             description="You approved the last 6 requests this morning. Nothing is waiting on you."
             action={
               <Button variant="ghost">
-                <ClipboardTick aria-hidden="true" />
+                <ClipboardCheckIcon aria-hidden="true" />
                 View approval history
               </Button>
             }
@@ -261,12 +267,12 @@ export const SideBySide: Story = {
         </CardHeader>
         <CardContent>
           <EmptyState
-            icon={Notification}
+            icon={BellRingIcon}
             title="No channels yet"
             description="Add a destination and Qeet Notify starts routing alerts to it."
             action={
               <Button size="sm">
-                <Add aria-hidden="true" />
+                <PlusIcon aria-hidden="true" />
                 Add channel
               </Button>
             }
@@ -281,12 +287,12 @@ export const SideBySide: Story = {
         </CardHeader>
         <CardContent>
           <EmptyState
-            icon={SearchNormal}
+            icon={SearchXIcon}
             title="No matches for “qeet-pay-prod”"
             description="47 streams exist — none match this search with these filters."
             action={
               <Button size="sm" variant="outline">
-                <FilterRemove aria-hidden="true" />
+                <FunnelXIcon aria-hidden="true" />
                 Clear filters
               </Button>
             }
@@ -301,7 +307,7 @@ export const SideBySide: Story = {
         </CardHeader>
         <CardContent>
           <EmptyState
-            icon={ClipboardTick}
+            icon={ClipboardCheckIcon}
             title="All caught up"
             description="You approved the last 6 requests this morning."
           />

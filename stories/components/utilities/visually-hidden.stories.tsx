@@ -1,4 +1,4 @@
-import { Bell, DocumentDownload, Settings, Trash } from "@qeetrix/icons";
+import { BellIcon, DownloadIcon, SettingsIcon, TrashIcon } from "@qeetrix/icons";
 import { Button, Icon, VisuallyHidden } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { qx } from "../../_contract";
@@ -33,7 +33,7 @@ export const IconButtonLabel: Story = {
   },
   render: () => (
     <Button variant="ghost" size="icon" aria-label="Notifications">
-      <Icon icon={Bell} />
+      <Icon icon={BellIcon} />
       <VisuallyHidden>Notifications</VisuallyHidden>
     </Button>
   ),
@@ -51,19 +51,19 @@ export const IconButtonGallery: Story = {
   render: () => (
     <div className="flex items-center gap-2">
       <Button variant="ghost" size="icon">
-        <Icon icon={Bell} />
+        <Icon icon={BellIcon} />
         <VisuallyHidden>Notifications</VisuallyHidden>
       </Button>
       <Button variant="ghost" size="icon">
-        <Icon icon={Settings} />
+        <Icon icon={SettingsIcon} />
         <VisuallyHidden>Settings</VisuallyHidden>
       </Button>
       <Button variant="ghost" size="icon">
-        <Icon icon={DocumentDownload} />
+        <Icon icon={DownloadIcon} />
         <VisuallyHidden>DocumentDownload report</VisuallyHidden>
       </Button>
       <Button variant="ghost" size="icon" className="text-destructive">
-        <Icon icon={Trash} />
+        <Icon icon={TrashIcon} />
         <VisuallyHidden>Delete record</VisuallyHidden>
       </Button>
     </div>

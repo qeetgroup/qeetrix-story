@@ -1,4 +1,4 @@
-import { Add, Trash } from "@qeetrix/icons";
+import { PlusIcon, TrashIcon } from "@qeetrix/icons";
 import {
   Button,
   type ColumnDef,
@@ -170,12 +170,12 @@ export const WithSelectionAndActions: Story = {
       searchPlaceholder="Search members…"
       toolbarActions={
         <Button size="sm">
-          <Add /> New member
+          <PlusIcon /> New member
         </Button>
       }
       bulkActions={(rows) => (
         <Button variant="destructive" size="sm">
-          <Trash /> Delete {rows.length}
+          <TrashIcon /> Delete {rows.length}
         </Button>
       )}
     />

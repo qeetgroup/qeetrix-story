@@ -167,7 +167,7 @@
 - typography
 - visually-hidden
 
-## Design tokens (~609 per theme)
+## Design tokens (~872 per theme)
 
 Authored as W3C DTCG JSON (`qeetrix-ui/src/tokens/**`), compiled by Style Dictionary to
 CSS custom properties (`--qx-*`) + JSON. Colour is OKLCH; every required text/surface
@@ -201,35 +201,40 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Accessibility
 
-Qeetrix targets **WCAG 2.1 AA** and **EN 301 549**, built on Base UI (WAI-ARIA APG
+Qeetrix targets **WCAG 2.2 AA** and **EN 301 549**, built on Base UI (WAI-ARIA APG
 behaviour). Accessibility is enforced, not aspirational.
 
 ## What's guaranteed
 
 - **Keyboard + ARIA** — interactive components inherit APG keyboard models, focus
   management, and roles/states from Base UI.
-- **Contrast** — every required text/surface pair is held to AA by a token-level gate
-  (`bun run tokens:validate`); the Qeet-orange brand pairs are enforced too.
-- **Visible focus**, reduced-motion support, light/dark, and RTL throughout.
+- **Contrast** — every designed pair is held to its AA minimum in both themes by a contrast
+  test in `@qeetrix/ui` (`src/__tests__/token-governance.test.ts`): 4.5:1 for text — including
+  muted, placeholder and link text — and 3:1 for control boundaries, the focus colour and chart
+  marks. The primary action is Qeet Ember `#D04800` with a white label at 4.55:1; the brand
+  orange `#F26D0E` carries white at only 3.0:1, so it is never an action fill.
+- **Control boundaries** — inputs, checkboxes, radios and switch tracks are edged with
+  `border.control`, 3:1 against every surface they sit on (WCAG 1.4.11), not with the
+  decorative `border.default`.
+- **Visible focus** — one outline recipe (`focus-ring`, `focus-ring-inset`, `focus-ring-field`)
+  that survives forced colors, plus reduced-motion support, light/dark, and RTL throughout.
 
 ## Automated coverage
 
-- `bun run --filter @qeetrix/ui test` runs Vitest + `vitest-axe`.
-- `bun run --filter @qeetrix/ui test:a11y-coverage` is a **ratchet**: every component must
-  have an automated a11y test, be in the smoke harness, or be on a shrinking exemption
-  list. CI enforces it.
+- In `@qeetrix/ui`, `bun run test` runs Vitest with `vitest-axe` alongside the token contrast
+  test, so a token change that breaks a pair fails the same run as a component regression.
+- In this workshop, `bun run test` mounts every story in headless Chromium and fails on any axe
+  violation. `region` and `color-contrast` are excluded from that gate; `bun run verify:a11y`
+  reports contrast without failing.
+
+axe is a floor, not a grade: it covers part of the semantic layer and nothing about keyboard
+behaviour or what a screen reader is told. A clean run does not mean a component is accessible.
 
 ## For contributors
 
-Run the per-component review in `docs/accessibility/audit-checklist.md` before shipping.
-The conformance report template lives in `docs/accessibility/VPAT.md` (currently
-self-reported, pending a third-party audit).
-
-## Known caveat
-
-`text.link` on white is currently ~3:1 with the orange brand — fine for large/UI text
-but below the 4.5:1 body-text bar. Prefer `Button`/`Typography` link styling in dense
-body copy until this is resolved (tracked in ADR 0004).
+Run the per-component review in `docs/standards/accessibility-checklist.md` (in `qeetrix-ui`)
+before shipping. `docs/governance/accessibility-evidence.md` explains how an audit result has to
+be backed by a test that asserts it.
 
 
 ## Guide: Design Tokens
@@ -241,41 +246,64 @@ import { Meta } from "@storybook/addon-docs/blocks";
 # Design tokens
 
 Tokens are the single source of truth. Everything downstream (components, themes, the
-Figma export) is generated or composed from them.
+typed constants) is generated or composed from them.
 
 ## Pipeline
 
-W3C **DTCG JSON** (`packages/ui/tokens/**`) → **Style Dictionary**
-(`scripts/build-tokens.mjs`) → generated CSS + JSON. Three layers:
+W3C **DTCG JSON** (`src/tokens/**` in `qeetrix-ui`) → **Style Dictionary**
+(`scripts/build/tokens.mjs`, run by `bun run build:tokens`) → generated CSS, JSON and typed
+TypeScript. The layers:
 
-- **primitive** — raw ramps (OKLCH colour, spacing, radius, shadow, motion, …)
-- **semantic** — meaning (`text.primary`, `surface.canvas`, `action.primary`, …), per theme
-- **bridge** — the shadcn/Base-UI variables (`--primary`, `--ring`, …), per theme
+- **primitive** — raw ramps (OKLCH colour — Graphite, Qeet, status, the Tailwind palette —
+  spacing, radius, shadow, motion, …)
+- **semantic** — meaning, per theme. Colour roles are grouped `surface.*`, `text.*`,
+  `border.*`, `action.*`, `feedback.*` (each status also `-subtle` and `-strong`) and `data.*`,
+  plus focus, overlay, selection, rating and syntax. The CSS name is
+  `--qx-color-<group>-<role>`: `--qx-color-surface-canvas`, `--qx-color-feedback-error-strong`
+- **component** — per-component decisions (`--qx-component-button-primary-background`, …),
+  including the **bridge**: the shadcn/Base-UI variables (`--primary`, `--ring`, …), each
+  pointing at a semantic role
 
 ## Consuming tokens
 
-- `@qeetrix/ui/styles.css` — the semantic `:root` / `.dark` variables, baked in
-- `@qeetrix/ui/tokens.css` — the raw `--qx-*` ramp
+- `@qeetrix/ui/styles.css` — the semantic and component layers for `:root` / `.dark`, the
+  Tailwind theme mapping, fonts and the base layer. **No primitives.**
+- `@qeetrix/ui/qeetrix.css` — the same semantic `:root` / `.dark` variables on their own
+- `@qeetrix/ui/tokens.css` — every `--qx-*` variable, raw primitive ramps included
 - `@qeetrix/ui/tokens.json` — resolved values per theme (cross-platform)
 
+Name a role, not a ramp step. A role re-themes with the document; a primitive is only defined
+when `tokens.css` is loaded as well.
+
 ```css
-.badge { background: var(--qx-color-brand-500); }
-.hero  { background: var(--qx-gradient-brand); } /* composite gradient token */
+.plan-badge {
+  background: var(--qx-color-surface-brand-subtle);
+  color: var(--qx-color-text-brand);
+}
+.panel-footer {
+  background: var(--qx-gradient-surface-fade); /* composite gradient token, theme-aware */
+}
 ```
+
+In Tailwind the roles are utilities — `bg-canvas`, `bg-surface-sunken`, `bg-brand-subtle`,
+`text-link`, `border-control`, `bg-destructive-strong text-on-feedback-strong`, … — and
+**Foundations / Colors** lists the utility for every role.
 
 ## Guarantees
 
 - Colour is authored in **OKLCH**.
-- A **WCAG-AA contrast gate** (`bun run tokens:validate`) fails the build if a required
-  text/surface pair drops below AA.
+- A **WCAG-AA contrast test** (`src/__tests__/token-governance.test.ts`, part of
+  `bun run test` in `qeetrix-ui`) fails if a designed text/surface, control-boundary, focus or
+  chart pair drops below its minimum in either theme.
 - **Composite tokens** (`gradient`, `strokeStyle`) serialize to real CSS
   (`linear-gradient(…)`, `dashed`) — see `--qx-gradient-*` / `--qx-stroke-*`.
+- **Typed constants** (`DURATION`, `EASING`, `SHADOW`, `Z_INDEX`, `CHART_COLOR`, …) are
+  generated from the same source as the CSS, so a value read in JavaScript cannot drift.
 
-## Figma / Tokens Studio
+## Figma
 
-`bun run --filter @qeetrix/ui tokens:studio` exports the tokens into
-`packages/ui/tokens-studio/` (DTCG sets + `$themes.json`/`$metadata.json`) for the
-Tokens Studio Figma plugin to import as Variables.
+`@qeetrix/ui/tokens.json` is the cross-platform export: resolved values for each theme, which
+is what a Figma Variables import should read.
 
 
 ## Guide: Foundation Modes
@@ -320,8 +348,9 @@ guidance; use comfortable density for coarse-pointer primary workflows.
 
 ## Forced colors and focus
 
-`styles.css` maps semantic colors to browser system colors under `forced-colors: active`. Focused
-elements receive a token-driven `Highlight` outline even when shadows and custom rings are removed.
+`styles.css` maps semantic colors to browser system colors under `forced-colors: active`. Focus is
+already an outline (the `focus-ring` utilities), so under forced colors it is re-pointed at
+`Highlight` at the token width while shadows are removed — the indicator survives unchanged.
 Do not disable `forced-color-adjust` on interactive controls without a tested reason.
 
 ## Responsive behavior
@@ -334,12 +363,14 @@ modal detail panel.
 ## Token layers and enforcement
 
 Primitive values feed semantic light/dark roles, stable component metrics, shared interaction
-state, and data-visualization roles. `build-tokens` generates runtime CSS and typed values from the
-same DTCG source; do not mirror motion, icon, stacking, shadow, or component constants by hand.
+state, and data-visualization roles. The token build (`bun run build:tokens` in `qeetrix-ui`)
+generates runtime CSS and typed values from the same DTCG source; do not mirror motion, icon,
+stacking, shadow, or component constants by hand.
 
-Use `--chart-1` through `--chart-8` for categorical identity and the dedicated grid, axis,
-reference, positive, negative, and warning roles for chart structure and meaning. Run
-`bun run tokens:scan` before review; exemptions are limited to documented domain data and
+Use `--chart-1` through `--chart-8` (the `--qx-color-data-categorical-*` roles; `bg-chart-1`,
+`fill-chart-1`, …) for categorical identity and the dedicated grid, axis, reference, positive,
+negative, and warning roles for chart structure and meaning. Do not hard-code a colour, duration
+or layer that a token already names; exemptions are limited to documented domain data and
 third-party selector shims.
 
 ## Guide: Getting Started
@@ -426,11 +457,24 @@ import { ThemeProvider } from "@qeetrix/ui";
 
 ## Brand colour
 
-The brand is **Qeet orange** (`#F26D0E` ≈ `orange.500`). Primary buttons, links, focus
-rings and the shadcn `--primary` / `--ring` bridge resolve to the brand ramp, with a
-dark on-brand foreground for AA contrast. To re-brand, re-point the `color.brand.*`
-aliases in `packages/ui/tokens/primitive/color.json` — semantic and component layers
-need no change (see ADR 0004).
+There are two oranges. The brand is **Qeet orange**, `#F26D0E` (`qeet.500`, Qeet's own ramp
+rather than Tailwind orange): identity, the logo, accents. Filled primary actions and checked
+controls use **Qeet Ember**, `#D04800` (`qeet.600`), with a white label at 4.55:1 (WCAG AA) in
+both themes — the brand orange carries white at only 3.0:1, so it is never an action fill.
+Brand text and links use the AA text step, `qeet.700` in light and `qeet.400` in dark
+(`text-brand`, `text-link`), and the focus ring is Ember in light, `qeet.400` in dark.
+
+Neutrals are **Graphite**, near-neutral by design, so dark mode is a neutral near-black (page
+`#0e0d0d`, cards `#131312`) rather than a warm charcoal. In dark mode the selected state is a
+neutral lift with a `border.brand` indicator, not an orange tint, because orange at that
+lightness reads as brown.
+
+To re-brand, re-point the semantic roles that name the Qeet ramp — `action.primary*`,
+`text.brand`, `text.link*`, `border.brand`, `border.focused`, `focus.ring`,
+`surface.brand-subtle*` — in `src/tokens/theme/<theme>/semantic.json` in `qeetrix-ui`, then run
+its tests: the contrast test measures each of those pairings rather than assuming them. The
+`color.brand.*` primitives alias `color.qeet.*`, but the semantic layer reads the Qeet ramp
+directly, so re-pointing the aliases alone changes nothing on screen.
 
 ## Overriding tokens in a consuming app
 
@@ -440,13 +484,24 @@ Import the Qeetrix layer, then override the variables you want *after* it:
 @import "@qeetrix/ui/styles.css";
 
 :root {
-  /* nudge the accent surfaces without touching the package */
-  --primary: oklch(0.62 0.20 250); /* your blue */
+  /* A different primary action: re-check that a white label still reaches 4.5:1. */
+  --primary: oklch(0.52 0.2 250); /* checkbox, radio, slider — the bridge */
+  --qx-color-action-primary: oklch(0.52 0.2 250); /* Button, badge, calendar — via component tokens */
+  --qx-color-action-primary-hover: oklch(0.48 0.2 250);
+  --qx-color-action-primary-active: oklch(0.44 0.2 250);
+  --ring: oklch(0.52 0.2 250);
 }
 ```
 
-Prefer overriding the **semantic** bridge variables (`--primary`, `--ring`, `--muted`, …)
-rather than raw `--qx-*` primitives, so light/dark and future ramps stay coherent.
+Override a **semantic** variable — a bridge variable (`--primary`, `--ring`, `--muted`, …) or a
+role (`--qx-color-surface-rail`) — never a raw primitive. Primitives are not in `styles.css`,
+and the roles hold resolved values rather than references to them, so overriding
+`--qx-color-qeet-600` changes nothing that is painted.
+
+The primary action needs both `--primary` and the `--qx-color-action-primary*` roles. The
+bridge variables are emitted as resolved values, while component tokens such as
+`--qx-component-button-primary-background` point at the role with `var()` — so each override
+reaches a different set of components, and setting only one leaves the other on Ember.
 
 ## RTL
 
@@ -510,8 +565,23 @@ This one is genuinely not applicable here, and there is nothing to fix.
 This is the one to understand properly.
 
 The violations are not distributed across the library — they are **a handful of semantic
-token pairs, repeated everywhere those tokens are used.** The ten worst pairs account for
-the large majority of the total:
+token pairs, repeated everywhere those tokens are used.**
+
+**`@qeetrix/ui` 2.1 changed the picture.** The Ember + Graphite foundation (an AA Ember
+primary with white text, stronger status tints, `text.on-feedback-strong`) took the count
+from 162 violations across 85 stories to **13 across 10**. What is left, measured against
+2.1.0:
+
+| × | Ratio | Foreground on background | Reading |
+| --- | --- | --- | --- |
+| 6 | 4.37:1 | `#d04800` on `#fbfaf9` | Ember as text on a tinted surface (HoverCard, PreviewCard) — passes on white (4.55:1), not on the tint |
+| 3 | 3.46:1 | `#848483` on `#f7f6f4` | TagInput's disabled state |
+| 2 | 2.10:1 | `#fdfcfc` on `#e6a17d` | the Opacity foundation's deliberately faded specimen |
+| 1 | 3.65:1 | `#009966` on `#ffffff` | a positive-tone Sparkline label |
+| 1 | 3.79:1 | `#62605f` on `#cacbb9` | the Z-index foundation's ladder |
+
+For the record, the 2.0 baseline this replaced — the ten worst pairs accounted for the
+large majority of the total:
 
 | × | Ratio | Foreground on background | Reading |
 | --- | --- | --- | --- |
@@ -522,7 +592,7 @@ the large majority of the total:
 | 15 | 4.25:1 | `#737373` on `#fff0e6` | muted text on a tinted surface |
 | 10 | **1.15:1** | `#ffffff` on `#e5f0f6` | white text on a light info surface — a real failure |
 
-So the shorthand "they are all near-misses" — which an inline comment in `preview.ts` still
+So the shorthand "they are all near-misses" — which an inline comment in `preview.ts` once
 repeats — is **not accurate**. Most are (3.98–4.47 against a 4.5 threshold), but there is a
 tail of genuine failures: brand orange on white at 2.88:1, and white-on-tinted-surface pairs
 around 1.15:1.
@@ -568,11 +638,11 @@ Measured with `bun run verify:a11y` against the light theme:
 
 | Metric | Value |
 | --- | --- |
-| Contrast violations | **162** |
-| Stories affected | **85** (of 433) |
-| Distribution | 6 token pairs account for >70% of the count |
-| Severity | mostly near-misses (3.98–4.47:1 against 4.5:1), with a tail of real failures at 2.88:1 and ~1.15:1 |
-| Worst-affected stories | `schedulecalendar--month` (7), `alert--variants` (6), `callout--variants` (6), `statuspill--all-statuses` (6) |
+| Contrast violations | **13** (162 on `@qeetrix/ui` 2.0) |
+| Stories affected | **10** (of 615) |
+| Distribution | one pair — Ember text on a tinted surface — is 6 of the 13 |
+| Severity | a near-miss at 4.37:1, then a short tail down to 2.10:1 (see the table above) |
+| Worst-affected stories | `taginput--disabled` (3), `opacity--alpha-versus-opacity` (2), then the HoverCard / PreviewCard stories (1 each) |
 | Root cause | semantic token values in `@qeetrix/ui` |
 | Fixable from this repo | **no** |
 | Dark theme | separate surface, not part of the recorded baseline — run `A11Y_THEME=dark` |
@@ -688,7 +758,7 @@ never pull in.
 
 This is the single most surprising thing about the repo.
 
-`package.json` lists `"@qeetrix/ui": "^2.0.0"` as a dependency, and it *is* installed into
+`package.json` lists `"@qeetrix/ui": "^2.1.0"` as a dependency, and it *is* installed into
 `node_modules`. **It is not what the workshop renders.** `.storybook/main.ts` rewrites
 every `@qeetrix/ui` specifier to `../qeetrix-ui/src` — a sibling git checkout on disk:
 
@@ -709,13 +779,14 @@ bare specifier.
 
 | Pattern | Resolves to | Why it needs its own rule |
 | --- | --- | --- |
-| `@qeetrix/ui/styles.css` | `src/styles/index.css` | source filename differs from the published one |
+| `@qeetrix/ui/styles.css` | `src/styles/styles.css` | the full entry: core (`index.css`) plus the host-global `base.css`, which carries the reduced-motion collapse and the forced-colors remapping. `index.css` alone is the opt-out core entry |
 | `@qeetrix/ui/tokens.css` | `src/styles/tokens.raw.css` | published export is renamed |
 | `@qeetrix/ui/qeetrix.css` | `src/styles/tokens.css` | published export is renamed |
 | `@qeetrix/ui/tokens.json` | `src/styles/tokens.json` | generated file, not in `dist` layout |
 | `@qeetrix/ui/<anything>` | `src/<anything>` | the generic catch-all: `brand/`, `components/*`, `providers/*`, `lib/*`, `hooks/*`, `fonts/*` |
 | `@qeetrix/ui` | `src/index.ts` | the barrel |
 | `@/<anything>` | `src/<anything>` | `@qeetrix/ui`'s *own* internal path alias, which its source uses and this repo never does |
+| `@qeetrix/icons` | `node_modules/@qeetrix/icons/dist/generated/icon-index.js` | not a sibling-checkout rule: the package's real root also re-exports ~7,400 brand logos, and Vite pre-bundles a dependency's whole root (~50 s and ~2.8 GB on a cold start). Stories still write the root import; only the bundler is pointed at the icons-only index |
 
 Why source rather than `dist`: the workshop gets live HMR against the library, and never
 depends on a `dist/` that a `tsc --watch` dev loop can leave holding unresolved `@/`
@@ -794,7 +865,6 @@ preset list; nothing runs the suite in RTL or at a non-default width.
 | `stories/components/<category>/*.stories.tsx` | one file per `@qeetrix/ui` component | **yes** — full contract |
 | `stories/foundations/*.stories.tsx` | Colors, Typography, Spacing & Radius, Density, Token Layers, Elevation, Motion | title only |
 | `stories/brand/brand.stories.tsx` | adaptive `QeetLogo` | title only |
-| `stories/icons.stories.tsx` | `@qeetrix/icons` gallery | title only |
 | `stories/patterns/*.stories.tsx` | multi-component patterns (e.g. `Patterns/AuthenticationForm`) | not scanned — see [governance.md](./governance.md) |
 | `stories/recipes/*.stories.tsx` | cross-cutting recipes (loading states, empty states) | not scanned — see [governance.md](./governance.md) |
 | `stories/guides/*.mdx` | narrative guides (5) | n/a |
@@ -814,8 +884,8 @@ Files prefixed `_` are not matched by the stories glob (`*.mdx`, `*.stories.@(ts
 `bun run build` is `node scripts/gen-llms.mjs && storybook build`, so the llms step gates
 the whole build. That step reads the **sibling checkout**, not `node_modules` — the
 published `@qeetrix/ui` tarball ships `dist/` only (no `src/`, no `tokens.json`), so
-reading `node_modules` cannot work. That correction is landing at the time of writing; if
-`bun run build` fails at `gen-llms`, this is the reason.
+reading `node_modules` cannot work. If `bun run build` fails at `gen-llms`, a missing or
+misplaced `../qeetrix-ui` checkout is the reason.
 
 ## Known repo state
 
@@ -823,11 +893,9 @@ Documented so nobody burns an afternoon rediscovering it.
 
 | Thing | State |
 | --- | --- |
-| `bun run build` | gated on `scripts/gen-llms.mjs`, which is being corrected to read the sibling checkout instead of `node_modules/@qeetrix/ui/src` |
-| `bun run lint` | fails — 4 errors + 25 warnings, all pre-existing, effectively all in `.storybook/styles.css` (`noImportantStyles`, `noDescendingSpecificity`) plus a Biome CSS parse error on Tailwind's `@source` directive, and one `noNonNullAssertion` in `stories/icons.stories.tsx` |
-| `bun run typecheck` | fails — 1 pre-existing error, a `tokens.json` cast in `stories/foundations/colors.stories.tsx` |
-| `bun run verify:foundations` | fails — the rendered `Button` height no longer matches the 36px `comfortable` assertion, and the script also asserts a `Blocks/DashboardShell` story that is not in the current index |
-| CI | `.github/workflows/ci.yml` — checks out **both repos side by side**, builds `@qeetrix/ui`'s generated tokens, then runs lint · typecheck · verify:stories · test · build. `lint` and `typecheck` are expected red (see above) and are deliberately **not** `continue-on-error`; every gate runs even after an earlier failure so one run reports the whole picture. VRT is not in CI. |
+| `bun run lint` | fails — all pre-existing, all in `.storybook/styles.css` (`noImportantStyles`, `noDescendingSpecificity`) plus a Biome CSS parse error on Tailwind's `@source` directive — 2 errors + 24 warnings |
+| `bun run typecheck` · `build` · `verify:stories` · `verify:foundations` · `test` | pass |
+| CI | `.github/workflows/ci.yml` — checks out **both repos side by side**, builds `@qeetrix/ui`'s generated tokens, then runs lint · typecheck · verify:stories · test · build. `lint` is expected red (see above) and is deliberately **not** `continue-on-error`; every gate runs even after an earlier failure so one run reports the whole picture. VRT is not in CI. |
 | RTL / dark-mode / responsive test matrices | **do not exist.** There is now a Direction toolbar global, a `DirectionProvider` decorator and four viewport presets — those are affordances for a human clicking around, not automated coverage. Nothing runs the suite in RTL, in dark mode, or at a non-default width. |
 
 
@@ -1133,7 +1201,7 @@ Rules that come out of the existing 22 interaction tests:
 | Rule | Why |
 | --- | --- |
 | Take `canvas` and `userEvent` from the play context — don't import them | they are scoped to the story's own render |
-| Import `expect`, `screen`, `waitFor`, `waitForElementToBeRemoved` from `storybook/test` | not from `@testing-library/*` |
+| Import `expect`, `screen`, `waitFor` from `storybook/test` | not from `@testing-library/*` |
 | Query by **accessible role and name**, not test ids | an assertion that can only pass for a keyboard- and screen-reader-reachable element is worth more than one that reaches into the DOM |
 | Name the export `…Interaction` and give it a human `name: "Interaction: …"` | the story list stays readable, and the intent is visible in the sidebar |
 | Assert the thing most likely to break silently | for overlays that is *dismissal*, not opening |
@@ -1153,7 +1221,7 @@ on the first frame. jsdom would never surface this; a real browser does.
 `stories/components/overlays/dialog.stories.tsx` is the reference overlay test:
 
 ```tsx
-import { expect, screen, waitFor, waitForElementToBeRemoved } from "storybook/test";
+import { expect, screen, waitFor } from "storybook/test";
 
 play: async ({ canvas, userEvent }) => {
   await userEvent.click(canvas.getByRole("button", { name: "Edit profile" }));
@@ -1164,7 +1232,9 @@ play: async ({ canvas, userEvent }) => {
 
   await userEvent.keyboard("{Escape}");
 
-  await waitForElementToBeRemoved(() => screen.queryByRole("dialog"));
+  // Poll for absence. `waitForElementToBeRemoved` throws if the dialog is already gone when
+  // it first checks, and @qeetrix/ui 2.1 overlays can close within the same frame.
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 },
 ```
 
@@ -1312,19 +1382,18 @@ Only these exist. Do not assume a script that isn't in `package.json`.
 | `bun run shoot` | ad-hoc screenshot capture into `screenshots/` |
 | `bun run clean` | remove build + test artefacts |
 
-**Known-failing before you touch anything** — do not chase these unless they are your task:
+**Known-failing before you touch anything** — do not chase this unless it is your task.
+`typecheck`, `verify:stories`, `test`, `build` and `verify:foundations` all pass:
 
 | Command | State |
 | --- | --- |
-| `bun run lint` | 4 errors + 25 warnings, effectively all in `.storybook/styles.css`, plus one `noNonNullAssertion` in `stories/icons.stories.tsx` |
-| `bun run typecheck` | 1 error — a `tokens.json` cast in `stories/foundations/colors.stories.tsx` |
-| `bun run verify:foundations` | fails on a density geometry assertion, and references a `Blocks/DashboardShell` story not in the current index |
-| `bun run build` | gated on `scripts/gen-llms.mjs`, which is being corrected to read the sibling checkout rather than `node_modules/@qeetrix/ui/src` (the published tarball ships `dist/` only) |
+| `bun run lint` | 2 errors + 24 warnings, all in `.storybook/styles.css` |
+
 
 **CI** (`.github/workflows/ci.yml`) runs lint · typecheck · `verify:stories` · `test` ·
 `build` on every push and PR to `main` / `develop`. It checks out `qeetrix-ui` alongside
-this repo and builds its generated tokens first. `lint` and `typecheck` are expected red
-until their pre-existing issues are fixed; every gate still runs, so one CI run reports
+this repo and builds its generated tokens first. `lint` is expected red until the
+`.storybook/styles.css` findings are fixed; every gate still runs, so one CI run reports
 the state of all of them. **VRT is not in CI.**
 
 ---
@@ -1414,8 +1483,8 @@ export const ClickInteraction: Story = {
 };
 ```
 
-- Import `expect` / `screen` / `waitFor` / `waitForElementToBeRemoved` from
-  **`storybook/test`**, never `@testing-library/*`.
+- Import `expect` / `screen` / `waitFor` from **`storybook/test`**, never
+  `@testing-library/*`.
 - Take `canvas` and `userEvent` from the play context; don't import them.
 - Query by **accessible role and name**, not test ids.
 - **Overlay content is portalled to `document.body` and is not in `canvas` — use
@@ -1425,7 +1494,9 @@ export const ClickInteraction: Story = {
 - Overlays animate in from `opacity: 0` — poll with `waitFor` rather than asserting on
   the first frame.
 - Assert what breaks silently. For overlays that is **dismissal** (Escape closes it), not
-  opening.
+  opening. Poll for absence — `await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())`
+  — rather than `waitForElementToBeRemoved`, which throws if the overlay is already gone by
+  the time it runs, and `@qeetrix/ui` 2.1 overlays can close within the same frame.
 
 The `play` function runs in both the Interactions panel and as a real Vitest case under
 `bun run test` — one definition, two consumers.
@@ -1464,9 +1535,9 @@ container to generate them in yet. See [`docs/testing.md`](./docs/testing.md#lay
 - [ ] Interactive components (`actions` / `overlays` / `navigation` / `data-entry`) have a
       `play` interaction test, using `screen` for portalled content.
 - [ ] Icon-only controls have accessible names; form controls have labels.
-- [ ] `bun run lint` and `bun run typecheck` introduce **no new** findings (both have a
-      known-failing baseline in CI — see above; do not treat a red tick as your fault
-      without checking which gate and which file).
+- [ ] `bun run lint` introduces **no new** findings (it has a known-failing baseline in
+      CI — see above; do not treat a red tick as your fault without checking which file),
+      and `bun run typecheck` stays clean.
 - [ ] No VRT baselines committed.
 - [ ] No new fields invented on `parameters.qeetrix` — extend `stories/_contract.ts` first.
 - [ ] Story `title` / export names unchanged, or the id change is intentional (ids are an
@@ -1479,5 +1550,12 @@ container to generate them in yet. See [`docs/testing.md`](./docs/testing.md#lay
   semicolons, trailing commas. Imports are auto-organised.
 - Files prefixed `_` (`_contract.ts`, `_helpers.tsx`, `_intro.tsx`) are not matched by the
   stories glob — that is how shared helpers stay out of the sidebar.
+- **Icons come from `@qeetrix/icons`**, imported from the package root with their `…Icon`
+  names: `import { PlusIcon, TrashIcon } from "@qeetrix/icons";` — not deep
+  `@qeetrix/icons/icons/<id>` paths, not another icon set. Icons appear here only inside
+  component demos; the icon catalogue itself is documented in the `qeetrix-icons` repo, not
+  in this workshop. Storybook resolves the root to the package's icons-only index (see
+  `.storybook/main.ts`), so the ~7,400 brand logos are never pre-bundled — which also means
+  a `*Logo` import will not resolve here.
 - Comments in this repo explain *why*, not *what*. The existing config files are unusually
   well commented on purpose; match that bar when you change one.

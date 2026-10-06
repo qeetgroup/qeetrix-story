@@ -44,7 +44,7 @@ function MatchBadge({ matched }: { matched: boolean }) {
   return (
     <span
       className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-        matched ? "bg-success/15 text-success" : "bg-muted text-muted-foreground"
+        matched ? "bg-success-subtle text-success-text" : "bg-muted text-muted-foreground"
       }`}
     >
       {matched ? "matches" : "no match"}

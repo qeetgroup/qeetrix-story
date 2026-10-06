@@ -9,7 +9,7 @@ import {
   PopoverTrigger,
 } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, screen, waitFor, waitForElementToBeRemoved } from "storybook/test";
+import { expect, screen, waitFor } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Popover> = {
@@ -86,6 +86,6 @@ export const OpenCloseInteraction: Story = {
 
     await userEvent.keyboard("{Escape}");
 
-    await waitForElementToBeRemoved(() => screen.queryByLabelText("URL"));
+    await waitFor(() => expect(screen.queryByLabelText("URL")).not.toBeInTheDocument());
   },
 };

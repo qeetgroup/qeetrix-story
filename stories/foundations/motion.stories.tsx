@@ -12,7 +12,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "Motion is a two-layer vocabulary. A primitive scale (`--qx-duration-*`, `--qx-easing-*`) holds the raw timings; a semantic layer (`--qx-motion-duration-*`, `--qx-motion-easing-*`) names the role a component should reach for — `normal` rather than `200ms`, `enter` rather than `cubic-bezier(0, 0, 0.2, 1)`. The same values ship as typed constants (`DURATION`, `EASING`, `transition()`) for motion that has to be driven from JavaScript. Reduced motion is handled once, globally: `@qeetrix/ui/styles.css` collapses every transition and animation to `--qx-motion-reduced-duration` under `prefers-reduced-motion`, so a component only needs its own handling when it animates somewhere CSS cannot reach.",
+          "Motion is a two-layer vocabulary. A primitive scale (`--qx-duration-*`, `--qx-easing-*`) holds the raw timings; a semantic layer (`--qx-motion-duration-*`, `--qx-motion-easing-*`) names the role a component should reach for — `normal` rather than `200ms`, `enter` rather than `cubic-bezier(0, 0, 0.2, 1)`. The roles are Tailwind utilities too — `duration-fast`, `ease-enter` — so a class list names its timing, and the same values ship as typed constants (`DURATION`, `EASING`, `transition()`) for motion that has to be driven from JavaScript. Reduced motion is handled once, globally: `@qeetrix/ui/styles.css` collapses every transition and animation to `--qx-motion-reduced-duration` under `prefers-reduced-motion`, so a component only needs its own handling when it animates somewhere CSS cannot reach.",
       },
     },
   },
@@ -265,34 +265,6 @@ function EasingSpecimen() {
           }))}
         />
       </Section>
-
-      <Section title="Tailwind utilities">
-        <Prose>
-          The <Code>@theme</Code> block in <Code>@qeetrix/ui/styles.css</Code> maps the same values
-          onto Tailwind&rsquo;s <Code>ease-*</Code> and <Code>duration-*</Code> namespaces, so a
-          component never needs an arbitrary value for a timing that already has a name.
-        </Prose>
-        <TokenTable
-          caption="Utility classes generated from the motion tokens."
-          columns={["Utility", "Resolves to"]}
-          rows={[
-            { token: "ease-standard", cells: ["--qx-motion-easing-standard"] },
-            { token: "ease-enter", cells: ["--qx-motion-easing-enter"] },
-            { token: "ease-exit", cells: ["--qx-motion-easing-exit"] },
-            { token: "ease-emphasized", cells: ["--qx-motion-easing-emphasized"] },
-            { token: "duration-instant", cells: ["--qx-motion-duration-instant"] },
-            { token: "duration-fast", cells: ["--qx-motion-duration-fast"] },
-            { token: "duration-normal", cells: ["--qx-motion-duration-normal"] },
-            { token: "duration-slow", cells: ["--qx-motion-duration-slow"] },
-            { token: "duration-deliberate", cells: ["--qx-motion-duration-deliberate"] },
-          ]}
-        />
-        <Callout title="ease-decelerate, ease-accelerate and ease-sharp still resolve">
-          They are the original primitive names, kept for compatibility, and they point at exactly
-          the same curves as <Code>ease-enter</Code>, <Code>ease-exit</Code> and{" "}
-          <Code>ease-emphasized</Code>. New code should use the semantic names.
-        </Callout>
-      </Section>
     </Page>
   );
 }
@@ -307,6 +279,114 @@ export const Easing: Story = {
     },
   },
   render: () => <EasingSpecimen />,
+};
+
+/* ── Tailwind utilities ───────────────────────────────────────────────────── */
+
+/**
+ * Written out as whole class strings, never assembled: Tailwind finds utilities by scanning
+ * source text, so `duration-${role}` would compile to nothing and the specimen would prove the
+ * opposite of what it claims.
+ */
+const UTILITY_TRACKS = [
+  { utility: "duration-fast", className: "duration-fast" },
+  { utility: "duration-normal", className: "duration-normal" },
+  { utility: "duration-slow", className: "duration-slow" },
+  { utility: "duration-deliberate", className: "duration-deliberate" },
+] as const;
+
+const EASE_UTILITIES = [
+  { utility: "ease-standard", role: "--qx-motion-easing-standard", legacy: "" },
+  { utility: "ease-enter", role: "--qx-motion-easing-enter", legacy: "ease-decelerate" },
+  { utility: "ease-exit", role: "--qx-motion-easing-exit", legacy: "ease-accelerate" },
+  { utility: "ease-emphasized", role: "--qx-motion-easing-emphasized", legacy: "ease-sharp" },
+] as const;
+
+function UtilitiesSpecimen() {
+  const [playing, setPlaying] = useState(false);
+  return (
+    <Page>
+      <Section title="Named timings as classes">
+        <Prose>
+          The <Code>@theme</Code> block in <Code>@qeetrix/ui/styles.css</Code> maps the motion roles
+          onto Tailwind&rsquo;s <Code>duration-*</Code> and <Code>ease-*</Code> namespaces, so a
+          transition says what it is rather than how many milliseconds it takes. Component source
+          reads like this — the Button&rsquo;s own transition is{" "}
+          <Code>duration-fast ease-standard</Code>.
+        </Prose>
+        <div>
+          <Button onClick={() => setPlaying((value) => !value)}>
+            {playing ? "Return to start" : "Play utilities"}
+          </Button>
+        </div>
+        <div className="flex flex-col gap-3">
+          {UTILITY_TRACKS.map((track) => (
+            <div key={track.utility} className="flex items-center gap-4">
+              <code className="w-36 shrink-0 text-xs text-muted-foreground">
+                {track.utility} ease-enter
+              </code>
+              <div className="relative h-6 w-full min-w-32 rounded-full bg-muted">
+                {/* Timing comes only from the utility classes — no inline transition style. */}
+                <span
+                  className={`absolute top-0 size-6 rounded-full bg-primary transition-[left] ease-enter ${track.className}`}
+                  style={{ left: playing ? "calc(100% - 1.5rem)" : "0px" }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Duration utilities">
+        <TokenTable
+          caption="duration-* — the @theme variable each class reads, and the semantic token behind it."
+          columns={["Utility", "@theme variable", "Semantic token", "Value"]}
+          rows={DURATION_ROLES.map((role) => ({
+            token: `duration-${role.role}`,
+            cells: [`--transition-duration-${role.role}`, role.cssVar, `${role.ms}ms`],
+          }))}
+        />
+        <Callout title="Why the variables are called --transition-duration-*">
+          Tailwind v4&rsquo;s <Code>duration-*</Code> utility reads the{" "}
+          <Code>--transition-duration-*</Code> theme namespace. Defining only{" "}
+          <Code>--duration-fast</Code> leaves <Code>duration-fast</Code> compiling to nothing, and
+          the transition silently falls back to the browser default — the class is in the markup and
+          has no effect. Both names are defined: <Code>--transition-duration-*</Code> makes the
+          utilities exist, and <Code>--duration-*</Code> stays as a plain variable for anything that
+          already reads it.
+        </Callout>
+      </Section>
+
+      <Section title="Easing utilities">
+        <TokenTable
+          caption="ease-* — the semantic role names, and the original names that still resolve to the same curves."
+          columns={["Utility", "Resolves to", "Compatibility alias"]}
+          rows={EASE_UTILITIES.map((ease) => ({
+            token: ease.utility,
+            cells: [ease.role, ease.legacy || "—"],
+          }))}
+        />
+        <Callout title="ease-decelerate, ease-accelerate and ease-sharp still resolve">
+          They are the original primitive names, kept for compatibility, and they point at exactly
+          the same curves as <Code>ease-enter</Code>, <Code>ease-exit</Code> and{" "}
+          <Code>ease-emphasized</Code>. New code should use the semantic names: they read as intent,
+          the old ones as mechanics.
+        </Callout>
+      </Section>
+    </Page>
+  );
+}
+
+export const Utilities: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "The Tailwind classes generated from the motion roles. The dots here are timed by `duration-*` and `ease-enter` classes alone, so the specimen fails visibly if a utility stops compiling.",
+      },
+    },
+  },
+  render: () => <UtilitiesSpecimen />,
 };
 
 /* ── Enter / exit ─────────────────────────────────────────────────────────── */
@@ -404,11 +484,15 @@ function ReducedMotionSpecimen() {
           animation duration collapses to <Code>--qx-motion-reduced-duration</Code>, animations run
           exactly once, and <Code>scroll-behavior</Code> drops to <Code>auto</Code>.
         </Prose>
-        <Callout title="Why the collapsed duration is not zero">
-          The base layer writes <Code>max(var(--qx-motion-reduced-duration), 0.01ms)</Code> rather
-          than a flat <Code>0s</Code>. Base UI waits for <Code>transitionend</Code> before
-          unmounting an overlay, and a transition that never starts never ends — which would leave
-          the overlay mounted forever.
+        <Callout title="Why transitions collapse to almost zero, and animations to zero">
+          For transitions the base layer writes{" "}
+          <Code>max(var(--qx-motion-reduced-duration), 0.01ms)</Code> rather than a flat{" "}
+          <Code>0s</Code>: Base UI waits for <Code>transitionend</Code> before unmounting an
+          overlay, and a transition that never starts never ends — which would leave the overlay
+          mounted forever. Animations take the token as-is, with no floor. Base UI waits for them
+          through <Code>getAnimations().finished</Code>, which a zero-length animation satisfies at
+          once, and a floor overrode Base UI&rsquo;s own inline <Code>animation-duration: 0s</Code>{" "}
+          on an accordion panel that opens on mount.
         </Callout>
         <TokenTable
           caption="--qx-motion-reduced-* — what motion collapses to."
@@ -416,7 +500,7 @@ function ReducedMotionSpecimen() {
           rows={[
             {
               token: "--qx-motion-reduced-duration",
-              cells: ["0ms", "clamped to 0.01ms at the point of use"],
+              cells: ["0ms", "transitions clamp it to 0.01ms; animations and delays use it as-is"],
             },
             {
               token: "--qx-motion-reduced-easing",

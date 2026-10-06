@@ -1,4 +1,4 @@
-import { Key } from "@qeetrix/icons";
+import { KeyRoundIcon } from "@qeetrix/icons";
 import { Callout } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { qx } from "../../_contract";
@@ -12,7 +12,7 @@ const meta: Meta<typeof Callout> = {
     docs: {
       description: {
         component:
-          'A static inline informational box with a coloured left-border accent. Use `variant` (`info` | `success` | `warning` | `error`) to match intent. Not dismissible — for user-dismissible notices use `Alert`. Carries `role="note"` for non-intrusive accessibility announcement without triggering a live region. Each variant ships a sensible default icon that can be replaced or suppressed.',
+          'A static inline informational box with a 3px coloured inline-start accent. Use `variant` (`info` | `success` | `warning` | `destructive` | `muted`) to match intent; `error` is an accepted alias of `destructive`. `muted` is a neutral note with a graphite accent and no status. A `title` takes the status colour; the body copy stays neutral. Not dismissible — for user-dismissible notices use `Alert`. Carries `role="note"` for non-intrusive accessibility announcement without triggering a live region. Each variant ships a sensible default icon that can be replaced or suppressed.',
       },
     },
   },
@@ -20,7 +20,7 @@ const meta: Meta<typeof Callout> = {
   argTypes: {
     variant: {
       control: "select",
-      options: ["info", "success", "warning", "error"],
+      options: ["info", "success", "warning", "destructive", "error", "muted"],
     },
   },
 };
@@ -49,7 +49,8 @@ export const Variants: Story = {
   parameters: {
     docs: {
       description: {
-        story: "All four semantic variants rendered side-by-side with their default icons.",
+        story:
+          "The four status variants and the neutral `muted` note, each with its default icon. `destructive` is the canonical name for the error tone; `error` renders identically and keeps working for older call sites.",
       },
     },
   },
@@ -66,8 +67,64 @@ export const Variants: Story = {
         You have 3 API keys expiring within 7 days. Rotate them before they are revoked
         automatically.
       </Callout>
-      <Callout variant="error">
+      <Callout variant="destructive">
         SCIM provisioning is misconfigured — check the bearer token in your IdP settings.
+      </Callout>
+      <Callout variant="muted">
+        Audit events older than 400 days are moved to cold storage and can be restored on request.
+      </Callout>
+    </div>
+  ),
+};
+
+export const Muted: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "`muted` is a neutral note — a graphite accent and surface, no status hue. Use it for background context, conventions and caveats that are neither good nor bad news, so the status colours keep their meaning for things that are.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-lg flex-col gap-3">
+      <Callout variant="muted" title="How retention is counted">
+        qeet-logs counts retention from ingestion time, not from the event timestamp. Late-arriving
+        events are kept for the full window.
+      </Callout>
+      <Callout variant="muted" icon={null}>
+        Amounts in qeet-pay reports are shown in INR and exclude GST unless stated otherwise.
+      </Callout>
+    </div>
+  ),
+};
+
+export const TitledVariants: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A `title` takes the variant's status colour, so the subject reads at a glance while the body copy stays neutral and legible. `muted` keeps a neutral title.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex max-w-lg flex-col gap-3">
+      <Callout variant="info" title="Discovery endpoint">
+        Point your OIDC client at <code>.well-known/openid-configuration</code> to auto-configure
+        Qeet ID.
+      </Callout>
+      <Callout variant="success" title="Webhook endpoint healthy">
+        Qeet Notify delivered 1,204 events in the last hour with no retries.
+      </Callout>
+      <Callout variant="warning" title="Settlement delayed">
+        Today&apos;s qeet-pay payout will be credited after the 14:00 IST NEFT batch.
+      </Callout>
+      <Callout variant="destructive" title="Ingestion paused">
+        qeet-logs stopped accepting events from this source after it exceeded its daily quota.
+      </Callout>
+      <Callout variant="muted" title="Sandbox data">
+        Records created with <code>qid_test_</code> keys are purged every 30 days.
       </Callout>
     </div>
   ),
@@ -124,7 +181,7 @@ export const CustomIcon: Story = {
   render: () => (
     <Callout
       variant="info"
-      icon={<Key width={16} height={16} className="mt-0.5 shrink-0" />}
+      icon={<KeyRoundIcon width={16} height={16} className="mt-0.5 shrink-0" />}
       title="API key format"
       className="max-w-lg"
     >

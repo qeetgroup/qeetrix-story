@@ -1,4 +1,11 @@
-import { Bell, Copy, More, Search, Settings, Trash } from "@qeetrix/icons";
+import {
+  BellIcon,
+  CopyIcon,
+  EllipsisIcon,
+  SearchIcon,
+  SettingsIcon,
+  TrashIcon,
+} from "@qeetrix/icons";
 import { IconButton } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
@@ -32,7 +39,7 @@ export const Default: Story = {
       },
     },
   },
-  render: () => <IconButton icon={Settings} aria-label="Open settings" />,
+  render: () => <IconButton icon={SettingsIcon} aria-label="Open settings" />,
 };
 
 export const Small: Story = {
@@ -44,7 +51,7 @@ export const Small: Story = {
       },
     },
   },
-  render: () => <IconButton icon={Copy} aria-label="Copy API key" size="icon-sm" />,
+  render: () => <IconButton icon={CopyIcon} aria-label="Copy API key" size="icon-sm" />,
 };
 
 export const Large: Story = {
@@ -56,7 +63,7 @@ export const Large: Story = {
       },
     },
   },
-  render: () => <IconButton icon={Search} aria-label="Search" size="icon-lg" />,
+  render: () => <IconButton icon={SearchIcon} aria-label="Search" size="icon-lg" />,
 };
 
 export const ActivateInteraction: Story = {
@@ -69,7 +76,7 @@ export const ActivateInteraction: Story = {
       },
     },
   },
-  render: () => <IconButton icon={Settings} aria-label="Open settings" />,
+  render: () => <IconButton icon={SettingsIcon} aria-label="Open settings" />,
   play: async ({ canvas, userEvent }) => {
     const button = canvas.getByRole("button", { name: "Open settings" });
 
@@ -90,10 +97,10 @@ export const Variants: Story = {
   },
   render: () => (
     <div className="flex items-center gap-2">
-      <IconButton icon={Bell} aria-label="Notifications (ghost)" variant="ghost" />
-      <IconButton icon={Bell} aria-label="Notifications (outline)" variant="outline" />
-      <IconButton icon={Bell} aria-label="Notifications (default)" variant="default" />
-      <IconButton icon={Bell} aria-label="Notifications (secondary)" variant="secondary" />
+      <IconButton icon={BellIcon} aria-label="Notifications (ghost)" variant="ghost" />
+      <IconButton icon={BellIcon} aria-label="Notifications (outline)" variant="outline" />
+      <IconButton icon={BellIcon} aria-label="Notifications (default)" variant="default" />
+      <IconButton icon={BellIcon} aria-label="Notifications (secondary)" variant="secondary" />
     </div>
   ),
 };
@@ -107,7 +114,7 @@ export const Disabled: Story = {
       },
     },
   },
-  render: () => <IconButton icon={Trash} aria-label="Delete workspace" disabled />,
+  render: () => <IconButton icon={TrashIcon} aria-label="Delete workspace" disabled />,
 };
 
 export const Gallery: Story = {
@@ -121,11 +128,11 @@ export const Gallery: Story = {
   },
   render: () => (
     <div className="flex items-center gap-2">
-      <IconButton icon={Bell} aria-label="Notifications" />
-      <IconButton icon={Copy} aria-label="Copy to clipboard" />
-      <IconButton icon={Settings} aria-label="Open settings" />
-      <IconButton icon={More} aria-label="More options" />
-      <IconButton icon={Trash} aria-label="Delete item" />
+      <IconButton icon={BellIcon} aria-label="Notifications" />
+      <IconButton icon={CopyIcon} aria-label="Copy to clipboard" />
+      <IconButton icon={SettingsIcon} aria-label="Open settings" />
+      <IconButton icon={EllipsisIcon} aria-label="More options" />
+      <IconButton icon={TrashIcon} aria-label="Delete item" />
     </div>
   ),
 };
