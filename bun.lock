@@ -5,7 +5,7 @@
     "": {
       "name": "@qeetrix/stories",
       "dependencies": {
-        "@qeetrix/icons": "1.0.10",
+        "@qeetrix/icons": "1.0.11",
         "@qeetrix/ui": "^2.1.0",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
@@ -305,7 +305,7 @@
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 
-    "@qeetrix/icons": ["@qeetrix/icons@1.0.10", "", { "peerDependencies": { "react": "^19.0.0" } }, "sha512-8yguXOxfeCeH1t3iQQ/v4zPQmLvnHwxAVWiPlNapvNHzA8l+ngTdCm2/uvC/wni4E6ZdG3yksrPsn1zScwH1og=="],
+    "@qeetrix/icons": ["@qeetrix/icons@1.0.11", "", { "peerDependencies": { "react": "^19.0.0" } }, "sha512-LZLzvxRALx+m49hcRSGxZ2T/XBbycZyqvrBr4mIZGdmHbSzJOsMLjBUWlXTuD0vfvMOsDwXpkZ5+qxfJQl4L+Q=="],
 
     "@qeetrix/ui": ["@qeetrix/ui@2.1.0", "", { "dependencies": { "@base-ui/react": "^1.5.0", "@tanstack/react-table": "^8.21.3", "@tanstack/react-virtual": "^3.14.3", "@tiptap/pm": "^3.27.0", "@tiptap/react": "^3.27.0", "@tiptap/starter-kit": "^3.27.0", "class-variance-authority": "^0.7.1", "clsx": "^2.1.1", "embla-carousel-react": "^8.6.0", "lucide-react": "^0.577.0", "qrcode": "^1.5.4", "react-day-picker": "^9.9.0", "react-resizable-panels": "^4.11.2", "recharts": "^3.8.1", "shadcn": "^4.7.0", "tailwind-merge": "^3.6.0", "tw-animate-css": "^1.3.6" }, "peerDependencies": { "react": ">=19", "react-dom": ">=19", "tailwindcss": ">=4" } }, "sha512-DrpT80Rbm3pFZGfFuIEPlp3JhXqOSKnF8Pe9oN0smiZ95mndNXk7UouIWI2rWxY3RAnRRVCpVJBFCL7IIVoz3A=="],
 

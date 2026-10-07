@@ -30,7 +30,7 @@
     "clean": "rm -rf storybook-static screenshots test-results playwright-report coverage"
   },
   "dependencies": {
-    "@qeetrix/icons": "1.0.10",
+    "@qeetrix/icons": "1.0.11",
     "@qeetrix/ui": "^2.1.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

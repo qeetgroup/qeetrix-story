@@ -79,14 +79,13 @@ bare specifier.
 
 | Pattern | Resolves to | Why it needs its own rule |
 | --- | --- | --- |
-| `@qeetrix/ui/styles.css` | `src/styles/styles.css` | the full entry: core (`index.css`) plus the host-global `base.css`, which carries the reduced-motion collapse and the forced-colors remapping. `index.css` alone is the opt-out core entry |
+| `@qeetrix/ui/styles.css` | `src/styles/index.css` | published export is renamed: the one stylesheet, including the host-global section that carries the reduced-motion collapse and the forced-colors remapping |
 | `@qeetrix/ui/tokens.css` | `src/styles/tokens.raw.css` | published export is renamed |
 | `@qeetrix/ui/qeetrix.css` | `src/styles/tokens.css` | published export is renamed |
 | `@qeetrix/ui/tokens.json` | `src/styles/tokens.json` | generated file, not in `dist` layout |
 | `@qeetrix/ui/<anything>` | `src/<anything>` | the generic catch-all: `brand/`, `components/*`, `providers/*`, `lib/*`, `hooks/*`, `fonts/*` |
 | `@qeetrix/ui` | `src/index.ts` | the barrel |
 | `@/<anything>` | `src/<anything>` | `@qeetrix/ui`'s *own* internal path alias, which its source uses and this repo never does |
-| `@qeetrix/icons` | `node_modules/@qeetrix/icons/dist/generated/icon-index.js` | not a sibling-checkout rule: the package's real root also re-exports ~7,400 brand logos, and Vite pre-bundles a dependency's whole root (~50 s and ~2.8 GB on a cold start). Stories still write the root import; only the bundler is pointed at the icons-only index. Temporary: needed only while pinned to `@qeetrix/icons` 1.0.10, since 2.0 drops the third-party logos |
 
 Why source rather than `dist`: the workshop gets live HMR against the library, and never
 depends on a `dist/` that a `tsc --watch` dev loop can leave holding unresolved `@/`
