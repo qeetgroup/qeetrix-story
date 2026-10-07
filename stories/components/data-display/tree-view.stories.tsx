@@ -1,4 +1,4 @@
-import { Building, Document, Folder, People, User } from "@qeetrix/icons";
+import { BuildingIcon, FileTextIcon, FolderIcon, UserIcon, UsersIcon } from "@qeetrix/icons";
 import { type TreeNode, TreeView } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { qx } from "../../_contract";
@@ -7,52 +7,52 @@ const data: TreeNode[] = [
   {
     id: "src",
     label: "src",
-    icon: Folder,
+    icon: FolderIcon,
     defaultOpen: true,
     children: [
       {
         id: "components",
         label: "components",
-        icon: Folder,
+        icon: FolderIcon,
         children: [
-          { id: "button", label: "button.tsx", icon: Document },
-          { id: "card", label: "card.tsx", icon: Document },
+          { id: "button", label: "button.tsx", icon: FileTextIcon },
+          { id: "card", label: "card.tsx", icon: FileTextIcon },
         ],
       },
-      { id: "index", label: "index.ts", icon: Document },
+      { id: "index", label: "index.ts", icon: FileTextIcon },
     ],
   },
-  { id: "pkg", label: "package.json", icon: Document },
+  { id: "pkg", label: "package.json", icon: FileTextIcon },
 ];
 
 const orgData: TreeNode[] = [
   {
     id: "acme",
     label: "Acme Inc.",
-    icon: Building,
+    icon: BuildingIcon,
     defaultOpen: true,
     children: [
       {
         id: "engineering",
         label: "Engineering",
-        icon: People,
+        icon: UsersIcon,
         defaultOpen: true,
         children: [
-          { id: "ada", label: "Ada Lovelace", icon: User },
-          { id: "alan", label: "Alan Turing", icon: User },
+          { id: "ada", label: "Ada Lovelace", icon: UserIcon },
+          { id: "alan", label: "Alan Turing", icon: UserIcon },
         ],
       },
       {
         id: "product",
         label: "Product",
-        icon: People,
-        children: [{ id: "grace", label: "Grace Hopper", icon: User }],
+        icon: UsersIcon,
+        children: [{ id: "grace", label: "Grace Hopper", icon: UserIcon }],
       },
       {
         id: "finance",
         label: "Finance",
-        icon: People,
-        children: [{ id: "katherine", label: "Katherine Johnson", icon: User }],
+        icon: UsersIcon,
+        children: [{ id: "katherine", label: "Katherine Johnson", icon: UserIcon }],
       },
     ],
   },

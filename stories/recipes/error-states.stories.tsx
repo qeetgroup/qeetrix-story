@@ -1,4 +1,4 @@
-import { ArrowLeft, CloudCross, Danger, RefreshSquare } from "@qeetrix/icons";
+import { ArrowLeftIcon, CloudOffIcon, RefreshCwIcon, TriangleAlertIcon } from "@qeetrix/icons";
 import {
   Alert,
   AlertDescription,
@@ -168,12 +168,12 @@ export const SectionError: Story = {
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">
-            <Danger aria-hidden="true" />
+            <TriangleAlertIcon aria-hidden="true" />
             <AlertTitle>Couldn’t load error sources</AlertTitle>
             <AlertDescription>
               <p>The aggregation service timed out after 10 s. Other panels are unaffected.</p>
               <Button variant="outline" size="sm" className="mt-3">
-                <RefreshSquare aria-hidden="true" />
+                <RefreshCwIcon aria-hidden="true" />
                 Retry this panel
               </Button>
             </AlertDescription>
@@ -213,17 +213,17 @@ export const FullPageError: Story = {
   render: () => (
     <div role="alert" className="mx-auto max-w-xl">
       <EmptyState
-        icon={CloudCross}
+        icon={CloudOffIcon}
         title="We couldn’t load your organisation"
         description="Qeet ID is reachable but returned an error for acme-prod. Your data is safe — this page just can’t show it right now."
         action={
           <>
             <Button>
-              <RefreshSquare aria-hidden="true" />
+              <RefreshCwIcon aria-hidden="true" />
               Try again
             </Button>
             <Button variant="outline">
-              <ArrowLeft aria-hidden="true" />
+              <ArrowLeftIcon aria-hidden="true" />
               Back to dashboard
             </Button>
           </>
@@ -281,7 +281,7 @@ export const RetryThatEscalates: Story = {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <Alert variant="destructive">
-            <Danger aria-hidden="true" />
+            <TriangleAlertIcon aria-hidden="true" />
             <AlertTitle>
               {exhausted ? "Still failing — this one is on us" : "Couldn’t load payout schedule"}
             </AlertTitle>
@@ -308,7 +308,7 @@ export const RetryThatEscalates: Story = {
             </>
           ) : (
             <Button onClick={() => setAttempts((n) => n + 1)}>
-              <RefreshSquare aria-hidden="true" />
+              <RefreshCwIcon aria-hidden="true" />
               Try again
             </Button>
           )}

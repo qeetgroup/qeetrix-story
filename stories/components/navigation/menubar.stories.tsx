@@ -8,7 +8,7 @@ import {
   MenubarTrigger,
 } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, screen, waitFor, waitForElementToBeRemoved } from "storybook/test";
+import { expect, screen, waitFor } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Menubar> = {
@@ -108,6 +108,8 @@ export const OpenMenuInteraction: Story = {
 
     await userEvent.keyboard("{Escape}");
 
-    await waitForElementToBeRemoved(() => screen.queryByRole("menuitem", { name: "New stream" }));
+    await waitFor(() =>
+      expect(screen.queryByRole("menuitem", { name: "New stream" })).not.toBeInTheDocument(),
+    );
   },
 };

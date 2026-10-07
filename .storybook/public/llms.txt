@@ -167,7 +167,7 @@
 - typography
 - visually-hidden
 
-## Design tokens (~609 per theme)
+## Design tokens (~872 per theme)
 
 Authored as W3C DTCG JSON (`qeetrix-ui/src/tokens/**`), compiled by Style Dictionary to
 CSS custom properties (`--qx-*`) + JSON. Colour is OKLCH; every required text/surface

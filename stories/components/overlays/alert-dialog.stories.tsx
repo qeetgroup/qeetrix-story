@@ -11,7 +11,7 @@ import {
   Button,
 } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, screen, waitFor, waitForElementToBeRemoved } from "storybook/test";
+import { expect, screen, waitFor } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof AlertDialog> = {
@@ -123,7 +123,7 @@ export const CancelInteraction: Story = {
 
     await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
-    await waitForElementToBeRemoved(() => screen.queryByRole("alertdialog"));
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     await expect(canvas.getByRole("button", { name: "Revoke key" })).toBeVisible();
   },
 };

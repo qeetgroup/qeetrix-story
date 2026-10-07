@@ -41,6 +41,8 @@ const config: StorybookConfig = {
     // hooks/*, fonts/*) to src/<subpath>; the bare specifier maps to the barrel.
     const src = ui("src");
     const sourceAliases = [
+      // styles.css is published from src/styles/index.css, the one stylesheet: tokens, theme
+      // mapping, fonts, utilities and the host-global section (reduced motion, forced colors).
       { find: /^@qeetrix\/ui\/styles\.css$/, replacement: ui("src/styles/index.css") },
       {
         find: /^@qeetrix\/ui\/tokens\.css$/,

@@ -1,4 +1,4 @@
-import { DocumentDownload } from "@qeetrix/icons";
+import { DownloadIcon } from "@qeetrix/icons";
 import { Button, FileCard } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { qx } from "../../_contract";
@@ -23,7 +23,7 @@ type Story = StoryObj<typeof FileCard>;
 
 const action = (
   <Button variant="ghost" size="icon-sm" aria-label="Download">
-    <DocumentDownload />
+    <DownloadIcon />
   </Button>
 );
 

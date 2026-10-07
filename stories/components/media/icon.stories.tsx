@@ -1,4 +1,13 @@
-import { Bell, Check, Flash, Lock, Search, Settings, Star, User } from "@qeetrix/icons";
+import {
+  BellIcon,
+  CheckIcon,
+  LockIcon,
+  SearchIcon,
+  SettingsIcon,
+  StarIcon,
+  UserIcon,
+  ZapIcon,
+} from "@qeetrix/icons";
 import { ICON_SIZE, ICON_STROKE, Icon } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { qx } from "../../_contract";
@@ -12,7 +21,7 @@ const meta: Meta<typeof Icon> = {
     docs: {
       description: {
         component:
-          "Wrapper that places any Qeetrix icon onto the Qeetrix size scale. Decorative by default (`aria-hidden`); pass `title` for an accessible label. The scale mirrors `tokens/primitive/icon.json` — `xs` 14px · `sm` 16px · `md` 20px (default) · `lg` 24px.",
+          "Wrapper that places a `@qeetrix/icons` glyph onto the Qeetrix size and stroke scale. Decorative by default (`aria-hidden`); pass `title` for an accessible label. The scale mirrors `tokens/primitive/icon.json` — `xs` 14px · `sm` 16px · `md` 20px (default) · `lg` 24px.",
       },
     },
   },
@@ -34,7 +43,7 @@ export const Sizes: Story = {
     <div className="flex items-end gap-6">
       {(Object.entries(ICON_SIZE) as [keyof typeof ICON_SIZE, number][]).map(([key, px]) => (
         <div key={key} className="flex flex-col items-center gap-2">
-          <Icon icon={Star} size={key} />
+          <Icon icon={StarIcon} size={key} />
           <code className="text-xs text-muted-foreground">
             {key} · {px}px
           </code>
@@ -57,7 +66,7 @@ export const Strokes: Story = {
     <div className="flex items-center gap-8">
       {(Object.entries(ICON_STROKE) as [keyof typeof ICON_STROKE, number][]).map(([key, sw]) => (
         <div key={key} className="flex flex-col items-center gap-2">
-          <Icon icon={Flash} size="lg" stroke={key} />
+          <Icon icon={ZapIcon} size="lg" stroke={key} />
           <code className="text-xs text-muted-foreground">
             {key} · {sw}px
           </code>
@@ -79,11 +88,11 @@ export const Accessibility: Story = {
   render: () => (
     <div className="flex flex-col gap-4 text-sm">
       <div className="flex items-center gap-2">
-        <Icon icon={Bell} />
+        <Icon icon={BellIcon} />
         <span className="text-foreground">Decorative — no title, aria-hidden</span>
       </div>
       <div className="flex items-center gap-2">
-        <Icon icon={Lock} title="Locked" />
+        <Icon icon={LockIcon} title="Locked" />
         <span className="text-foreground">Labelled — title="Locked", role="img"</span>
       </div>
     </div>
@@ -95,16 +104,25 @@ export const Gallery: Story = {
     docs: {
       description: {
         story:
-          "Common Qeetrix icons at `md` size — the default configuration. Pass the icon constructor directly as the `icon` prop.",
+          "Common Qeetrix icons at `md` size — the default configuration. Pass the icon component itself (not an element) as the `icon` prop.",
       },
     },
   },
   render: () => (
     <div className="grid grid-cols-4 gap-6">
-      {[Search, Bell, User, Settings, Check, Star, Lock, Flash].map((Ic) => (
-        <div key={Ic.name} className="flex flex-col items-center gap-2">
-          <Icon icon={Ic} />
-          <code className="text-xs text-muted-foreground">{Ic.name}</code>
+      {Object.entries({
+        SearchIcon,
+        BellIcon,
+        UserIcon,
+        SettingsIcon,
+        CheckIcon,
+        StarIcon,
+        LockIcon,
+        ZapIcon,
+      }).map(([name, glyph]) => (
+        <div key={name} className="flex flex-col items-center gap-2">
+          <Icon icon={glyph} />
+          <code className="text-xs text-muted-foreground">{name}</code>
         </div>
       ))}
     </div>
@@ -124,7 +142,7 @@ export const ExplicitPixelSize: Story = {
     <div className="flex items-end gap-6">
       {[12, 18, 32, 48].map((px) => (
         <div key={px} className="flex flex-col items-center gap-2">
-          <Icon icon={Star} size={px} />
+          <Icon icon={StarIcon} size={px} />
           <code className="text-xs text-muted-foreground">{px}px</code>
         </div>
       ))}

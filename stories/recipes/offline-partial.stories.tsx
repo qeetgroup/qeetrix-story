@@ -1,4 +1,4 @@
-import { Clock, Danger, RefreshSquare, WifiSquare } from "@qeetrix/icons";
+import { ClockIcon, RefreshCwIcon, TriangleAlertIcon, WifiOffIcon } from "@qeetrix/icons";
 import {
   Alert,
   AlertDescription,
@@ -99,7 +99,7 @@ export const OfflineBanner: Story = {
   render: () => (
     <div className="flex flex-col">
       <Banner variant="warning" role="status">
-        <WifiSquare aria-hidden="true" className="size-4 shrink-0" />
+        <WifiOffIcon aria-hidden="true" className="size-4 shrink-0" />
         <span>
           You’re offline. Attendance you record now is saved on this device and will sync
           automatically when the connection returns.
@@ -184,10 +184,10 @@ export const StaleData: Story = {
           className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground"
         >
           <StatusPill kind="warning">Stale</StatusPill>
-          <Clock aria-hidden="true" className="size-4 text-muted-foreground" />
+          <ClockIcon aria-hidden="true" className="size-4 text-muted-foreground" />
           <span>Last updated 14:02 IST — 6 minutes ago. Auto-refresh failed twice.</span>
           <IconButton
-            icon={RefreshSquare}
+            icon={RefreshCwIcon}
             aria-label="Refresh settlement balance"
             variant="ghost"
             size="icon-sm"
@@ -195,7 +195,7 @@ export const StaleData: Story = {
         </div>
         <Separator />
         <Alert variant="warning">
-          <Danger aria-hidden="true" />
+          <TriangleAlertIcon aria-hidden="true" />
           <AlertTitle>Payouts are paused while this figure is stale</AlertTitle>
           <AlertDescription>
             <p>
@@ -242,7 +242,7 @@ export const PartialFailure: Story = {
   render: () => (
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
       <Alert variant="warning">
-        <Danger aria-hidden="true" />
+        <TriangleAlertIcon aria-hidden="true" />
         <AlertTitle>1 of 4 panels couldn’t load</AlertTitle>
         <AlertDescription>
           <p>
@@ -291,12 +291,12 @@ export const PartialFailure: Story = {
           </CardHeader>
           <CardContent>
             <Alert variant="destructive">
-              <Danger aria-hidden="true" />
+              <TriangleAlertIcon aria-hidden="true" />
               <AlertTitle>Panel unavailable</AlertTitle>
               <AlertDescription>
                 <p>The webhook index is rebuilding. Expected back within 10 minutes.</p>
                 <Button variant="outline" size="sm" className="mt-3">
-                  <RefreshSquare aria-hidden="true" />
+                  <RefreshCwIcon aria-hidden="true" />
                   Retry this panel
                 </Button>
               </AlertDescription>
@@ -372,7 +372,7 @@ export const QueuedWrites: Story = {
           2 changes queued on this device. They’ll sync automatically when you’re back online.
         </p>
         <Button variant="outline" size="sm">
-          <RefreshSquare aria-hidden="true" />
+          <RefreshCwIcon aria-hidden="true" />
           Try syncing now
         </Button>
       </CardFooter>

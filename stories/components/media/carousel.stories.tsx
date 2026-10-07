@@ -4,11 +4,14 @@ import {
   CardContent,
   Carousel,
   CarouselContent,
+  CarouselControls,
+  CarouselIndicators,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
 } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, waitFor } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Carousel> = {
@@ -20,7 +23,7 @@ const meta: Meta<typeof Carousel> = {
     docs: {
       description: {
         component:
-          "A touch- and keyboard-accessible embla-powered carousel. Use it on qeet.in landing pages for testimonial sliders or feature walkthroughs, and in qeet-docs for multi-step screenshot sequences. `orientation` supports both horizontal and vertical layouts; `opts.loop` enables infinite looping.",
+          'A touch- and keyboard-accessible embla-powered carousel. Use it on qeet.in landing pages for testimonial sliders or feature walkthroughs, and in qeet-docs for multi-step screenshot sequences. `orientation` supports both horizontal and vertical layouts; `opts.loop` enables infinite looping.\n\n`CarouselPrevious` / `CarouselNext` on their own float as round buttons outside the slides\' edges, which assumes the page has room either side. Wrap them in `CarouselControls` and they render in a row beneath the slides instead, so the carousel fits a card, a narrow panel or a drawer. `CarouselIndicators` renders one button per scroll snap, the current one marked `aria-current` and drawn as a wider pill; it is a single tab stop, and while focus is on it the arrow keys move both the slide and the focus. A move the user asks for is announced politely ("2 of 5"); a drag or an autoplay tick is not.',
       },
     },
   },
@@ -155,4 +158,73 @@ export const Vertical: Story = {
       <CarouselNext />
     </Carousel>
   ),
+};
+
+/** The in-flow layout: Previous, the indicators and Next in one row under the slides. */
+function SetupStepsCarousel() {
+  return (
+    <Carousel className="w-72" aria-label="Qeet ID setup steps">
+      <CarouselContent>
+        {STEPS.map((step, i) => (
+          <CarouselItem key={step.label}>
+            <Card>
+              <CardContent className="flex aspect-square flex-col items-center justify-center gap-2 p-6 text-center">
+                <span className="text-4xl font-bold tabular-nums">{i + 1}</span>
+                <span className="text-base font-semibold">{step.label}</span>
+                <span className="text-sm text-muted-foreground">{step.detail}</span>
+              </CardContent>
+            </Card>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselControls>
+        <CarouselPrevious />
+        <CarouselIndicators aria-label="Choose a step" />
+        <CarouselNext />
+      </CarouselControls>
+    </Carousel>
+  );
+}
+
+export const WithControls: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`CarouselControls` puts Previous, `CarouselIndicators` and Next in a row beneath the slides, so nothing hangs outside the carousel\'s box — the layout for a card or a narrow onboarding panel. The current indicator is a wider brand pill, so shape and not hue alone carries "current", and each indicator keeps a 24px target however small the visible mark.',
+      },
+    },
+  },
+  render: () => <SetupStepsCarousel />,
+};
+
+export const IndicatorsInteraction: Story = {
+  name: "Interaction: indicators pick a slide",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Indicators are a picker, not a row of tab stops: clicking one moves `aria-current` to it, and with focus on the indicators the arrow keys move the slide and carry focus to the new current indicator. Next goes `aria-disabled` at the last step but stays focusable, so pressing it never drops focus to the page.",
+      },
+    },
+  },
+  render: () => <SetupStepsCarousel />,
+  play: async ({ canvas, userEvent }) => {
+    const indicator = (n: number) => canvas.getByRole("button", { name: `${n} of 5` });
+
+    await waitFor(() => expect(indicator(1)).toHaveAttribute("aria-current", "true"));
+
+    await userEvent.click(indicator(3));
+    await waitFor(() => expect(indicator(3)).toHaveAttribute("aria-current", "true"));
+    await expect(indicator(1)).not.toHaveAttribute("aria-current");
+
+    // Arrow keys from an indicator move the slide, and focus follows the current indicator.
+    await userEvent.keyboard("{ArrowRight}");
+    await waitFor(() => expect(indicator(4)).toHaveAttribute("aria-current", "true"));
+    await waitFor(() => expect(indicator(4)).toHaveFocus());
+
+    await userEvent.click(indicator(5));
+    const next = canvas.getByRole("button", { name: "Next slide" });
+    await waitFor(() => expect(next).toHaveAttribute("aria-disabled", "true"));
+  },
 };

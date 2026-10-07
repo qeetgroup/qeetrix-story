@@ -3,6 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useId } from "react";
 import { expect } from "storybook/test";
 import {
+  ALERT_EMPHASES,
   ALERT_VARIANTS,
   BADGE_VARIANTS,
   BUTTON_SIZES,
@@ -88,7 +89,7 @@ const meta: Meta<PlaygroundArgs> = {
       control: "select",
       options: ICON_NAMES,
       description:
-        "A glyph from `@qeetrix/icons`. IconButton requires one, so `none` falls back to `Settings` there.",
+        "A glyph from `@qeetrix/icons`. IconButton requires one, so `none` falls back to `SettingsIcon` there.",
       table: { category: "Content" },
     },
     iconPosition: {
@@ -107,7 +108,7 @@ const meta: Meta<PlaygroundArgs> = {
     loading: {
       control: "boolean",
       description:
-        "Button only — and composed, not a prop: no component in the library takes `loading`, so this renders a Spinner inside a disabled button, which is the documented pattern.",
+        "Button only here. Maps to Button's own `loading` prop — the spinner replaces a leading icon, and the button reports `aria-busy` without losing focus or colour.",
       table: { category: "State" },
     },
     checked: {
@@ -158,6 +159,15 @@ const meta: Meta<PlaygroundArgs> = {
       if: { arg: "component", eq: "Alert" },
       table: { category: "Variant & size" },
     },
+    alertEmphasis: {
+      name: "emphasis",
+      control: "inline-radio",
+      options: ALERT_EMPHASES,
+      description:
+        "`strong` is a solid status fill for messages that must not be missed — use it sparingly. The neutral `default` variant has no strong form, so it looks the same either way.",
+      if: { arg: "component", eq: "Alert" },
+      table: { category: "Variant & size" },
+    },
     selectSize: {
       name: "size",
       control: "inline-radio",
@@ -195,6 +205,7 @@ const meta: Meta<PlaygroundArgs> = {
     iconButtonSize: "icon",
     badgeVariant: "default",
     alertVariant: "info",
+    alertEmphasis: "subtle",
     selectSize: "default",
     switchSize: "default",
     cardSize: "default",
@@ -255,7 +266,7 @@ export const SnippetInteraction: Story = {
     content: "Delete user",
     buttonVariant: "destructive",
     buttonSize: "sm",
-    icon: "Trash",
+    icon: "TrashIcon",
   },
   play: async ({ args, canvas, canvasElement }) => {
     // The preview renders a real, reachable button — queried by role, not by test id.
@@ -263,15 +274,15 @@ export const SnippetInteraction: Story = {
     await expect(preview).toBeInTheDocument();
 
     const code = canvasElement.querySelector("[data-slot=code-block] code")?.textContent ?? "";
-    await expect(code).toContain('import { Trash } from "@qeetrix/icons";');
+    await expect(code).toContain('import { TrashIcon } from "@qeetrix/icons";');
     await expect(code).toContain('<Button variant="destructive" size="sm">');
-    await expect(code).toContain('<Trash color="currentColor" />');
+    await expect(code).toContain("<TrashIcon />");
     await expect(code).toContain("Delete user");
     // Defaults stay out of the snippet: nobody should paste `iconPosition` into a Button.
     await expect(code).not.toContain("iconPosition");
 
-    // Qeetrix icons ship `color="white"`; the catalogue opts every glyph back into
-    // inheritance, so the icon must be painted in the button's own colour, not white.
+    // The glyph carries no colour of its own: it must paint in the button's colour, so a
+    // pasted snippet never needs a `color` prop to be visible on a filled variant.
     const glyph = preview.querySelector("svg");
     await expect(glyph && getComputedStyle(glyph).color).toBe(getComputedStyle(preview).color);
 
@@ -286,5 +297,13 @@ export const SnippetInteraction: Story = {
       await expect(generated).toContain('from "@qeetrix/ui";');
       await expect(generated).toContain(`<${name}`);
     }
+
+    // Alert's `emphasis` follows the same rule: the default `subtle` is never printed, and a
+    // `strong` choice always is.
+    const alert = { ...args, component: "Alert", alertVariant: "destructive" } as const;
+    await expect(SPECS.Alert.code({ ...alert, alertEmphasis: "subtle" })).not.toContain("emphasis");
+    await expect(SPECS.Alert.code({ ...alert, alertEmphasis: "strong" })).toContain(
+      '<Alert variant="destructive" emphasis="strong">',
+    );
   },
 };

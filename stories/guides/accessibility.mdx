@@ -4,32 +4,37 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Accessibility
 
-Qeetrix targets **WCAG 2.1 AA** and **EN 301 549**, built on Base UI (WAI-ARIA APG
+Qeetrix targets **WCAG 2.2 AA** and **EN 301 549**, built on Base UI (WAI-ARIA APG
 behaviour). Accessibility is enforced, not aspirational.
 
 ## What's guaranteed
 
 - **Keyboard + ARIA** — interactive components inherit APG keyboard models, focus
   management, and roles/states from Base UI.
-- **Contrast** — every required text/surface pair is held to AA by a token-level gate
-  (`bun run tokens:validate`); the Qeet-orange brand pairs are enforced too.
-- **Visible focus**, reduced-motion support, light/dark, and RTL throughout.
+- **Contrast** — every designed pair is held to its AA minimum in both themes by a contrast
+  test in `@qeetrix/ui` (`src/__tests__/token-governance.test.ts`): 4.5:1 for text — including
+  muted, placeholder and link text — and 3:1 for control boundaries, the focus colour and chart
+  marks. The primary action is Qeet Ember `#D04800` with a white label at 4.55:1; the brand
+  orange `#F26D0E` carries white at only 3.0:1, so it is never an action fill.
+- **Control boundaries** — inputs, checkboxes, radios and switch tracks are edged with
+  `border.control`, 3:1 against every surface they sit on (WCAG 1.4.11), not with the
+  decorative `border.default`.
+- **Visible focus** — one outline recipe (`focus-ring`, `focus-ring-inset`, `focus-ring-field`)
+  that survives forced colors, plus reduced-motion support, light/dark, and RTL throughout.
 
 ## Automated coverage
 
-- `bun run --filter @qeetrix/ui test` runs Vitest + `vitest-axe`.
-- `bun run --filter @qeetrix/ui test:a11y-coverage` is a **ratchet**: every component must
-  have an automated a11y test, be in the smoke harness, or be on a shrinking exemption
-  list. CI enforces it.
+- In `@qeetrix/ui`, `bun run test` runs Vitest with `vitest-axe` alongside the token contrast
+  test, so a token change that breaks a pair fails the same run as a component regression.
+- In this workshop, `bun run test` mounts every story in headless Chromium and fails on any axe
+  violation. `region` and `color-contrast` are excluded from that gate; `bun run verify:a11y`
+  reports contrast without failing.
+
+axe is a floor, not a grade: it covers part of the semantic layer and nothing about keyboard
+behaviour or what a screen reader is told. A clean run does not mean a component is accessible.
 
 ## For contributors
 
-Run the per-component review in `docs/accessibility/audit-checklist.md` before shipping.
-The conformance report template lives in `docs/accessibility/VPAT.md` (currently
-self-reported, pending a third-party audit).
-
-## Known caveat
-
-`text.link` on white is currently ~3:1 with the orange brand — fine for large/UI text
-but below the 4.5:1 body-text bar. Prefer `Button`/`Typography` link styling in dense
-body copy until this is resolved (tracked in ADR 0004).
+Run the per-component review in `docs/standards/accessibility-checklist.md` (in `qeetrix-ui`)
+before shipping. `docs/governance/accessibility-evidence.md` explains how an audit result has to
+be backed by a test that asserts it.

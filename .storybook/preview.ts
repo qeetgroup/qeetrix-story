@@ -38,19 +38,17 @@ const preview: Preview = {
           // the app shell's responsibility, not a primitive's. Left on, it flags
           // ~85 violations across nearly every story and drowns out the real ones.
           region: { enabled: false },
-          // Excluded from the gate, NOT resolved. 162 violations across 85 story
-          // files, all tracing to semantic token pairings in @qeetrix/ui rather than
-          // to anything a story can fix — so they cannot be addressed from this repo.
+          // Excluded from the gate, NOT resolved. @qeetrix/ui 2.1 (Ember + Graphite)
+          // took this from 162 violations across 85 stories to 13 across 10, but 13 is
+          // not 0, and what is left still traces to token values in @qeetrix/ui rather
+          // than to anything a story can fix:
+          //   4.37:1  #d04800 on #fbfaf9  — Ember as text on a tinted surface (6×, the
+          //           HoverCard / PreviewCard stories); it only clears 4.5:1 on white
+          //   3.46:1  #848483 on #f7f6f4  — TagInput's disabled state
+          //   2.10:1  #fdfcfc on #e6a17d  — the Opacity foundation's faded specimen
           //
-          // The severity is bimodal, and the bad half is genuinely bad:
-          //   4.34:1  #737373 on #f5f5f5  (muted-foreground on muted) — a near-miss
-          //   2.88:1  #ff6900 on #ffffff  — well short
-          //   1.15:1  #ffffff on #e5f0f6  — Callout pairs *-foreground tokens (pure
-          //           white, meant for solid fills) with 10% tints, so info/success/
-          //           warning callout text is effectively invisible in light mode.
-          //
-          // `bun run verify:a11y` reports the live number; re-enable this rule once
-          // the tokens are corrected.
+          // `bun run verify:a11y` reports the live number; re-enable this rule once it
+          // reaches zero.
           "color-contrast": { enabled: false },
         },
       },

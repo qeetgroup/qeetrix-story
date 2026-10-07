@@ -98,7 +98,7 @@ Rules that come out of the existing 22 interaction tests:
 | Rule | Why |
 | --- | --- |
 | Take `canvas` and `userEvent` from the play context — don't import them | they are scoped to the story's own render |
-| Import `expect`, `screen`, `waitFor`, `waitForElementToBeRemoved` from `storybook/test` | not from `@testing-library/*` |
+| Import `expect`, `screen`, `waitFor` from `storybook/test` | not from `@testing-library/*` |
 | Query by **accessible role and name**, not test ids | an assertion that can only pass for a keyboard- and screen-reader-reachable element is worth more than one that reaches into the DOM |
 | Name the export `…Interaction` and give it a human `name: "Interaction: …"` | the story list stays readable, and the intent is visible in the sidebar |
 | Assert the thing most likely to break silently | for overlays that is *dismissal*, not opening |
@@ -118,7 +118,7 @@ on the first frame. jsdom would never surface this; a real browser does.
 `stories/components/overlays/dialog.stories.tsx` is the reference overlay test:
 
 ```tsx
-import { expect, screen, waitFor, waitForElementToBeRemoved } from "storybook/test";
+import { expect, screen, waitFor } from "storybook/test";
 
 play: async ({ canvas, userEvent }) => {
   await userEvent.click(canvas.getByRole("button", { name: "Edit profile" }));
@@ -129,7 +129,9 @@ play: async ({ canvas, userEvent }) => {
 
   await userEvent.keyboard("{Escape}");
 
-  await waitForElementToBeRemoved(() => screen.queryByRole("dialog"));
+  // Poll for absence. `waitForElementToBeRemoved` throws if the dialog is already gone when
+  // it first checks, and @qeetrix/ui 2.1 overlays can close within the same frame.
+  await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 },
 ```
 

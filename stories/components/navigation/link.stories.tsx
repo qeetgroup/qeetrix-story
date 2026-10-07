@@ -1,6 +1,7 @@
-import { LinkSquare } from "@qeetrix/icons";
+import { ExternalLinkIcon } from "@qeetrix/icons";
 import { Icon, Link } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Link> = {
@@ -12,7 +13,7 @@ const meta: Meta<typeof Link> = {
     docs: {
       description: {
         component:
-          "A styled anchor element built on CVA with three variants (`default`, `muted`, `destructive`), three underline modes (`hover`, `always`, `none`), and three sizes (`sm`, `md`, `lg`). Use it for inline navigation inside body copy, data-table cell links, destructive confirmation links, and secondary UI anchors. Renders a native `<a>` — all standard anchor attributes (including `href`, `target`, `rel`) pass through. Satisfies WCAG 1.4.1 (use of color) when paired with underline — never rely on colour alone to convey link affordance.",
+          'A styled anchor element built on CVA with three variants (`default`, `muted`, `destructive`), three underline modes (`hover`, `always`, `none`), and three sizes (`sm`, `md`, `lg`). Use it for inline navigation inside body copy, data-table cell links, destructive confirmation links, and secondary UI anchors. Renders a native `<a>` — all standard anchor attributes (including `href`, `target`, `rel`) pass through, and `render` composes a router link while keeping Qeet link styling. Satisfies WCAG 1.4.1 (use of color) when paired with underline — never rely on colour alone to convey link affordance.\n\nTwo layouts: **standalone** (the default) is `inline-flex` so a leading or trailing icon aligns, and underlines on hover; **`inline`** is for a link inside running text — real inline layout so a long label wraps with the sentence, the surrounding font size is inherited unless `size` is given, and it is underlined at rest unless `underline` is given. `external` opens in a new tab with `rel="noopener noreferrer"`, adds a trailing ↗ glyph and announces "(opens in a new tab)". `disabled` removes the destination and the tab stop but keeps the text discoverable as an unavailable link (`role="link"` + `aria-disabled`).',
       },
     },
   },
@@ -29,6 +30,9 @@ const meta: Meta<typeof Link> = {
       control: "select",
       options: ["sm", "md", "lg"],
     },
+    inline: { control: "boolean" },
+    external: { control: "boolean" },
+    disabled: { control: "boolean" },
   },
   args: {
     href: "#",
@@ -156,14 +160,14 @@ export const ExternalLinkExample: Story = {
     docs: {
       description: {
         story:
-          "External links add `target='_blank'` and `rel='noopener noreferrer'` to prevent tab-napping. The trailing `ExternalLink` icon signals to sighted users that the link opens a new tab.",
+          "External links add `target='_blank'` and `rel='noopener noreferrer'` to prevent tab-napping. The trailing `ExternalLink` icon signals to sighted users that the link opens a new tab. This is the hand-composed form; the `external` prop (see External) does all of it, plus the screen-reader announcement, in one flag.",
       },
     },
   },
   render: () => (
     <Link href="https://docs.qeet.in" target="_blank" rel="noopener noreferrer">
       Qeetrix documentation
-      <Icon icon={LinkSquare} size="sm" aria-hidden />
+      <Icon icon={ExternalLinkIcon} size="sm" aria-hidden />
     </Link>
   ),
 };
@@ -214,4 +218,99 @@ export const Variants: Story = {
       </Link>
     </div>
   ),
+};
+
+export const Inline: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "`inline` for links inside running text — here a Qeet ID webhook notice in a narrow panel. The long label wraps with the sentence instead of overflowing, the link inherits the paragraph's `text-sm` rather than forcing `md`, and it is underlined at rest: in dark mode the link colour is only 1.9:1 against body text, so colour alone would fail WCAG 1.4.1.",
+      },
+    },
+  },
+  render: () => (
+    <p className="w-72 text-sm text-muted-foreground">
+      Rotate your signing secret before 30 June 2026. Deliveries signed with the old secret fail
+      verification after that — see the{" "}
+      <Link inline href="#">
+        webhook signature verification guide for Qeet ID
+      </Link>{" "}
+      or{" "}
+      <Link inline external href="https://status.qeet.in">
+        check the status page
+      </Link>
+      .
+    </p>
+  ),
+};
+
+export const External: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`external` for links that leave the application: opens in a new tab with `rel="noopener noreferrer"` (a `rel` you pass is merged, a `target` you pass wins), shows a trailing ↗ glyph that mirrors under RTL, and appends a visually hidden "(opens in a new tab)" — override it with `externalLabel` to translate.',
+      },
+    },
+  },
+  args: {
+    external: true,
+    href: "https://status.qeet.in",
+    children: "Qeet status page",
+  },
+};
+
+export const Disabled: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`disabled` — links cannot be disabled natively, so this removes the `href` and the tab stop, dims the text, and keeps it announced as an unavailable link (`role="link"` + `aria-disabled`). Prefer removing a link the user can never follow; use this when its absence would be more confusing — an invoice PDF that is still being generated in qeet-pay.',
+      },
+    },
+  },
+  args: {
+    disabled: true,
+    href: "#",
+    children: "Download invoice PDF",
+  },
+};
+
+export const KeyboardInteraction: Story = {
+  name: "Interaction: external and disabled links",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "What breaks silently on a link is what only assistive technology and the keyboard notice. The test checks that an `external` link carries `target`, `rel` and the new-tab announcement in its accessible name, and that Tab skips a `disabled` link while it stays exposed as `aria-disabled`.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col items-start gap-3">
+      <Link external href="https://status.qeet.in">
+        Qeet status page
+      </Link>
+      <Link disabled href="#">
+        Download invoice PDF
+      </Link>
+      <Link href="#">View API key details</Link>
+    </div>
+  ),
+  play: async ({ canvas, userEvent }) => {
+    const external = canvas.getByRole("link", { name: "Qeet status page (opens in a new tab)" });
+    await expect(external).toHaveAttribute("target", "_blank");
+    await expect(external).toHaveAttribute("rel", "noopener noreferrer");
+
+    const disabled = canvas.getByRole("link", { name: "Download invoice PDF" });
+    await expect(disabled).toHaveAttribute("aria-disabled", "true");
+    await expect(disabled).not.toHaveAttribute("href");
+
+    await userEvent.tab();
+    await expect(external).toHaveFocus();
+    // The disabled link is not a tab stop.
+    await userEvent.tab();
+    await expect(canvas.getByRole("link", { name: "View API key details" })).toHaveFocus();
+  },
 };

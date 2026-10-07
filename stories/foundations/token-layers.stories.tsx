@@ -17,7 +17,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "Phase 2 adds semantic state, component layout, chart, elevation, and stacking roles. Typed values are generated from the same DTCG source as runtime CSS, and production source is checked by the token-usage scanner.",
+          "Beyond colour, the semantic layer covers interaction state, component layout, chart, elevation and stacking roles. Typed values (`CHART_COLOR`, `COMPONENT`, `DURATION`, `SHADOW`, `STATE_OPACITY`, `Z_INDEX`) are generated from the same DTCG source as the runtime CSS, so a value read in JavaScript cannot drift from the one the stylesheet paints.",
       },
     },
   },
@@ -80,10 +80,13 @@ export const Overview: Story = {
         <div className="rounded-lg border border-border bg-card p-5">
           <h2 className="font-heading text-base font-semibold">State</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Existing disabled utilities resolve through one authored opacity token.
+            Disabled utilities resolve through one authored opacity token. The primary button is the
+            exception — it turns neutral instead of fading — so the specimen is an outline one.
           </p>
           <div className="mt-4 flex items-center gap-3">
-            <Button disabled>Unavailable</Button>
+            <Button variant="outline" disabled>
+              Unavailable
+            </Button>
             <code className="font-mono text-xs text-muted-foreground">
               {STATE_OPACITY.disabled}
             </code>

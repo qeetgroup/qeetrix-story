@@ -1,4 +1,12 @@
-import { Bell, Check, Lock, Search, Settings, Trash, User } from "@qeetrix/icons";
+import {
+  BellIcon,
+  CheckIcon,
+  LockIcon,
+  SearchIcon,
+  SettingsIcon,
+  TrashIcon,
+  UserIcon,
+} from "@qeetrix/icons";
 import { Button, ICON_SIZE, ICON_STROKE, Icon } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import type { ComponentType, SVGProps } from "react";
@@ -30,20 +38,31 @@ const SIZES = [
 ] as const;
 
 /**
- * A Qeetrix glyph sized from its CSS token. The artwork ships as a fixed 24×24 `<svg>`, and
- * CSS `width`/`height` outrank the presentation attributes — so this is the token doing the
- * sizing, live, rather than a number copied out of it. `text-foreground` is needed because
- * the icons default to `color="white"` to match the source artwork.
+ * A Qeetrix glyph sized — and optionally stroked — from its CSS token. Each icon renders a
+ * fixed 24×24 `<svg>` with `width`/`height`/`stroke-width` presentation attributes, and CSS
+ * outranks presentation attributes — so this is the token doing the work, live, rather than
+ * a number copied out of it. Colour needs no help: the icons paint with `currentColor`.
  */
 type GlyphComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
-function Glyph({ icon: Cmp, sizeVar }: { icon: GlyphComponent; sizeVar: string }) {
+function Glyph({
+  icon: Cmp,
+  sizeVar,
+  strokeVar,
+}: {
+  icon: GlyphComponent;
+  sizeVar: string;
+  strokeVar?: string;
+}) {
   return (
     <Cmp
       aria-hidden="true"
       focusable="false"
-      className="text-foreground"
-      style={{ width: `var(${sizeVar})`, height: `var(${sizeVar})` }}
+      style={{
+        width: `var(${sizeVar})`,
+        height: `var(${sizeVar})`,
+        ...(strokeVar ? { strokeWidth: `var(${strokeVar})` } : null),
+      }}
     />
   );
 }
@@ -68,7 +87,7 @@ export const Sizing: Story = {
         <div className="flex flex-wrap items-end gap-10">
           {SIZES.map((size) => (
             <div key={size.name} className="flex flex-col items-center gap-3">
-              <Glyph icon={Settings} sizeVar={`--qx-icon-size-${size.name}`} />
+              <Glyph icon={SettingsIcon} sizeVar={`--qx-icon-size-${size.name}`} />
               <code className="text-xs text-muted-foreground">
                 {size.name} · {size.px}px
               </code>
@@ -93,38 +112,20 @@ export const Sizing: Story = {
 
       <Section title="Stroke weight">
         <Prose>
-          The stroke tokens apply to stroke-drawn icon sets routed through <Code>&lt;Icon&gt;</Code>
-          , which forwards <Code>strokeWidth</Code> to the glyph. <Code>regular</Code> is the
-          default and matches the weight of UI text; <Code>thin</Code> is for display-scale icons in
-          hero headings and large stat tiles, where a 2px stroke starts to look heavy.
+          <Code>&lt;Icon&gt;</Code> forwards the stroke token to the glyph as{" "}
+          <Code>strokeWidth</Code>. <Code>regular</Code> is the default and matches the weight of UI
+          text; <Code>thin</Code> is for display-scale icons in hero headings and large stat tiles,
+          where a 2px stroke starts to look heavy.
         </Prose>
         <div className="flex flex-wrap items-center gap-10">
           {(Object.entries(ICON_STROKE) as Array<[keyof typeof ICON_STROKE, number]>).map(
             ([name, width]) => (
               <div key={name} className="flex flex-col items-center gap-3">
-                <svg
-                  width="40"
-                  height="40"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  className="text-foreground"
-                  aria-hidden="true"
-                  focusable="false"
-                >
-                  <circle
-                    cx="11"
-                    cy="11"
-                    r="7"
-                    stroke="currentColor"
-                    style={{ strokeWidth: `var(--qx-icon-stroke-${name})` }}
-                  />
-                  <path
-                    d="m20 20-4-4"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    style={{ strokeWidth: `var(--qx-icon-stroke-${name})` }}
-                  />
-                </svg>
+                <Glyph
+                  icon={SearchIcon}
+                  sizeVar="--qx-icon-size-lg"
+                  strokeVar={`--qx-icon-stroke-${name}`}
+                />
                 <code className="text-xs text-muted-foreground">
                   {name} · {width}
                 </code>
@@ -140,12 +141,12 @@ export const Sizing: Story = {
             cells: [`--qx-icon-stroke-${name}`, String(width)],
           }))}
         />
-        <Callout title="The @qeetrix/icons artwork is filled, not stroked">
-          Every glyph in <Code>@qeetrix/icons</Code> paints with{" "}
-          <Code>fill=&quot;currentColor&quot;</Code> on closed paths, so a stroke width has nothing
-          to act on and the weight is baked into the <Code>outline</Code> and <Code>solid</Code>{" "}
-          variants instead. The stroke tokens are the contract for stroke-drawn sets — reach for the
-          variant, not the token, when the set is a Qeetrix one.
+        <Callout title="Stroke is measured in the 24-unit grid, not in pixels">
+          Every <Code>@qeetrix/icons</Code> glyph is drawn on a 24×24 <Code>viewBox</Code>, so{" "}
+          <Code>strokeWidth</Code> scales with the icon: <Code>regular</Code> is a true 2px at{" "}
+          <Code>lg</Code> (24px) but about 1.2px at <Code>xs</Code> (14px). That is what keeps a
+          small glyph from closing up into a blob — pick the stroke for the size the icon is{" "}
+          <em>designed</em> at, and let it scale.
         </Callout>
       </Section>
     </Page>
@@ -172,9 +173,9 @@ export const Alignment: Story = {
         </Prose>
         <div className="flex max-w-md flex-col gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground">
           {[
-            { icon: User, label: "Ada Lovelace" },
-            { icon: Lock, label: "Passkey required" },
-            { icon: Bell, label: "Notify me when this session expires" },
+            { icon: UserIcon, label: "Ada Lovelace" },
+            { icon: LockIcon, label: "Passkey required" },
+            { icon: BellIcon, label: "Notify me when this session expires" },
           ].map((row) => (
             <div key={row.label} className="flex items-center gap-2 text-sm">
               <Glyph icon={row.icon} sizeVar="--qx-icon-size-sm" />
@@ -191,7 +192,7 @@ export const Alignment: Story = {
           label is worse than the label truncating — which is what should happen instead.
         </Prose>
         <div className="flex w-64 items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm text-card-foreground">
-          <Glyph icon={Search} sizeVar="--qx-icon-size-md" />
+          <Glyph icon={SearchIcon} sizeVar="--qx-icon-size-md" />
           <span className="truncate">
             A deliberately long label that has to truncate rather than crush the icon
           </span>
@@ -207,15 +208,15 @@ export const Alignment: Story = {
         </Prose>
         <div className="flex flex-wrap items-center gap-4">
           <Button>
-            <Check aria-hidden="true" focusable="false" className="text-current" />
+            <CheckIcon aria-hidden="true" />
             Approve request
           </Button>
           <Button variant="outline">
-            <Settings aria-hidden="true" focusable="false" className="text-current" />
+            <SettingsIcon aria-hidden="true" />
             Settings
           </Button>
           <Button variant="destructive">
-            <Trash aria-hidden="true" focusable="false" className="text-current" />
+            <TrashIcon aria-hidden="true" />
             Delete
           </Button>
         </div>
@@ -246,7 +247,7 @@ export const DecorativeVersusMeaningful: Story = {
         </Prose>
         <div className="flex max-w-lg flex-col gap-4 rounded-xl border border-border bg-card p-4 text-card-foreground">
           <div className="flex items-center gap-3 text-sm">
-            <Icon icon={Lock} title="Locked" className="size-5 text-foreground" />
+            <Icon icon={LockIcon} title="Locked" className="size-5" />
             <div>
               <p className="font-medium">Meaningful</p>
               <p className="text-xs text-muted-foreground">
@@ -256,7 +257,7 @@ export const DecorativeVersusMeaningful: Story = {
             </div>
           </div>
           <div className="flex items-center gap-3 text-sm">
-            <Icon icon={Bell} className="size-5 text-foreground" />
+            <Icon icon={BellIcon} className="size-5" />
             <div>
               <p className="font-medium">Decorative</p>
               <p className="text-xs text-muted-foreground">

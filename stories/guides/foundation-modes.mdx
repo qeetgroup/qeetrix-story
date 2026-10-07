@@ -38,8 +38,9 @@ guidance; use comfortable density for coarse-pointer primary workflows.
 
 ## Forced colors and focus
 
-`styles.css` maps semantic colors to browser system colors under `forced-colors: active`. Focused
-elements receive a token-driven `Highlight` outline even when shadows and custom rings are removed.
+`styles.css` maps semantic colors to browser system colors under `forced-colors: active`. Focus is
+already an outline (the `focus-ring` utilities), so under forced colors it is re-pointed at
+`Highlight` at the token width while shadows are removed — the indicator survives unchanged.
 Do not disable `forced-color-adjust` on interactive controls without a tested reason.
 
 ## Responsive behavior
@@ -52,10 +53,12 @@ modal detail panel.
 ## Token layers and enforcement
 
 Primitive values feed semantic light/dark roles, stable component metrics, shared interaction
-state, and data-visualization roles. `build-tokens` generates runtime CSS and typed values from the
-same DTCG source; do not mirror motion, icon, stacking, shadow, or component constants by hand.
+state, and data-visualization roles. The token build (`bun run build:tokens` in `qeetrix-ui`)
+generates runtime CSS and typed values from the same DTCG source; do not mirror motion, icon,
+stacking, shadow, or component constants by hand.
 
-Use `--chart-1` through `--chart-8` for categorical identity and the dedicated grid, axis,
-reference, positive, negative, and warning roles for chart structure and meaning. Run
-`bun run tokens:scan` before review; exemptions are limited to documented domain data and
+Use `--chart-1` through `--chart-8` (the `--qx-color-data-categorical-*` roles; `bg-chart-1`,
+`fill-chart-1`, …) for categorical identity and the dedicated grid, axis, reference, positive,
+negative, and warning roles for chart structure and meaning. Do not hard-code a colour, duration
+or layer that a token already names; exemptions are limited to documented domain data and
 third-party selector shims.

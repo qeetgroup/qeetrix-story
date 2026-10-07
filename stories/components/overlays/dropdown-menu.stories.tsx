@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, screen, waitFor, waitForElementToBeRemoved } from "storybook/test";
+import { expect, screen, waitFor } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof DropdownMenu> = {
@@ -111,6 +111,6 @@ export const OpenSelectInteraction: Story = {
 
     await userEvent.click(screen.getByRole("menuitem", { name: "Settings" }));
 
-    await waitForElementToBeRemoved(() => screen.queryByRole("menu"));
+    await waitFor(() => expect(screen.queryByRole("menu")).not.toBeInTheDocument());
   },
 };

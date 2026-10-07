@@ -1,4 +1,11 @@
-import { Add, DocumentDownload, Search, SettingSliders, Trash, UserEdit } from "@qeetrix/icons";
+import {
+  DownloadIcon,
+  PlusIcon,
+  SearchIcon,
+  SlidersHorizontalIcon,
+  TrashIcon,
+  UserPenIcon,
+} from "@qeetrix/icons";
 import {
   type ActiveFilter,
   Button,
@@ -104,7 +111,7 @@ function SearchField({
   return (
     <InputGroup className="w-full sm:w-72">
       <InputGroupAddon>
-        <Search color="currentColor" />
+        <SearchIcon />
       </InputGroupAddon>
       <InputGroupInput
         type="search"
@@ -123,7 +130,7 @@ function ColumnsMenu() {
       <DropdownMenuTrigger
         render={
           <Button variant="outline" size="sm">
-            <SettingSliders color="currentColor" />
+            <SlidersHorizontalIcon />
             Columns
           </Button>
         }
@@ -300,11 +307,11 @@ export const Default: Story = {
         <div className="flex items-center gap-2">
           <ColumnsMenu />
           <Button variant="outline" size="sm">
-            <DocumentDownload color="currentColor" />
+            <DownloadIcon />
             Export CSV
           </Button>
           <Button size="sm">
-            <Add />
+            <PlusIcon />
             Invite member
           </Button>
         </div>
@@ -337,7 +344,7 @@ export const WithActiveFilters: Story = {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <SearchField />
             <Button size="sm">
-              <Add />
+              <PlusIcon />
               Invite member
             </Button>
           </div>
@@ -400,16 +407,16 @@ export const BulkSelection: Story = {
             className="border-0 bg-transparent"
           >
             <ToolbarButton>
-              <UserEdit color="currentColor" />
+              <UserPenIcon />
               Change role
             </ToolbarButton>
             <ToolbarButton>
-              <DocumentDownload color="currentColor" />
+              <DownloadIcon />
               Export selected
             </ToolbarButton>
             <ToolbarSeparator />
             <ToolbarButton className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-              <Trash color="currentColor" />
+              <TrashIcon />
               Remove from tenant
             </ToolbarButton>
             <ToolbarButton onClick={() => setSelected([])}>Clear</ToolbarButton>
@@ -444,13 +451,13 @@ export const NoResults: Story = {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <SearchField value="dorothy@acme" />
         <Button size="sm">
-          <Add />
+          <PlusIcon />
           Invite member
         </Button>
       </div>
       <div className="rounded-lg border border-border">
         <EmptyState
-          icon={(props) => <Search color="currentColor" {...props} />}
+          icon={SearchIcon}
           title="No members match “dorothy@acme”"
           description="Search covers name and email only. Suspended members are hidden by the Status filter — clear it to include them."
           action={
@@ -459,7 +466,7 @@ export const NoResults: Story = {
                 Clear search
               </Button>
               <Button size="sm">
-                <Add />
+                <PlusIcon />
                 Invite dorothy@acme
               </Button>
             </>
@@ -484,7 +491,7 @@ export const Loading: Story = {
       <div className="flex flex-wrap items-center justify-between gap-2">
         <InputGroup className="w-full opacity-60 sm:w-72">
           <InputGroupAddon>
-            <Search color="currentColor" />
+            <SearchIcon />
           </InputGroupAddon>
           <InputGroupInput
             type="search"
@@ -494,7 +501,7 @@ export const Loading: Story = {
           />
         </InputGroup>
         <Button size="sm" disabled>
-          <Add />
+          <PlusIcon />
           Invite member
         </Button>
       </div>

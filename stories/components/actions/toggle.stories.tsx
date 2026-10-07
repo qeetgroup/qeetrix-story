@@ -1,4 +1,4 @@
-import { TextBold, TextItalic, TextUnderline } from "@qeetrix/icons";
+import { BoldIcon, ItalicIcon, UnderlineIcon } from "@qeetrix/icons";
 import { Toggle, ToggleGroup } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect } from "storybook/test";
@@ -33,7 +33,7 @@ export const Default: Story = {
   },
   render: () => (
     <Toggle aria-label="Toggle bold" defaultPressed>
-      <TextBold />
+      <BoldIcon />
     </Toggle>
   ),
 };
@@ -49,7 +49,7 @@ export const Outline: Story = {
   },
   render: () => (
     <Toggle variant="outline" aria-label="Toggle italic">
-      <TextItalic />
+      <ItalicIcon />
     </Toggle>
   ),
 };
@@ -66,13 +66,13 @@ export const Group: Story = {
   render: () => (
     <ToggleGroup defaultValue={["bold"]} aria-label="Text formatting">
       <Toggle value="bold" variant="outline" aria-label="Bold">
-        <TextBold />
+        <BoldIcon />
       </Toggle>
       <Toggle value="italic" variant="outline" aria-label="Italic">
-        <TextItalic />
+        <ItalicIcon />
       </Toggle>
       <Toggle value="underline" variant="outline" aria-label="Underline">
-        <TextUnderline />
+        <UnderlineIcon />
       </Toggle>
     </ToggleGroup>
   ),
@@ -90,7 +90,7 @@ export const PressedInteraction: Story = {
   },
   render: () => (
     <Toggle aria-label="Toggle bold" defaultPressed>
-      <TextBold />
+      <BoldIcon />
     </Toggle>
   ),
   play: async ({ canvas, userEvent }) => {

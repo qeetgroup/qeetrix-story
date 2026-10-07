@@ -90,15 +90,25 @@ export function Ramp({
   name,
   steps,
   values,
+  columns,
 }: {
   name: string;
   steps: Array<number | string>;
   values?: Record<string, string>;
+  /**
+   * Tiles per row. Defaults to 11, the Tailwind palette's step count. A ramp with a different
+   * number of steps (Qeet has 13) passes its own, otherwise the last steps wrap into an orphan row
+   * that reads as a second, unrelated ramp.
+   */
+  columns?: number;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <div className="text-sm font-medium capitalize">{name}</div>
-      <div className="grid grid-cols-11 gap-1.5">
+      <div
+        className="grid grid-cols-11 gap-1.5"
+        style={columns ? { gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` } : undefined}
+      >
         {steps.map((s) => {
           const value = values?.[String(s)];
           const token = `--qx-color-${name}-${s}`;

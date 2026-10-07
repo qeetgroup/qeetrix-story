@@ -1,4 +1,4 @@
-import { Key, Monitor, ShieldTick } from "@qeetrix/icons";
+import { KeyRoundIcon, MonitorIcon, ShieldCheckIcon } from "@qeetrix/icons";
 import {
   Alert,
   AlertDescription,
@@ -433,7 +433,7 @@ export const SecuritySection: Story = {
           </Typography>
         </div>
         <SecurityItem
-          icon={<Key color="currentColor" />}
+          icon={<KeyRoundIcon />}
           title="Passkeys"
           description="Phishing-resistant sign-in bound to your devices."
           status="active"
@@ -448,7 +448,7 @@ export const SecuritySection: Story = {
           }
         />
         <SecurityItem
-          icon={<ShieldTick color="currentColor" />}
+          icon={<ShieldCheckIcon />}
           title="Two-factor authentication"
           description="Required for every admin session in Acme Technologies."
           status="enabled"
@@ -463,7 +463,7 @@ export const SecuritySection: Story = {
           }
         />
         <SecurityItem
-          icon={<Monitor color="currentColor" />}
+          icon={<MonitorIcon />}
           title="Active sessions"
           description="Signing out revokes the refresh token immediately across every Qeet product."
           status="pending"

@@ -19,11 +19,24 @@ import { ThemeProvider } from "@qeetrix/ui";
 
 ## Brand colour
 
-The brand is **Qeet orange** (`#F26D0E` ≈ `orange.500`). Primary buttons, links, focus
-rings and the shadcn `--primary` / `--ring` bridge resolve to the brand ramp, with a
-dark on-brand foreground for AA contrast. To re-brand, re-point the `color.brand.*`
-aliases in `packages/ui/tokens/primitive/color.json` — semantic and component layers
-need no change (see ADR 0004).
+There are two oranges. The brand is **Qeet orange**, `#F26D0E` (`qeet.500`, Qeet's own ramp
+rather than Tailwind orange): identity, the logo, accents. Filled primary actions and checked
+controls use **Qeet Ember**, `#D04800` (`qeet.600`), with a white label at 4.55:1 (WCAG AA) in
+both themes — the brand orange carries white at only 3.0:1, so it is never an action fill.
+Brand text and links use the AA text step, `qeet.700` in light and `qeet.400` in dark
+(`text-brand`, `text-link`), and the focus ring is Ember in light, `qeet.400` in dark.
+
+Neutrals are **Graphite**, near-neutral by design, so dark mode is a neutral near-black (page
+`#0e0d0d`, cards `#131312`) rather than a warm charcoal. In dark mode the selected state is a
+neutral lift with a `border.brand` indicator, not an orange tint, because orange at that
+lightness reads as brown.
+
+To re-brand, re-point the semantic roles that name the Qeet ramp — `action.primary*`,
+`text.brand`, `text.link*`, `border.brand`, `border.focused`, `focus.ring`,
+`surface.brand-subtle*` — in `src/tokens/theme/<theme>/semantic.json` in `qeetrix-ui`, then run
+its tests: the contrast test measures each of those pairings rather than assuming them. The
+`color.brand.*` primitives alias `color.qeet.*`, but the semantic layer reads the Qeet ramp
+directly, so re-pointing the aliases alone changes nothing on screen.
 
 ## Overriding tokens in a consuming app
 
@@ -33,13 +46,24 @@ Import the Qeetrix layer, then override the variables you want *after* it:
 @import "@qeetrix/ui/styles.css";
 
 :root {
-  /* nudge the accent surfaces without touching the package */
-  --primary: oklch(0.62 0.20 250); /* your blue */
+  /* A different primary action: re-check that a white label still reaches 4.5:1. */
+  --primary: oklch(0.52 0.2 250); /* checkbox, radio, slider — the bridge */
+  --qx-color-action-primary: oklch(0.52 0.2 250); /* Button, badge, calendar — via component tokens */
+  --qx-color-action-primary-hover: oklch(0.48 0.2 250);
+  --qx-color-action-primary-active: oklch(0.44 0.2 250);
+  --ring: oklch(0.52 0.2 250);
 }
 ```
 
-Prefer overriding the **semantic** bridge variables (`--primary`, `--ring`, `--muted`, …)
-rather than raw `--qx-*` primitives, so light/dark and future ramps stay coherent.
+Override a **semantic** variable — a bridge variable (`--primary`, `--ring`, `--muted`, …) or a
+role (`--qx-color-surface-rail`) — never a raw primitive. Primitives are not in `styles.css`,
+and the roles hold resolved values rather than references to them, so overriding
+`--qx-color-qeet-600` changes nothing that is painted.
+
+The primary action needs both `--primary` and the `--qx-color-action-primary*` roles. The
+bridge variables are emitted as resolved values, while component tokens such as
+`--qx-component-button-primary-background` point at the role with `var()` — so each override
+reaches a different set of components, and setting only one leaves the other on Ember.
 
 ## RTL
 

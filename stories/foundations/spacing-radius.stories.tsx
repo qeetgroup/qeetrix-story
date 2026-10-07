@@ -9,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "The spatial tokens that give Qeetrix its rhythm: a 4px-based spacing scale (`--qx-space-*`) for padding, gaps and layout, and a radius scale (`--qx-radii-*`) for consistent corner rounding. Components reference these tokens rather than hard-coded pixels, so density and roundness stay uniform and are tunable from one place.",
+          "The spatial tokens that give Qeetrix its rhythm: a 4px-based spacing scale (`--qx-space-*`) for padding, gaps and layout, and a radius scale (`--qx-radii-*`) for consistent corner rounding. Components reference these tokens rather than hard-coded pixels, so density and roundness stay uniform and are tunable from one place. Both scales are primitives, published in `@qeetrix/ui/tokens.css` rather than `styles.css`; components round through the semantic `--qx-corner-*` roles (see Foundations/Borders), which derive from the single `--radius` variable.",
       },
     },
   },

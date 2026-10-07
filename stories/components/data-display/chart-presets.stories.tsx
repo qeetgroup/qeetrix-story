@@ -18,7 +18,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "Ready-to-use chart components — `AreaChart`, `BarChart`, `LineChart`, `DonutChart`, `RadialChart`, and `Sparkline` — built on Recharts with Qeetrix design tokens pre-wired. Drop them into qeet-logs dashboards, qeet-people headcount reports, or Qeet ID analytics pages without writing Recharts boilerplate.",
+          "Ready-to-use chart components — `AreaChart`, `BarChart`, `LineChart`, `DonutChart`, `RadialChart`, and `Sparkline` — built on Recharts with Qeetrix design tokens pre-wired. Drop them into qeet-logs dashboards, qeet-people headcount reports, or Qeet ID analytics pages without writing Recharts boilerplate.\n\nEvery preset shares one set of mark specs, so a dashboard reads as one system: bars capped at 24px with a rounded data end, 2px round-joined lines, area fills as a wash, recessive grid and axes, and a legend by default once there are two or more series. Series without a `color` in the config take the categorical palette in config order (see `chartSeriesColor` on the Chart page). `valueFormatter` formats the tooltip and value axis — the default is the locale's number format. `Sparkline` takes a `tone` (`default` · `positive` · `negative` · `neutral`) and an optional `label`, without which it is decorative and hidden from assistive technology.",
       },
     },
   },
@@ -195,6 +195,133 @@ export const Sparklines: Story = {
           className="text-rose-500"
         />
       </div>
+    </div>
+  ),
+};
+
+// qeet-pay: gross volume by method (₹), last 6 months. No colours in the config.
+const volume = [
+  { month: "Mar", upi: 18_40_000, cards: 9_20_000, netbanking: 3_10_000 },
+  { month: "Apr", upi: 21_75_000, cards: 9_85_000, netbanking: 3_35_000 },
+  { month: "May", upi: 24_90_000, cards: 10_40_000, netbanking: 3_20_000 },
+  { month: "Jun", upi: 27_30_000, cards: 11_15_000, netbanking: 3_60_000 },
+  { month: "Jul", upi: 31_05_000, cards: 11_90_000, netbanking: 3_45_000 },
+  { month: "Aug", upi: 34_60_000, cards: 12_70_000, netbanking: 3_80_000 },
+];
+
+const volumeConfig = {
+  upi: { label: "UPI" },
+  cards: { label: "Cards" },
+  netbanking: { label: "Net banking" },
+} satisfies ChartConfig;
+
+const inrCompact = new Intl.NumberFormat("en-IN", {
+  style: "currency",
+  currency: "INR",
+  notation: "compact",
+  maximumFractionDigits: 1,
+});
+
+export const DefaultPalette: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A config with labels only: UPI, Cards and Net banking take series 1, 2 and 3 in config order, and the legend appears on its own because there is more than one series. Position counts every config entry, so giving one series an explicit `color` never shifts the others — but a label-only entry for a value key (as in the Donut config above) also takes a slot.",
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-xl">
+      <LineChart
+        data={volume}
+        config={volumeConfig}
+        categoryKey="month"
+        dataKeys={["upi", "cards", "netbanking"]}
+        accessibleTitle="qeet-pay gross volume by payment method"
+      />
+    </div>
+  ),
+};
+
+export const ValueFormatter: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "`valueFormatter` with a compact Indian-rupee format, applied to both the value axis and the tooltip — so values read in lakh (₹34.6L) rather than as 34,60,000. Stacked bars round only the top segment's data end.",
+      },
+    },
+  },
+  render: () => (
+    <div className="max-w-xl">
+      <BarChart
+        data={volume}
+        config={volumeConfig}
+        categoryKey="month"
+        dataKeys={["upi", "cards", "netbanking"]}
+        stacked
+        showYAxis
+        valueFormatter={(value) => inrCompact.format(value)}
+        accessibleTitle="qeet-pay gross volume by payment method, stacked"
+      />
+    </div>
+  ),
+};
+
+export const SparklineTones: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "`Sparkline` `tone` maps a trend's meaning onto the chart status roles instead of hand-picked colours: `default` is series 1 (so it matches the full chart behind it), `positive` and `negative` are real status hues, `neutral` is muted ink. Each tile names its sparkline with `label`, which makes it an image with that name; without a label it is decorative.",
+      },
+    },
+  },
+  render: () => (
+    <div className="grid max-w-2xl grid-cols-2 gap-4">
+      {(
+        [
+          {
+            tone: "default",
+            title: "Monthly active users",
+            value: "27,400",
+            data: [18, 19, 21, 22, 24, 25, 27, 27.4],
+            label: "Monthly active users, last 8 weeks, rising",
+          },
+          {
+            tone: "positive",
+            title: "Payment success rate",
+            value: "98.6%",
+            data: [96.1, 96.8, 97.2, 97.5, 97.9, 98.2, 98.4, 98.6],
+            label: "Payment success rate, last 8 weeks, improving",
+          },
+          {
+            tone: "negative",
+            title: "Webhook failures",
+            value: "1,284",
+            data: [310, 420, 380, 610, 720, 940, 1100, 1284],
+            label: "Webhook failures, last 8 weeks, rising",
+          },
+          {
+            tone: "neutral",
+            title: "Headcount",
+            value: "412",
+            data: [408, 410, 409, 411, 410, 412, 411, 412],
+            label: "Headcount, last 8 weeks, flat",
+          },
+        ] as const
+      ).map((tile) => (
+        <div
+          key={tile.tone}
+          className="flex flex-col gap-1.5 rounded-xl bg-card p-4 ring-1 ring-foreground/10"
+        >
+          <span className="text-sm font-medium text-muted-foreground">{tile.title}</span>
+          <span className="text-2xl font-semibold tabular-nums">{tile.value}</span>
+          <Sparkline data={[...tile.data]} tone={tile.tone} type="area" label={tile.label} />
+          <code className="font-mono text-xs text-muted-foreground">tone="{tile.tone}"</code>
+        </div>
+      ))}
     </div>
   ),
 };

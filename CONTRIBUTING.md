@@ -52,19 +52,18 @@ Only these exist. Do not assume a script that isn't in `package.json`.
 | `bun run shoot` | ad-hoc screenshot capture into `screenshots/` |
 | `bun run clean` | remove build + test artefacts |
 
-**Known-failing before you touch anything** — do not chase these unless they are your task:
+**Known-failing before you touch anything** — do not chase this unless it is your task.
+`typecheck`, `verify:stories`, `test`, `build` and `verify:foundations` all pass:
 
 | Command | State |
 | --- | --- |
-| `bun run lint` | 4 errors + 25 warnings, effectively all in `.storybook/styles.css`, plus one `noNonNullAssertion` in `stories/icons.stories.tsx` |
-| `bun run typecheck` | 1 error — a `tokens.json` cast in `stories/foundations/colors.stories.tsx` |
-| `bun run verify:foundations` | fails on a density geometry assertion, and references a `Blocks/DashboardShell` story not in the current index |
-| `bun run build` | gated on `scripts/gen-llms.mjs`, which is being corrected to read the sibling checkout rather than `node_modules/@qeetrix/ui/src` (the published tarball ships `dist/` only) |
+| `bun run lint` | 2 errors + 24 warnings, all in `.storybook/styles.css` |
+
 
 **CI** (`.github/workflows/ci.yml`) runs lint · typecheck · `verify:stories` · `test` ·
 `build` on every push and PR to `main` / `develop`. It checks out `qeetrix-ui` alongside
-this repo and builds its generated tokens first. `lint` and `typecheck` are expected red
-until their pre-existing issues are fixed; every gate still runs, so one CI run reports
+this repo and builds its generated tokens first. `lint` is expected red until the
+`.storybook/styles.css` findings are fixed; every gate still runs, so one CI run reports
 the state of all of them. **VRT is not in CI.**
 
 ---
@@ -154,8 +153,8 @@ export const ClickInteraction: Story = {
 };
 ```
 
-- Import `expect` / `screen` / `waitFor` / `waitForElementToBeRemoved` from
-  **`storybook/test`**, never `@testing-library/*`.
+- Import `expect` / `screen` / `waitFor` from **`storybook/test`**, never
+  `@testing-library/*`.
 - Take `canvas` and `userEvent` from the play context; don't import them.
 - Query by **accessible role and name**, not test ids.
 - **Overlay content is portalled to `document.body` and is not in `canvas` — use
@@ -165,7 +164,9 @@ export const ClickInteraction: Story = {
 - Overlays animate in from `opacity: 0` — poll with `waitFor` rather than asserting on
   the first frame.
 - Assert what breaks silently. For overlays that is **dismissal** (Escape closes it), not
-  opening.
+  opening. Poll for absence — `await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument())`
+  — rather than `waitForElementToBeRemoved`, which throws if the overlay is already gone by
+  the time it runs, and `@qeetrix/ui` 2.1 overlays can close within the same frame.
 
 The `play` function runs in both the Interactions panel and as a real Vitest case under
 `bun run test` — one definition, two consumers.
@@ -204,9 +205,9 @@ container to generate them in yet. See [`docs/testing.md`](./docs/testing.md#lay
 - [ ] Interactive components (`actions` / `overlays` / `navigation` / `data-entry`) have a
       `play` interaction test, using `screen` for portalled content.
 - [ ] Icon-only controls have accessible names; form controls have labels.
-- [ ] `bun run lint` and `bun run typecheck` introduce **no new** findings (both have a
-      known-failing baseline in CI — see above; do not treat a red tick as your fault
-      without checking which gate and which file).
+- [ ] `bun run lint` introduces **no new** findings (it has a known-failing baseline in
+      CI — see above; do not treat a red tick as your fault without checking which file),
+      and `bun run typecheck` stays clean.
 - [ ] No VRT baselines committed.
 - [ ] No new fields invented on `parameters.qeetrix` — extend `stories/_contract.ts` first.
 - [ ] Story `title` / export names unchanged, or the id change is intentional (ids are an
@@ -219,5 +220,10 @@ container to generate them in yet. See [`docs/testing.md`](./docs/testing.md#lay
   semicolons, trailing commas. Imports are auto-organised.
 - Files prefixed `_` (`_contract.ts`, `_helpers.tsx`, `_intro.tsx`) are not matched by the
   stories glob — that is how shared helpers stay out of the sidebar.
+- **Icons come from `@qeetrix/icons`**, imported from the package root with their `…Icon`
+  names: `import { PlusIcon, TrashIcon } from "@qeetrix/icons";` — not deep
+  `@qeetrix/icons/icons/<id>` paths, not another icon set. Icons appear here only inside
+  component demos; the icon catalogue itself is documented in the `qeetrix-icons` repo, not
+  in this workshop.
 - Comments in this repo explain *why*, not *what*. The existing config files are unusually
   well commented on purpose; match that bar when you change one.
