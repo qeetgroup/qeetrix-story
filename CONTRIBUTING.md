@@ -226,6 +226,7 @@ container to generate them in yet. See [`docs/testing.md`](./docs/testing.md#lay
   component demos; the icon catalogue itself is documented in the `qeetrix-icons` repo, not
   in this workshop. Storybook resolves the root to the package's icons-only index (see
   `.storybook/main.ts`), so the ~7,400 brand logos are never pre-bundled — which also means
-  a `*Logo` import will not resolve here.
+  a `*Logo` import will not resolve here. That alias is temporary: `@qeetrix/icons` 2.0 drops the
+  third-party logos, so it goes when this repo upgrades from 1.0.10.
 - Comments in this repo explain *why*, not *what*. The existing config files are unusually
   well commented on purpose; match that bar when you change one.

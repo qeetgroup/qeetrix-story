@@ -24,6 +24,10 @@ const ui = (p: string) => fileURLToPath(new URL(`../../qeetrix-ui/${p}`, import.
  * TypeScript still checks that against the published types; only the bundler is pointed at
  * the icon index. A story that imports a `*Logo` will fail to resolve — by design: brand
  * logos belong to the icons package's own docs, not to this workshop.
+ *
+ * Temporary: this is only needed while the workshop is pinned to @qeetrix/icons 1.0.10. From 2.0
+ * the package drops the third-party logos and its root carries just `QeetLogo` and
+ * `QeetWordmarkLogo`, so after upgrading, delete `iconIndex` and its alias below.
  */
 const iconIndex = join(
   dirname(createRequire(import.meta.url).resolve("@qeetrix/icons/package.json")),
