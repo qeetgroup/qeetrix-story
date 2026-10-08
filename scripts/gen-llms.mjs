@@ -97,10 +97,10 @@ const llms = `# Qeetrix (@qeetrix/ui)
 
 ## Import surfaces
 
-- \`@qeetrix/ui\` — components, blocks re-exports, hooks, \`cn\`
+- \`@qeetrix/ui\` — components, hooks, \`cn\`
 - \`@qeetrix/ui/styles.css\` — tokens + fonts + base layer (side-effect import)
 - \`@qeetrix/ui/tokens.css\` — raw \`--qx-*\` custom properties · \`@qeetrix/ui/tokens.json\`
-- \`@qeetrix/ui/brand\` — QeetLogo + brand icons · \`@qeetrix/ui/blocks\` — composed patterns
+- \`@qeetrix/icons\` — every icon (\`StarIcon\`, …) and \`QeetLogo\`
 
 ## Components (${components.length})
 

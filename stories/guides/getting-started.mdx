@@ -4,13 +4,13 @@ import { Meta } from "@storybook/addon-docs/blocks";
 
 # Getting started
 
-Qeetrix ships as a single package — components, tokens, and brand assets are all in
-`@qeetrix/ui`.
+Qeetrix is two packages: `@qeetrix/ui` holds the components and design tokens, and
+`@qeetrix/icons` holds the icons and the Qeet logo — the icons `@qeetrix/ui` draws itself.
 
 ## Install
 
 ```bash
-bun add @qeetrix/ui react react-dom
+bun add @qeetrix/ui @qeetrix/icons react react-dom
 ```
 
 ## Wire up styles (Tailwind v4)
@@ -26,15 +26,16 @@ component classes:
 ## Use it
 
 ```tsx
+import { QeetLogo } from "@qeetrix/icons";
 import { ThemeProvider, Button, Card, CardContent } from "@qeetrix/ui";
-import { QeetLogo } from "@qeetrix/ui/brand";
 
 export function App() {
   return (
     <ThemeProvider defaultTheme="system">
       <Card>
         <CardContent className="flex items-center gap-3">
-          <QeetLogo size={28} />
+          <QeetLogo height={28} className="dark:hidden" />
+          <QeetLogo height={28} variant="dark" className="hidden dark:block" />
           <Button>Authenticate with Qeet</Button>
         </CardContent>
       </Card>
@@ -50,7 +51,7 @@ handled by `DirectionProvider`.
 
 - `@qeetrix/ui` — the barrel (all components, hooks, `cn`)
 - `@qeetrix/ui/styles.css` — tokens + fonts + base layer
-- `@qeetrix/ui/brand` — `QeetLogo` + brand icons
+- `@qeetrix/icons` — every icon (`StarIcon`, …) and `QeetLogo`; `@qeetrix/icons/icons/<id>` for one icon
 - `@qeetrix/ui/components/<slug>` — deep import for a single component (tree-shaking)
 - `@qeetrix/ui/tokens.css` / `@qeetrix/ui/tokens.json` — raw design tokens
 

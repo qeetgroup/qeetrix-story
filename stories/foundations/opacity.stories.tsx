@@ -1,4 +1,5 @@
-import { Button, Input, Label, STATE_OPACITY } from "@qeetrix/ui";
+import { Button, Input, Label } from "@qeetrix/ui";
+import tokens from "@qeetrix/ui/tokens.json";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Page, Section } from "../_helpers";
@@ -33,9 +34,9 @@ export const DisabledState: Story = {
     <Page>
       <Section title="One token">
         <Prose>
-          <Code>--qx-state-opacity-disabled</Code> is {STATE_OPACITY.disabled} — enough to read as
-          unavailable, not so little that the label becomes unreadable for someone who needs to know
-          what the control they cannot use would have done.
+          <Code>--qx-state-opacity-disabled</Code> is {tokens.light.state.opacity.disabled} — enough
+          to read as unavailable, not so little that the label becomes unreadable for someone who
+          needs to know what the control they cannot use would have done.
         </Prose>
         <div className="flex flex-wrap items-end gap-6">
           <div className="flex flex-col gap-2">
@@ -60,11 +61,14 @@ export const DisabledState: Story = {
           rows={[
             {
               token: "--qx-state-opacity-disabled",
-              cells: [String(STATE_OPACITY.disabled), "tokens/semantic/state.json"],
+              cells: [String(tokens.light.state.opacity.disabled), "tokens/semantic/state.json"],
             },
             {
-              token: "STATE_OPACITY.disabled",
-              cells: [String(STATE_OPACITY.disabled), "typed export from @qeetrix/ui"],
+              token: "state.opacity.disabled",
+              cells: [
+                String(tokens.light.state.opacity.disabled),
+                "@qeetrix/ui/tokens.json, for tooling that needs the number",
+              ],
             },
             {
               token: "--opacity-disabled",

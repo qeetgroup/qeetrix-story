@@ -13,20 +13,25 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
+  cn,
   DataState,
   EmptyState,
   Feed,
   Link,
-  NotificationCenter,
+  Popover,
+  PopoverContent,
+  PopoverTitle,
+  PopoverTrigger,
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
   Typography,
+  useControllableState,
 } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import * as React from "react";
-import { expect, screen, waitFor } from "storybook/test";
+import { expect, screen, waitFor, within } from "storybook/test";
 import { qx } from "../_contract";
 
 type Tone = "info" | "success" | "warning" | "error";
@@ -172,17 +177,37 @@ function InboxList({
  * split, and the list. Stateful so the mark-all-read story can actually change
  * something rather than swapping to a second hard-coded screenshot.
  */
-function Inbox({ seed = INBOX }: { seed?: InboxItem[] }) {
-  const [items, setItems] = React.useState(seed);
+function Inbox({
+  seed = INBOX,
+  items: controlledItems,
+  onItemsChange,
+  title,
+  className,
+}: {
+  seed?: InboxItem[];
+  /** Controlled list, for a parent that shows the unread count too — the bell menu's badge. */
+  items?: InboxItem[];
+  onItemsChange?: (items: InboxItem[]) => void;
+  /** Replaces the heading; the bell menu passes a `PopoverTitle` so the popup is named by it. */
+  title?: React.ReactNode;
+  className?: string;
+}) {
+  const [items, setItems] = useControllableState({
+    value: controlledItems,
+    defaultValue: seed,
+    onChange: onItemsChange,
+  });
   const unread = items.filter((item) => !item.read);
 
   return (
-    <Card className="w-104">
+    <Card className={cn("w-104", className)}>
       <CardHeader className="border-b pb-3">
         <div className="flex items-center gap-2">
-          <Typography as="h2" variant="small" className="font-heading text-base">
-            Notifications
-          </Typography>
+          {title ?? (
+            <Typography as="h2" variant="small" className="font-heading text-base">
+              Notifications
+            </Typography>
+          )}
           {unread.length > 0 ? <Badge variant="muted">{unread.length} unread</Badge> : null}
         </div>
         <CardAction>
@@ -351,45 +376,61 @@ export const MarkAllRead: Story = {
 };
 
 export const BellMenu: Story = {
-  // KNOWN @qeetrix/ui DEFECT: NotificationCenter renders its popover heading as a plain
-  // <span> instead of `PopoverTitle`, so Base UI never wires `aria-labelledby` and the
-  // popup's role="dialog" has no accessible name. `NotificationCenterProps` exposes no
-  // className/aria hook for the content either, so nothing in this story can supply one —
-  // the fix is a one-line swap inside the component. Only visible here because this is the
-  // first story that opens the menu; the primitive story leaves it closed.
   parameters: {
     layout: "padded",
-    a11y: { options: { rules: { "aria-dialog-name": { enabled: false } } } },
     docs: {
       description: {
         story:
-          "The same inbox as a header menu, using the library's own `NotificationCenter` — a bell with an unread badge opening a popover. Reach for this when the inbox is a header affordance; reach for the panel above when it is a page of its own. The play function opens the menu so the popover is inside the accessibility scan rather than sitting closed and untested.",
+          "The same inbox as a header menu: a bell with an unread badge opening a `Popover`. Reach for this when the inbox is a header affordance; reach for the panel above when it is a page of its own. The popup is named by its `PopoverTitle`, and the bell's label carries the unread count, because the badge is only a number to someone who can see it. The play function opens the menu so the popover is inside the accessibility scan rather than sitting closed and untested.",
       },
     },
   },
   render: () => {
-    const [items, setItems] = React.useState(
-      INBOX.map((item) => ({
-        id: item.id,
-        title: item.title,
-        description: item.detail,
-        time: item.time,
-        variant: item.tone,
-        read: item.read,
-      })),
-    );
+    const [items, setItems] = React.useState(INBOX);
+    const unread = items.filter((item) => !item.read).length;
     return (
       <div className="flex h-40 w-full items-start justify-end">
-        <NotificationCenter
-          items={items}
-          onMarkAllRead={() => setItems((current) => current.map((i) => ({ ...i, read: true })))}
-          onDismiss={(id) => setItems((current) => current.filter((i) => i.id !== id))}
-        />
+        <Popover>
+          <PopoverTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative"
+                aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
+              >
+                <BellIcon />
+                {unread > 0 ? (
+                  <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
+                    {unread}
+                  </span>
+                ) : null}
+              </Button>
+            }
+          />
+          <PopoverContent align="end" className="w-auto border-0 bg-transparent p-0 shadow-none">
+            <Inbox
+              items={items}
+              onItemsChange={setItems}
+              title={<PopoverTitle className="font-heading text-base">Notifications</PopoverTitle>}
+              className="shadow-(--qx-component-popover-elevation)"
+            />
+          </PopoverContent>
+        </Popover>
       </div>
     );
   },
   play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: /notifications/i }));
-    await waitFor(() => expect(screen.getByRole("feed")).toBeVisible());
+    await userEvent.click(canvas.getByRole("button", { name: "Notifications, 3 unread" }));
+    const menu = await screen.findByRole("dialog", { name: "Notifications" });
+    // The popup fades in from opacity 0, which toBeVisible treats as hidden until it settles.
+    await waitFor(() =>
+      expect(within(menu).getByRole("feed", { name: "All notifications" })).toBeVisible(),
+    );
+
+    await userEvent.click(within(menu).getByRole("button", { name: "Mark all as read" }));
+    await waitFor(() =>
+      expect(canvas.getByRole("button", { name: "Notifications" })).toBeInTheDocument(),
+    );
   },
 };

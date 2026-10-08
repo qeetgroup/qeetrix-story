@@ -1,16 +1,15 @@
 # Testing
 
-Two independent layers. They answer different questions, use different runners, and are
-run separately. Neither is a superset of the other.
+Every story is a test. Vitest renders each one in a real browser, runs its `play` function,
+and runs axe over the result.
 
-| Layer | Question | Runner | Config | Command |
-| --- | --- | --- | --- | --- |
-| Component tests | Does every story render, behave, and pass axe? | Vitest 4, browser mode | `vitest.config.ts` | `bun run test` |
-| Visual regression | Does anything *look* different from the committed baseline? | Playwright | `playwright.config.ts` | `bun run vrt` |
+| Question | Runner | Config | Command |
+| --- | --- | --- | --- |
+| Does every story render, behave, and pass axe? | Vitest 4, browser mode | `vitest.config.ts` | `bun run test` |
 
 ---
 
-## Layer 1 — component tests (Vitest browser mode)
+## Component tests (Vitest browser mode)
 
 ### Every story is a test
 
@@ -57,8 +56,7 @@ devDependency and `provider: playwright()` in the browser block.
 
 ### Browser matrix
 
-Headless **Chromium only**. That is intentional: the wider browser matrix (Firefox/WebKit)
-belongs to the visual layer, and the two layers are independent by design.
+Headless **Chromium only**. Firefox and WebKit are not run.
 
 ### Coverage
 
@@ -141,80 +139,52 @@ import `screen`, and every one of them is an overlay.
 
 ---
 
-## Layer 2 — visual regression (VRT)
-
-Snapshot every story × light/dark and diff against committed baselines with Playwright's
-`toHaveScreenshot`. No paid SaaS.
-
-### How it works
-
-- `tests/vrt.spec.ts` enumerates stories from `storybook-static/index.json` — the same
-  source `scripts/verify-a11y.mjs` and `scripts/shoot.mjs` use — and generates one test per
-  story per theme by navigating to `iframe.html?id=…&globals=theme:light|dark`.
-- `tests/serve-static.mjs` serves `storybook-static/` on `VRT_PORT` (default **6178**);
-  Playwright's `webServer` block starts it and waits for `/index.json`.
-- Viewport `900×640` at `deviceScaleFactor: 2`, Chromium only.
-- Tolerance: `maxDiffPixelRatio: 0.01`, `animations: "disabled"`, `caret: "hide"`.
-
-### Commands
-
-```bash
-bun run build                 # storybook-static must exist first
-bun run vrt                   # compare against baselines
-bun run vrt:update            # (re)generate baselines
-VRT_GREP=button bun run vrt   # scope to matching story ids (substring match)
-```
-
-### Baselines must be generated in Linux — and there is nowhere to do that yet
-
-Screenshots are OS- and font-sensitive. Baselines committed from a dev Mac will diff
-against the Linux/Playwright-container renderer.
-
-**`bun run vrt` is not part of CI.** `.github/workflows/ci.yml` runs lint, typecheck,
-`verify:stories`, `test` and `build` — there is no VRT job and no snapshot-generation job.
-Until one exists, `tests/vrt.spec.ts-snapshots/` cannot be generated reproducibly, and
-`bun run vrt` is only meaningful locally against locally-generated baselines.
-
-**Do not commit dev-machine baselines.** When a container job lands, start scoped (a few
-primitives), confirm stability, then expand.
-
----
-
 ## In CI
 
-`.github/workflows/ci.yml` runs on push and PR to `main` / `develop`. The setup is
-unusual for the reason described in [architecture.md](./architecture.md#qeetrixui-is-resolved-from-a-sibling-checkout):
-it checks out **two repos side by side** (`qeetrix-story/` and `qeetrix-ui/`) to reproduce
-the `../qeetrix-ui` relative path, installs both, and runs `bun run build:tokens` in
-`qeetrix-ui` — its `tokens.css` / `tokens.json` / `token-values.ts` are generated and
-gitignored, so a fresh clone does not contain them.
+The workflows are the same four as `qeetrix-ui`, `qeetrix-icons` and `qeetrix-docs`:
 
-| Gate | Expected |
+| Workflow | Runs on | Does |
+| --- | --- | --- |
+| `ci.yml` | every PR, push to `main` | the gates below |
+| `version.yml` | PR into `main` | bumps the patch version on the PR branch, unless it is already raised |
+| `release.yml` | push to `main` | gates, builds and deploys Storybook to Vercel production, then tags `vX.Y.Z` |
+| `rollback.yml` | manual, with a tag | redeploys exactly the commit a release tag names |
+
+Each one checks out **two repos side by side** (`qeetrix-story/` and `qeetrix-ui/`) to
+reproduce the `../qeetrix-ui` relative path, for the reason described in
+[architecture.md](./architecture.md#qeetrixui-is-resolved-from-a-sibling-checkout). The
+`qeetrix-ui` checkout is the release tag of the `@qeetrix/ui` version `bun.lock` installs, so
+the type check (which reads `node_modules`) and the stories (which render the checkout) see
+the same API. Both repos are installed, and `bun run build:tokens` runs in `qeetrix-ui` — its
+`tokens.css` / `tokens.json` / `token-values.ts` are generated and gitignored, so a fresh
+clone does not contain them.
+
+| Gate | Command |
 | --- | --- |
-| `bun run lint` | **red** — known pre-existing failures |
-| `bun run typecheck` | **red** — known pre-existing failure |
-| `bun run verify:stories` | green |
-| `bun run test` | green |
-| `bun run build` | green |
-| `bun run vrt` | **not run in CI** |
+| Lint | `bun run lint` |
+| Typecheck | `bun run typecheck` |
+| Story contract | `bun run verify:stories` |
+| Component tests | `bun run test` |
+| Build | `bun run build` |
 
 Every gate runs even after an earlier one fails (`if: !cancelled()`), so one run tells you
 the state of all of them instead of one fix-and-rerun cycle per gate. The job still fails
-overall — the lint/typecheck gates are deliberately not `continue-on-error`, because a
-green tick on a broken tree is worse than no CI.
+overall — no gate is `continue-on-error`, because a green tick on a broken tree is worse than
+no CI. `release.yml` runs the same gates before it deploys.
 
-CI tracks `qeetrix-ui@main`, so a red build here can be caused by a commit in the other
-repo.
+Upgrading `@qeetrix/ui` is a PR here like any other change: bump it in `package.json`, and
+CI renders the matching `qeetrix-ui` release.
 
-## What these layers do *not* cover
+## What the tests do *not* cover
 
 Stated so nobody assumes coverage that isn't there:
 
 - **RTL** — there is a Direction toolbar global and a `DirectionProvider` decorator, so a
   human can flip a story to RTL. There is **no RTL test matrix** — nothing runs the suite
   in RTL.
-- **Dark mode** — the VRT layer would cover it once baselines exist, but the component/a11y
-  run only exercises the default (light) theme. `A11Y_THEME=dark bun run verify:a11y` is the
+- **Visual appearance** — nothing diffs screenshots, so a change in how a story *looks*
+  is caught by a reviewer, not by CI.
+- **Dark mode** — the component/a11y run only exercises the default (light) theme. `A11Y_THEME=dark bun run verify:a11y` is the
   only dark-mode check that exists today, and it reports rather than gates.
 - **Responsive / viewport matrices** — four canonical viewport presets exist in the
   toolbar (390 / 768 / 1440 / 1920). Nothing runs stories at them automatically. The only

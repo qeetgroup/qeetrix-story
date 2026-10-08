@@ -1,6 +1,36 @@
-# @qeetrix/docs
+# @qeetrix/stories
 
 ## Unreleased
+
+### Major Changes
+
+- **`@qeetrix/ui` 2.1.4.** The workshop follows 2.1.4, which took eight modules out of the
+  package and `@qeetrix/ui/brand` with them; CI renders `qeetrix-ui@main`, so every gate but the
+  type check had gone red.
+  - Stories for the eight are removed — `AccessReview`, `AuditEvent`, `CommentThread`,
+    `LogoUploader`, `NotificationCenter`, `NotificationPreferenceMatrix`, `SecurityItem` and
+    `MasterDetail`, now copy-paste source in `qeetrix-ui`. 147 → 139 component stories.
+  - Patterns that used them compose library parts instead: Account Settings builds its security
+    rows from `StatusPill` and `DescriptionList`, and the NotificationCenter bell menu is a
+    `Popover` around the same inbox. Its popup is now named by a `PopoverTitle`, so the story no
+    longer switches off axe's `aria-dialog-name` rule.
+  - The logo and brand icons come from `@qeetrix/icons` (`QeetLogo`, `FingerprintPatternIcon`,
+    `MonitorSmartphoneIcon`, …), following the theme with a light and a dark `QeetLogo`.
+  - The Elevation, Opacity, Z-Index and Token Layers foundations read `@qeetrix/ui/tokens.json`
+    and the `--chart-*` variables instead of the removed `SHADOW`, `STATE_OPACITY`, `Z_INDEX`
+    and `CHART_COLOR`. Elevation now shows the dark shadow primitives beside the light ones.
+- **Release workflows.** The repo has the same four workflows as `qeetrix-ui`, `qeetrix-icons`
+  and `qeetrix-docs`: `ci.yml`, `version.yml` (patch bump on the PR into `main`), `release.yml`
+  (gates, deploys Storybook to Vercel production, then tags `vX.Y.Z`) and `rollback.yml`. Each
+  checks out the `qeetrix-ui` release tag that `bun.lock` installs instead of `main`, so the
+  type check and the stories always see the same API. CI runs on every PR and on push to
+  `main`, like the other repos.
+- **Visual regression removed.** `vrt.yml`, `playwright.config.ts`, `tests/` and the
+  `vrt` / `vrt:update` scripts are gone, with `@playwright/test`. No baselines were ever
+  committed, so nothing was compared. The component tests, axe gate included, are the testing
+  layer.
+- **Fixes.** `lint` passes: Biome parses Tailwind's `@source` directive and its schema matches
+  the installed 2.5.10. Every CI gate is green.
 
 ### Minor Changes
 

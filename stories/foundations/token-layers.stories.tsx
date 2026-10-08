@@ -1,13 +1,5 @@
-import {
-  Button,
-  CHART_COLOR,
-  COMPONENT,
-  Container,
-  DURATION,
-  SHADOW,
-  STATE_OPACITY,
-  Z_INDEX,
-} from "@qeetrix/ui";
+import { Button, COMPONENT, Container, DURATION } from "@qeetrix/ui";
+import tokens from "@qeetrix/ui/tokens.json";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 const meta: Meta = {
@@ -17,7 +9,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "Beyond colour, the semantic layer covers interaction state, component layout, chart, elevation and stacking roles. Typed values (`CHART_COLOR`, `COMPONENT`, `DURATION`, `SHADOW`, `STATE_OPACITY`, `Z_INDEX`) are generated from the same DTCG source as the runtime CSS, so a value read in JavaScript cannot drift from the one the stylesheet paints.",
+          "Beyond colour, the semantic layer covers interaction state, component layout, chart, elevation and stacking roles. The values components read in JavaScript are typed (`COMPONENT`, `DURATION`, `EASING`, `ICON_SIZE`, `ICON_STROKE`); the rest are CSS variables, with every value resolved per theme in `@qeetrix/ui/tokens.json`. Both are generated from the same DTCG source as the runtime CSS, so a value read in JavaScript cannot drift from the one the stylesheet paints.",
       },
     },
   },
@@ -27,7 +19,7 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-const chartSeries = Object.entries(CHART_COLOR).filter(([key]) => key.startsWith("series"));
+const chartSeries = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
@@ -48,15 +40,15 @@ export const Overview: Story = {
           negative, and warning roles are separate from series identity.
         </p>
         <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {chartSeries.map(([name, color], index) => (
-            <div key={name} className="overflow-hidden rounded-md border border-border bg-card">
+          {chartSeries.map((series) => (
+            <div key={series} className="overflow-hidden rounded-md border border-border bg-card">
               <span
-                data-chart-series={index + 1}
+                data-chart-series={series}
                 className="block h-14"
-                style={{ background: color }}
+                style={{ background: `var(--chart-${series})` }}
               />
               <span className="block px-2 py-1.5 font-mono text-xs text-muted-foreground">
-                series {index + 1}
+                --chart-{series}
               </span>
             </div>
           ))}
@@ -67,7 +59,7 @@ export const Overview: Story = {
               <div key={role} className="rounded-md border border-border bg-card p-2">
                 <span
                   className="block h-2 rounded-full"
-                  style={{ background: CHART_COLOR[role] }}
+                  style={{ background: `var(--chart-${role})` }}
                 />
                 <span className="mt-2 block font-mono text-xs text-muted-foreground">{role}</span>
               </div>
@@ -88,7 +80,7 @@ export const Overview: Story = {
               Unavailable
             </Button>
             <code className="font-mono text-xs text-muted-foreground">
-              {STATE_OPACITY.disabled}
+              {tokens.light.state.opacity.disabled}
             </code>
           </div>
         </div>
@@ -107,9 +99,9 @@ export const Overview: Story = {
           <h2 className="font-heading text-base font-semibold">Runtime parity</h2>
           <dl className="mt-3">
             <Metric label="duration.standard" value={`${DURATION.standard}ms`} />
-            <Metric label="z.toast" value={Z_INDEX.toast} />
-            <Metric label="z.tour" value={Z_INDEX.tour} />
-            <Metric label="shadow.insetSubtle" value={SHADOW.insetSubtle} />
+            <Metric label="z.toast" value={tokens.light.z.toast} />
+            <Metric label="z.tour" value={tokens.light.z.tour} />
+            <Metric label="shadow.inset-subtle" value={tokens.light.shadow["inset-subtle"]} />
           </dl>
         </div>
       </section>

@@ -22,8 +22,7 @@ import { defineConfig } from "vitest/config";
  *    support. Vitest 4 also moved browser providers into their own package, hence
  *    `@vitest/browser-playwright`.
  *
- * Runs headless Chromium only. The wider browser matrix (Firefox/WebKit) belongs to
- * the visual-regression layer in `playwright.config.ts`, which is independent.
+ * Runs headless Chromium only.
  */
 /** The @qeetrix/ui source this workshop renders — a sibling checkout, not a dependency. */
 const uiSrc = fileURLToPath(new URL("../qeetrix-ui/src", import.meta.url));

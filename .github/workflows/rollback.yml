@@ -1,0 +1,168 @@
+name: Rollback
+
+# Puts an earlier release of the workshop back in production by redeploying
+# exactly the commit its tag names — the same workflow as qeetrix-docs', and the
+# counterpart of qeetrix-ui's rollback, which moves npm's `latest` back.
+#
+# Run it from Actions → Rollback → Run workflow, and give it the tag to go back
+# to (for example v0.0.10). Only tags `release.yml` created are accepted, so a
+# rollback can only restore a version that was really live. No new tag is made:
+# the release history stays as it was, and the next merge to main ships forward
+# again as usual.
+#
+# The tagged commit renders the qeetrix-ui release its own bun.lock installs, so
+# an old workshop is rebuilt against the library it was released with, not
+# against whatever qeetrix-ui ships today.
+#
+# For an instant switch without a rebuild, Vercel's dashboard can also promote
+# an earlier production deployment (Deployments → … → Instant Rollback). This
+# workflow is the reviewable, repeatable path: it rebuilds the tagged commit
+# from its lockfile.
+#
+# Needs the same configuration as release.yml: the VERCEL_TOKEN secret and the
+# VERCEL_ORG_ID and VERCEL_PROJECT_ID variables.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Released tag to put back in production (e.g. v0.0.10)"
+        required: true
+        type: string
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: 1.3.14
+
+jobs:
+  rollback:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+    defaults:
+      run:
+        working-directory: qeetrix-story
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: qeetrix-story
+          fetch-depth: 0 # full history, so tags are visible
+
+      - name: the tag is a released version
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$TAG' is not a release tag. Use the form v0.0.10."
+            exit 1
+          fi
+          # Reject a tag that was never released — otherwise the checkout fails
+          # with a less obvious error.
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "::error::$TAG does not exist. Released tags: $(git tag --list 'v*' --sort=-version:refname | head -10 | tr '\n' ' ')"
+            exit 1
+          fi
+          git checkout --quiet "refs/tags/$TAG"
+          echo "Checked out $TAG ($(git rev-parse --short HEAD))."
+
+      - id: creds
+        name: is deploying configured?
+        run: |
+          echo "ready=${{ secrets.VERCEL_TOKEN != '' && vars.VERCEL_ORG_ID != '' && vars.VERCEL_PROJECT_ID != '' }}" >> "$GITHUB_OUTPUT"
+
+      - id: ui
+        if: steps.creds.outputs.ready == 'true'
+        name: which @qeetrix/ui release does the tag's bun.lock install?
+        run: |
+          set -euo pipefail
+          version=$(grep -oE '"@qeetrix/ui@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3)
+          if [ -z "$version" ]; then
+            echo "::error::bun.lock does not resolve @qeetrix/ui."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - if: steps.creds.outputs.ready == 'true'
+        name: Checkout qeetrix-ui at that release
+        uses: actions/checkout@v4
+        with:
+          repository: qeetgroup/qeetrix-ui
+          ref: v${{ steps.ui.outputs.version }}
+          path: qeetrix-ui
+
+      - if: steps.creds.outputs.ready == 'true'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - if: steps.creds.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - if: steps.creds.outputs.ready == 'true'
+        run: bun install --frozen-lockfile
+
+      - if: steps.creds.outputs.ready == 'true'
+        working-directory: qeetrix-ui
+        run: bun install --frozen-lockfile
+
+      - if: steps.creds.outputs.ready == 'true'
+        working-directory: qeetrix-ui
+        run: bun run build:tokens
+
+      - if: steps.creds.outputs.ready == 'true'
+        name: install the Vercel CLI
+        run: npm install --global vercel@latest
+
+      - if: steps.creds.outputs.ready == 'true'
+        name: pull the production environment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - if: steps.creds.outputs.ready == 'true'
+        name: build the tagged commit
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - id: deploy
+        if: steps.creds.outputs.ready == 'true'
+        name: deploy it to production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - if: steps.deploy.outcome == 'success'
+        name: summarise
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          {
+            echo "## Rolled back to $TAG"
+            echo
+            echo "Production now serves $TAG (deployment: ${{ steps.deploy.outputs.url }}),"
+            echo "rendering \`qeetrix-ui\` v${{ steps.ui.outputs.version }}."
+            echo "The next merge to main releases forward again as usual."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - if: steps.creds.outputs.ready != 'true'
+        name: report that deploying is not configured
+        run: |
+          echo "::warning title=Rollback skipped::VERCEL_TOKEN, VERCEL_ORG_ID or VERCEL_PROJECT_ID is not configured."

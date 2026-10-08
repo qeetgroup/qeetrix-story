@@ -1,4 +1,4 @@
-import { Z_INDEX } from "@qeetrix/ui";
+import tokens from "@qeetrix/ui/tokens.json";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Page, Section } from "../_helpers";
@@ -11,7 +11,7 @@ const meta: Meta = {
     docs: {
       description: {
         component:
-          "One ladder, fifteen rungs, spaced a thousand apart. Every floating surface in Qeetrix reads `--qx-z-*` (via Tailwind's `z-(--qx-z-popover)` arbitrary-property syntax) instead of picking a number, which is what stops a codebase accumulating `z-index: 9999` as the only reliable way to be on top. The gaps are deliberate: a product can slot its own layer between two rungs without touching the design system. The same ladder is published as the typed `Z_INDEX` constant for portals and virtualisers that have to compute a layer.",
+          "One ladder, fifteen rungs, spaced a thousand apart. Every floating surface in Qeetrix reads `--qx-z-*` (via Tailwind's `z-(--qx-z-popover)` arbitrary-property syntax) instead of picking a number, which is what stops a codebase accumulating `z-index: 9999` as the only reliable way to be on top. The gaps are deliberate: a product can slot its own layer between two rungs without touching the design system. Code that has to compute a layer — a portal, a virtualiser — reads the variable, or the number from `@qeetrix/ui/tokens.json` (`z`).",
       },
     },
   },
@@ -21,43 +21,39 @@ export default meta;
 type Story = StoryObj;
 
 interface Layer {
-  token: keyof typeof Z_INDEX;
-  cssVar: string;
+  /** The rung's name in `tokens.json`; its CSS variable is `--qx-z-<token>`. */
+  token: keyof typeof tokens.light.z;
   usedBy: string;
 }
 
 /** The ladder in ascending order, with what actually reads each rung today. */
 const LADDER: Layer[] = [
-  { token: "base", cssVar: "--qx-z-base", usedBy: "In-flow content. Reserved as the floor." },
-  { token: "dropdown", cssVar: "--qx-z-dropdown", usedBy: "Reserved — no component reads it yet." },
-  { token: "sticky", cssVar: "--qx-z-sticky", usedBy: "AppShell header" },
-  { token: "fixed", cssVar: "--qx-z-fixed", usedBy: "Sidebar, FloatingWindow, ActionBar" },
-  { token: "modalBackdrop", cssVar: "--qx-z-modal-backdrop", usedBy: "Dialog, AlertDialog" },
-  { token: "modal", cssVar: "--qx-z-modal", usedBy: "Dialog, AlertDialog" },
-  { token: "drawerBackdrop", cssVar: "--qx-z-drawer-backdrop", usedBy: "Sheet, Drawer" },
+  { token: "base", usedBy: "In-flow content. Reserved as the floor." },
+  { token: "dropdown", usedBy: "Reserved — no component reads it yet." },
+  { token: "sticky", usedBy: "AppShell header" },
+  { token: "fixed", usedBy: "Sidebar, FloatingWindow, ActionBar" },
+  { token: "modal-backdrop", usedBy: "Dialog, AlertDialog" },
+  { token: "modal", usedBy: "Dialog, AlertDialog" },
+  { token: "drawer-backdrop", usedBy: "Sheet, Drawer" },
   {
     token: "drawer",
-    cssVar: "--qx-z-drawer",
     usedBy: "Sheet, Drawer — and a nested Dialog or Sheet, lifted onto it",
   },
   {
     token: "popover",
-    cssVar: "--qx-z-popover",
     usedBy:
       "Popover, Tooltip, HoverCard, DropdownMenu, ContextMenu, Menubar, NavigationMenu, Select, Combobox, Autocomplete, MentionInput",
   },
-  { token: "toast", cssVar: "--qx-z-toast", usedBy: "Toast viewport" },
+  { token: "toast", usedBy: "Toast viewport" },
   {
-    token: "commandPalette",
-    cssVar: "--qx-z-command-palette",
+    token: "command-palette",
     usedBy: "Reserved — no component reads it yet.",
   },
-  { token: "tourBackdrop", cssVar: "--qx-z-tour-backdrop", usedBy: "Tour" },
-  { token: "tour", cssVar: "--qx-z-tour", usedBy: "Tour" },
-  { token: "skipNav", cssVar: "--qx-z-skip-nav", usedBy: "SkipNav" },
+  { token: "tour-backdrop", usedBy: "Tour" },
+  { token: "tour", usedBy: "Tour" },
+  { token: "skip-nav", usedBy: "SkipNav" },
   {
     token: "debug",
-    cssVar: "--qx-z-debug",
     usedBy: "Development overlays only. Never ship on it.",
   },
 ];
@@ -110,13 +106,12 @@ export const Ladder: Story = {
 
       <Section title="The full ladder">
         <TokenTable
-          caption="--qx-z-* in ascending order, with the typed constant and current consumers."
-          columns={["CSS variable", "Value", "Typed constant", "Read by"]}
+          caption="--qx-z-* in ascending order, with current consumers."
+          columns={["CSS variable", "Value", "Read by"]}
           rows={LADDER.map((layer) => ({
-            token: layer.cssVar,
+            token: `--qx-z-${layer.token}`,
             cells: [
-              String(Z_INDEX[layer.token]),
-              `Z_INDEX.${layer.token}`,
+              tokens.light.z[layer.token],
               <span key={layer.token} className="font-sans">
                 {layer.usedBy}
               </span>,

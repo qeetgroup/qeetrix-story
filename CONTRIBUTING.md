@@ -46,25 +46,19 @@ Only these exist. Do not assume a script that isn't in `package.json`.
 | `bun run verify:stories` | story-contract validation + measured coverage report |
 | `bun run verify:a11y` | colour-contrast report (never fails; needs `storybook-static`) |
 | `bun run verify:foundations` | computed foundation invariants (needs `storybook-static`) |
-| `bun run vrt` / `bun run vrt:update` | visual regression compare / regenerate baselines |
 | `bun run lint` | Biome check |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run shoot` | ad-hoc screenshot capture into `screenshots/` |
 | `bun run clean` | remove build + test artefacts |
 
-**Known-failing before you touch anything** — do not chase this unless it is your task.
-`typecheck`, `verify:stories`, `test`, `build` and `verify:foundations` all pass:
+Every command above passes. `lint` also prints 24 warnings — `!important` and selector order
+in `.storybook/styles.css`, which restyles Storybook's own chrome — and warnings do not fail it.
 
-| Command | State |
-| --- | --- |
-| `bun run lint` | 2 errors + 24 warnings, all in `.storybook/styles.css` |
-
-
-**CI** (`.github/workflows/ci.yml`) runs lint · typecheck · `verify:stories` · `test` ·
-`build` on every push and PR to `main` / `develop`. It checks out `qeetrix-ui` alongside
-this repo and builds its generated tokens first. `lint` is expected red until the
-`.storybook/styles.css` findings are fixed; every gate still runs, so one CI run reports
-the state of all of them. **VRT is not in CI.**
+**CI** runs lint · typecheck · `verify:stories` · `test` · `build` on every PR and on push to
+`main`, and a merge to `main` deploys — [`docs/testing.md`](./docs/testing.md#in-ci) describes
+all four workflows. Each checks out the `qeetrix-ui` release that `bun.lock` installs alongside
+this repo and builds its generated tokens first. Every gate runs even when an earlier one
+fails, so one CI run reports the state of all of them.
 
 ---
 
@@ -121,7 +115,7 @@ convention rather than two.
 
 Every component story should show the states a consumer has to make a decision about.
 Prefer named exports over control-only variation — a state that only exists behind a
-control is not in the docs, not in the test suite, and not in VRT.
+control is not in the docs and not in the test suite.
 
 | State | When |
 | --- | --- |
@@ -187,11 +181,6 @@ fails `bun run test`.** A new story that trips axe does not merge.
 - axe is a floor, not a grade. It catches a minority of WCAG failures. A clean run does
   not mean the component is accessible.
 
-### Visual regression
-
-Do not commit VRT baselines. They are OS- and font-sensitive and there is no Linux CI
-container to generate them in yet. See [`docs/testing.md`](./docs/testing.md#layer-2--visual-regression-vrt).
-
 ---
 
 ## PR checklist
@@ -205,13 +194,10 @@ container to generate them in yet. See [`docs/testing.md`](./docs/testing.md#lay
 - [ ] Interactive components (`actions` / `overlays` / `navigation` / `data-entry`) have a
       `play` interaction test, using `screen` for portalled content.
 - [ ] Icon-only controls have accessible names; form controls have labels.
-- [ ] `bun run lint` introduces **no new** findings (it has a known-failing baseline in
-      CI — see above; do not treat a red tick as your fault without checking which file),
-      and `bun run typecheck` stays clean.
-- [ ] No VRT baselines committed.
+- [ ] `bun run lint` and `bun run typecheck` pass.
 - [ ] No new fields invented on `parameters.qeetrix` — extend `stories/_contract.ts` first.
 - [ ] Story `title` / export names unchanged, or the id change is intentional (ids are an
-      interface — VRT filenames, grep filters, bookmarked URLs).
+      interface — grep filters, bookmarked URLs).
 
 ## Conventions
 

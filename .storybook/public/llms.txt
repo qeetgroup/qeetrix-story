@@ -1,7 +1,7 @@
 # Qeetrix (@qeetrix/ui)
 
 > Qeetrix is Qeet Group's shared design system: one published npm package
-> (`@qeetrix/ui`) of 145 accessible, token-driven React components built on
+> (`@qeetrix/ui`) of 137 accessible, token-driven React components built on
 > Base UI + Tailwind v4, with W3C-DTCG design tokens (OKLCH, WCAG-AA gated) and a
 > Qeet-orange brand. It powers Qeet ID, qeet-docs, qeet-notify and qeet-logs.
 
@@ -14,14 +14,13 @@
 
 ## Import surfaces
 
-- `@qeetrix/ui` — components, blocks re-exports, hooks, `cn`
+- `@qeetrix/ui` — components, hooks, `cn`
 - `@qeetrix/ui/styles.css` — tokens + fonts + base layer (side-effect import)
 - `@qeetrix/ui/tokens.css` — raw `--qx-*` custom properties · `@qeetrix/ui/tokens.json`
-- `@qeetrix/ui/brand` — QeetLogo + brand icons · `@qeetrix/ui/blocks` — composed patterns
+- `@qeetrix/icons` — every icon (`StarIcon`, …) and `QeetLogo`
 
-## Components (145)
+## Components (137)
 
-- access-review
 - accordion
 - action-bar
 - alert
@@ -29,7 +28,6 @@
 - angle-slider
 - app-shell
 - aspect-ratio
-- audit-event
 - autocomplete
 - availability-grid
 - avatar
@@ -56,7 +54,6 @@
 - color-swatch
 - combobox
 - command-palette
-- comment-thread
 - container
 - context-menu
 - copyable-secret
@@ -93,18 +90,14 @@
 - label
 - link
 - listbox
-- logo-uploader
 - marquee
 - mask-input
-- master-detail
 - mention-input
 - menubar
 - meter
 - native-select
 - navigation-menu
 - notification
-- notification-center
-- notification-preference-matrix
 - number-field
 - number-formatter
 - org-chart
@@ -131,7 +124,6 @@
 - rolling-number
 - schedule-calendar
 - scroll-area
-- security-item
 - segmented-control
 - select
 - separator
@@ -167,7 +159,7 @@
 - typography
 - visually-hidden
 
-## Design tokens (~872 per theme)
+## Design tokens (~869 per theme)
 
 Authored as W3C DTCG JSON (`qeetrix-ui/src/tokens/**`), compiled by Style Dictionary to
 CSS custom properties (`--qx-*`) + JSON. Colour is OKLCH; every required text/surface

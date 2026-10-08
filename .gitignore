@@ -7,8 +7,6 @@ storybook-static
 
 # Test artifacts
 screenshots
-test-results
-playwright-report
 coverage
 
 # Logs
@@ -24,3 +22,6 @@ npm-debug.log*
 
 # Claude agent run logs
 .claude/logs/
+
+# Vercel CLI (vercel link / vercel pull)
+.vercel

@@ -16,6 +16,9 @@ import {
   CardDescription,
   CardHeader,
   DataState,
+  DescriptionDetails,
+  DescriptionList,
+  DescriptionTerm,
   Field,
   FieldControl,
   FieldDescription,
@@ -27,15 +30,71 @@ import {
   Label,
   NativeSelect,
   PageHeader,
-  SecurityItem,
   Separator,
   Spinner,
+  StatusPill,
   Switch,
   Typography,
 } from "@qeetrix/ui";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type * as React from "react";
+import * as React from "react";
 import { qx } from "../_contract";
+
+/**
+ * One sign-in method or session. It is its own object with its own status and action, not a form
+ * field, so it is an `article` named by its title and described by its status and description.
+ */
+function SecurityRow({
+  icon,
+  title,
+  description,
+  status,
+  details,
+  actions,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  status: string;
+  details: { label: string; value: string }[];
+  actions: React.ReactNode;
+}) {
+  const id = React.useId();
+  return (
+    <article
+      aria-label={title}
+      aria-describedby={`${id}-status ${id}-description`}
+      className="grid gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-rest sm:grid-cols-[auto_minmax(0,1fr)_auto]"
+    >
+      <div
+        aria-hidden="true"
+        className="flex size-9 items-center justify-center rounded-lg bg-surface-sunken text-muted-foreground [&>svg]:size-4"
+      >
+        {icon}
+      </div>
+      <div className="min-w-0 space-y-3">
+        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
+          <div className="min-w-0">
+            <h3 className="font-heading text-sm font-semibold text-foreground">{title}</h3>
+            <p id={`${id}-description`} className="mt-0.5 text-sm text-muted-foreground">
+              {description}
+            </p>
+          </div>
+          <StatusPill id={`${id}-status`} status={status} />
+        </div>
+        <DescriptionList className="gap-y-1 text-xs sm:grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)]">
+          {details.map((detail) => (
+            <React.Fragment key={detail.label}>
+              <DescriptionTerm>{detail.label}</DescriptionTerm>
+              <DescriptionDetails>{detail.value}</DescriptionDetails>
+            </React.Fragment>
+          ))}
+        </DescriptionList>
+      </div>
+      <div className="flex flex-wrap items-start gap-2 sm:justify-self-end">{actions}</div>
+    </article>
+  );
+}
 
 /** One settings section: a heading, a sentence of context, and its controls. */
 function SettingsSection({
@@ -182,7 +241,7 @@ const meta: Meta = {
           "a confirmation dialog, not a Save button.",
           "",
           "**Composition notes.** Section headings are real `h2`s under the `PageHeader`'s `h1`, and",
-          "`SecurityItem` contributes `h3`s below them, so the page has a sane outline. Every switch",
+          "each security row contributes an `h3` below them, so the page has a sane outline. Every switch",
           "description is attached with `aria-describedby` rather than floating next to the control.",
           "Fields that a directory owns (`Work email`) are disabled *and* explain who owns them —",
           "a disabled control with no explanation is the most common complaint about settings pages.",
@@ -413,7 +472,7 @@ export const SecuritySection: Story = {
     docs: {
       description: {
         story:
-          "The security half of the same page. These rows are not form fields — each one is its own object with its own lifecycle, so `SecurityItem` gives each an `h3`, a status and its own action instead of pooling them under one Save button.",
+          "The security half of the same page. These rows are not form fields — each one is its own object with its own lifecycle, so each row is an `article` with its own `h3`, status and action instead of pooling them under one Save button.",
       },
     },
   },
@@ -432,7 +491,7 @@ export const SecuritySection: Story = {
             Each item applies the moment you change it — there is nothing to save here.
           </Typography>
         </div>
-        <SecurityItem
+        <SecurityRow
           icon={<KeyRoundIcon />}
           title="Passkeys"
           description="Phishing-resistant sign-in bound to your devices."
@@ -447,7 +506,7 @@ export const SecuritySection: Story = {
             </Button>
           }
         />
-        <SecurityItem
+        <SecurityRow
           icon={<ShieldCheckIcon />}
           title="Two-factor authentication"
           description="Required for every admin session in Acme Technologies."
@@ -462,7 +521,7 @@ export const SecuritySection: Story = {
             </Button>
           }
         />
-        <SecurityItem
+        <SecurityRow
           icon={<MonitorIcon />}
           title="Active sessions"
           description="Signing out revokes the refresh token immediately across every Qeet product."
