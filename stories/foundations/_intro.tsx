@@ -1,5 +1,11 @@
+import {
+  BuildingComplexIcon,
+  FingerprintPatternIcon,
+  KeyRoundIcon,
+  QeetLogo,
+  WebhookIcon,
+} from "@qeetrix/icons";
 import { Badge, Button, Input, Label, Switch } from "@qeetrix/ui";
-import { IconApiKey, IconPasskey, IconTenant, IconWebhook, QeetLogo } from "@qeetrix/ui/brand";
 
 /**
  * The Foundations → Introduction landing, authored as a real React component
@@ -29,9 +35,10 @@ export function IntroPage() {
         <div className="qx-intro__hero-inner">
           {/* meta row */}
           <div className="qx-intro__meta">
-            <QeetLogo size={30} />
+            <QeetLogo height={30} aria-label="Qeet" className="dark:hidden" />
+            <QeetLogo height={30} aria-label="Qeet" variant="dark" className="hidden dark:block" />
             <span className="qx-intro__meta-rule" aria-hidden />
-            <span className="qx-intro__eyebrow">v2.1.0 · @qeetrix/ui</span>
+            <span className="qx-intro__eyebrow">v2.1.4 · @qeetrix/ui</span>
             <span className="qx-intro__meta-spacer" />
             <Badge variant="success">WCAG-AA</Badge>
           </div>
@@ -255,7 +262,7 @@ function CodeCard({
 /* ── content ───────────────────────────────────────────────────────────── */
 
 const STATS: { value: string; label: string; accent?: string }[] = [
-  { value: "145", label: "Components" },
+  { value: "137", label: "Components" },
   { value: "6", label: "Patterns" },
   // The success text role, not a literal green: it is the shade that holds 4.5:1 in both themes.
   { value: "AA", label: "WCAG contrast", accent: "var(--qx-color-text-success)" },
@@ -265,7 +272,7 @@ const STATS: { value: string; label: string; accent?: string }[] = [
 const BOX = [
   {
     title: "Components",
-    body: "the 145 React components you're browsing in this workshop, from @qeetrix/ui.",
+    body: "the 137 React components you're browsing in this workshop, from @qeetrix/ui.",
   },
   {
     title: "Tokens",
@@ -273,28 +280,28 @@ const BOX = [
   },
   {
     title: "Brand",
-    body: "the theme-adaptive Qeet logo and product icons, at @qeetrix/ui/brand.",
+    body: "the Qeet logo and the icon set, from @qeetrix/icons — the package @qeetrix/ui draws its own icons from.",
   },
 ] as const;
 
 const PRINCIPLES = [
   {
-    Icon: IconTenant,
+    Icon: BuildingComplexIcon,
     title: "Token-driven",
     body: "A single source of truth. Colour, type, spacing, radius and elevation all resolve from tokens, so a change ripples to every component and app at once.",
   },
   {
-    Icon: IconPasskey,
+    Icon: FingerprintPatternIcon,
     title: "Accessible by default",
     body: "Built on Base UI primitives with correct roles, focus management and keyboard support, verified against WCAG-AA contrast — accessibility you inherit rather than retrofit.",
   },
   {
-    Icon: IconApiKey,
+    Icon: KeyRoundIcon,
     title: "Composable",
     body: "Small, predictable parts that snap together. The patterns in this workshop are assembled entirely from the same components you use directly.",
   },
   {
-    Icon: IconWebhook,
+    Icon: WebhookIcon,
     title: "Premium by default",
     body: "Layered elevation, considered motion and light/dark parity ship in the box, so products look polished without per-screen design work.",
   },
@@ -325,7 +332,7 @@ const EXPLORE = [
   {
     href: "?path=/docs/components-actions-button--docs",
     label: "Components",
-    desc: "145 building-block components.",
+    desc: "137 building-block components.",
     grad: "linear-gradient(135deg,#10b981,#059669)",
     icon: "UI",
   },

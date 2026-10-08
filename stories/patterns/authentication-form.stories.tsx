@@ -1,3 +1,4 @@
+import { FingerprintPatternIcon, MonitorSmartphoneIcon, QeetLogo } from "@qeetrix/icons";
 import {
   Alert,
   AlertDescription,
@@ -17,14 +18,11 @@ import {
   Form,
   FormActions,
   FormErrorSummary,
-  IconCrossDevice,
-  IconPasskey,
   Input,
   Label,
   Link,
   OTPInput,
   PasswordInput,
-  QeetLogo,
   Separator,
   Spinner,
   Typography,
@@ -50,7 +48,8 @@ function AuthScreen({
   return (
     <div className="flex w-full max-w-sm flex-col gap-6">
       <div className="flex flex-col items-center gap-3 text-center">
-        <QeetLogo title="Qeet" size={36} />
+        <QeetLogo aria-label="Qeet" height={36} className="dark:hidden" />
+        <QeetLogo aria-label="Qeet" height={36} variant="dark" className="hidden dark:block" />
         <div className="flex flex-col gap-1">
           <Typography as="h1" variant="h4" className="font-heading">
             {title}
@@ -139,7 +138,7 @@ export const Default: Story = {
       <Card>
         <CardContent className="flex flex-col gap-4">
           <Button className="w-full">
-            <IconPasskey />
+            <FingerprintPatternIcon />
             Continue with a passkey
           </Button>
           <OrDivider />
@@ -222,7 +221,7 @@ export const PasswordFallback: Story = {
           </Form>
           <Separator className="my-4" />
           <Button variant="outline" className="w-full">
-            <IconPasskey />
+            <FingerprintPatternIcon />
             Use a passkey instead
           </Button>
         </CardContent>
@@ -472,7 +471,7 @@ export const CrossDevicePasskey: Story = {
       <Card>
         <CardContent className="flex flex-col items-center gap-4 py-4 text-center">
           <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-            <IconCrossDevice size={24} />
+            <MonitorSmartphoneIcon size={24} />
           </span>
           <div className="flex flex-col gap-1">
             <Typography variant="small">Waiting for Ada&apos;s iPhone</Typography>

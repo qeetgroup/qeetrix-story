@@ -9,7 +9,7 @@ both side by side:
 
 ```
 QG/qeetrix/
-├── qeetrix-ui/      ← the design system (currently 2.1.0)
+├── qeetrix-ui/      ← the design system, on the release package.json installs (2.1.4)
 └── qeetrix-story/   ← this repo
 ```
 
@@ -25,18 +25,27 @@ bun run build    # llms.txt + static build → storybook-static/
 - **Foundations** — Colors, Typography, Spacing & Radius, Borders, Elevation, Motion, Focus,
   Opacity, Density, Breakpoints, Z-index, Token Layers and Iconography, driven by the live
   `@qeetrix/ui` token CSS so they react to the Theme toolbar.
-- **Components** — one story file per `@qeetrix/ui` component (147), grouped as actions,
+- **Components** — one story file per `@qeetrix/ui` component (139), grouped as actions,
   advanced, data display, data entry, feedback, forms, layout, media, navigation, overlays,
   typography and utilities.
 - **Patterns** and **Recipes** — multi-component compositions (authentication, search,
   notification centre, …) and cross-cutting states (empty, error, loading, offline).
 - **Guides** — getting started, design tokens, theming, foundation modes and accessibility.
-- **Brand** — the adaptive `QeetLogo` and the brand icons shipped in `@qeetrix/ui/brand`.
+- **Brand** — `QeetLogo` and the identity icons Qeet products draw, from `@qeetrix/icons`.
 - **Playground** — configure a component and copy the generated JSX.
 
 Icons inside component demos come from `@qeetrix/icons`, imported from the package root
 (`import { TrashIcon } from "@qeetrix/icons"`). The icon catalogue itself is not part of this
 workshop — it is documented in the `qeetrix-icons` repo.
+
+## Release
+
+The same flow as `qeetrix-ui`, `qeetrix-icons` and `qeetrix-docs`. Open a PR from `develop`
+into `main` and `version.yml` bumps the patch version on it; merge it and `release.yml` runs
+every CI gate, deploys the built workshop to Vercel production and tags `vX.Y.Z`.
+`rollback.yml` redeploys an earlier tag. Deploying needs the `VERCEL_TOKEN` secret and the
+`VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` variables — see the header of
+[`release.yml`](./.github/workflows/release.yml).
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for how to add a story, and [`docs/`](./docs) for the
 architecture, testing, accessibility and governance notes.

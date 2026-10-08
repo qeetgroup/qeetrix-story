@@ -23,5 +23,5 @@
     "useDefineForClassFields": true,
     "types": []
   },
-  "include": [".storybook", "stories", "vitest.config.ts", "playwright.config.ts"]
+  "include": [".storybook", "stories", "vitest.config.ts"]
 }

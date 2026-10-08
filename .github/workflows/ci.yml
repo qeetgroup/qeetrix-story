@@ -1,172 +1,146 @@
-# ─────────────────────────────────────────────────────────────────────────────
-# CI for the Qeetrix Storybook workshop.
-#
-# TWO THINGS THAT ARE NOT OBVIOUS — read before editing:
-#
-# 1. THIS REPO DOES NOT BUILD FROM ITS node_modules COPY OF @qeetrix/ui.
-#    `.storybook/main.ts` (and therefore `vitest.config.ts`, which reuses it)
-#    aliases `@qeetrix/ui` to a SIBLING SOURCE CHECKOUT at `../qeetrix-ui/src`.
-#    The published tarball ships `dist/` only, so nothing here works without it.
-#    Hence the two-checkout layout below: both repos land under $GITHUB_WORKSPACE
-#    as `qeetrix-story/` and `qeetrix-ui/`, which reproduces the `../qeetrix-ui`
-#    relative path exactly. `qeetgroup/qeetrix-ui` is a PUBLIC repo, so the
-#    default GITHUB_TOKEN can clone it — no PAT, no deploy key, no secrets.
-#    It also needs its own `bun install` (the workshop resolves the sibling's
-#    transitive deps through it) AND `bun run build:tokens`: tokens.css,
-#    tokens.raw.css, tokens.json and foundations/token-values.ts are GENERATED
-#    and .gitignore'd over there, so a fresh clone does not contain them.
-#    CAVEAT: this tracks qeetrix-ui@main, so a red build here can be caused by a
-#    commit in the other repo. If that becomes a problem, pin `ref:` to a tag.
-#
-# 2. KNOWN PRE-EXISTING FAILURES. As of the commit that adds this workflow,
-#    `bun run lint` and `bun run typecheck` both fail on issues that predate CI
-#    (biome format/parse diagnostics under `.storybook/styles.css` and
-#    `stories/**`, and a TS2352 cast in `stories/foundations/colors.stories.tsx`).
-#    Those gates are deliberately NOT `continue-on-error` — a green tick on a
-#    broken tree is worse than no CI. They will be red until the offending files
-#    are fixed (`bunx biome check --write .` handles most of the biome side).
-#    What IS tuned for this situation: every gate runs even after an earlier one
-#    fails (`if: !cancelled()`), so one run tells you the state of ALL six gates
-#    instead of one fix-and-rerun cycle per gate. The job still fails overall.
-# ─────────────────────────────────────────────────────────────────────────────
 name: CI
 
-on:
-  pull_request:
-    branches: [main, develop]
-  push:
-    branches: [main, develop]
-  workflow_dispatch:
+# Gates every PR and every push to main — the same triggers as qeetrix-ui's,
+# qeetrix-icons' and qeetrix-docs' CI.
+#
+# THIS REPO DOES NOT BUILD FROM ITS node_modules COPY OF @qeetrix/ui.
+# `.storybook/main.ts` (and `vitest.config.ts`, which reuses it) aliases
+# `@qeetrix/ui` to a SIBLING SOURCE CHECKOUT at `../qeetrix-ui/src`; the published
+# tarball ships `dist/` only. So the job checks out both repos side by side under
+# $GITHUB_WORKSPACE, which reproduces the `../qeetrix-ui` path exactly.
+# `qeetgroup/qeetrix-ui` is public, so the default GITHUB_TOKEN can clone it.
+#
+# The qeetrix-ui checkout is the release tag of the @qeetrix/ui version bun.lock
+# installs. `bun run typecheck` reads the installed package's types while `test`
+# and `build` render the checkout, so the two must be the same release: tracking
+# qeetrix-ui@main let a removed export pass the type check and fail only at
+# import. Upgrading @qeetrix/ui is therefore a PR here like any other change.
+#
+# Every gate runs even after an earlier one fails (`if: !cancelled()`), so one
+# run reports the state of all of them. The job still fails overall.
 
-# One run per branch/PR; superseded runs are cancelled.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 env:
-  # Keep in step with `packageManager` in package.json.
   BUN_VERSION: 1.3.14
-  # Keep in step with the resolved @playwright/test version in bun.lock.
+  # Keep in step with the resolved `playwright` version in bun.lock.
   PLAYWRIGHT_VERSION: 1.62.1
 
 jobs:
   verify:
     name: lint · typecheck · stories · test · build
+    # Pinned rather than ubuntu-latest: `playwright install --with-deps` supports
+    # the images Playwright has been released against.
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     defaults:
       run:
         working-directory: qeetrix-story
-
     steps:
-      # --- checkout: two repos, side by side (see note 1 at the top) ----------
-      - name: Checkout qeetrix-story
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           path: qeetrix-story
 
-      - name: Checkout qeetrix-ui (sibling source @qeetrix/ui resolves to)
+      - id: ui
+        name: which @qeetrix/ui release does bun.lock install?
+        run: |
+          set -euo pipefail
+          version=$(grep -oE '"@qeetrix/ui@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3)
+          if [ -z "$version" ]; then
+            echo "::error::bun.lock does not resolve @qeetrix/ui."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Rendering qeetrix-ui v$version."
+
+      - name: Checkout qeetrix-ui at that release
         uses: actions/checkout@v4
         with:
           repository: qeetgroup/qeetrix-ui
-          ref: main
+          ref: v${{ steps.ui.outputs.version }}
           path: qeetrix-ui
 
-      # --- toolchain + caches ------------------------------------------------
-      - name: Set up Bun
-        uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
 
-      - name: Cache Bun install cache
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
           key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('qeetrix-story/bun.lock', 'qeetrix-ui/bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
 
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
+      - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
 
-      # --- dependencies ------------------------------------------------------
-      - name: Install workshop dependencies
+      - run: bun install --frozen-lockfile
+
+      # The workshop resolves the sibling's own dependencies through its node_modules.
+      - working-directory: qeetrix-ui
         run: bun install --frozen-lockfile
 
-      - name: Install @qeetrix/ui dependencies
-        working-directory: qeetrix-ui
-        run: bun install --frozen-lockfile
-
-      # tokens.css / tokens.raw.css / tokens.json / foundations/token-values.ts
-      # are generated and gitignored in qeetrix-ui — a fresh clone lacks them and
-      # every story that reads design tokens fails to resolve without this.
-      - name: Build @qeetrix/ui design tokens
-        id: setup
+      # tokens.css / tokens.raw.css / tokens.json / lib/token-values.ts are generated
+      # and gitignored in qeetrix-ui, so a fresh clone lacks them.
+      - id: setup
         working-directory: qeetrix-ui
         run: bun run build:tokens
 
-      # Chromium only: `bun run test` is Vitest browser mode (see vitest.config.ts).
-      # `--with-deps` pulls the system libraries the headless browser needs.
-      - name: Install Playwright Chromium
-        if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
+      # `bun run test` is Vitest browser mode in headless Chromium.
+      - if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bunx playwright install --with-deps chromium
 
-      # --- gates -------------------------------------------------------------
-      # Ordered cheapest-first, but each runs regardless of earlier failures so a
-      # single run reports the full picture (see note 2 at the top).
-      - name: Lint (biome)
-        id: lint
+      - id: lint
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run lint
 
-      - name: Typecheck (tsc --noEmit)
-        id: typecheck
+      - id: typecheck
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run typecheck
 
-      - name: Verify story contract
-        id: verify_stories
+      - id: verify_stories
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run verify:stories
 
-      - name: Component tests (Vitest browser mode)
-        id: test
+      - id: test
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run test
 
-      # Also regenerates llms.txt / llms-full.txt from the sibling source
-      # (scripts/gen-llms.mjs), so this gate covers that generator too.
-      - name: Build Storybook
-        id: build
+      # Also regenerates llms.txt / llms-full.txt from the sibling source.
+      - id: build
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run build
 
-      # --- reporting ---------------------------------------------------------
-      - name: Upload storybook-static
-        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
+      - if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         uses: actions/upload-artifact@v4
         with:
           name: storybook-static
           path: qeetrix-story/storybook-static
           retention-days: 7
 
-      - name: Gate summary
-        if: ${{ !cancelled() }}
+      - if: ${{ !cancelled() }}
+        name: summarise
         run: |
           {
+            echo "Rendering \`qeetrix-ui\` v${{ steps.ui.outputs.version }}."
+            echo
             echo "| Gate | Result |"
             echo "| --- | --- |"
-            echo "| lint (biome) | ${{ steps.lint.outcome || 'skipped' }} |"
-            echo "| typecheck (tsc) | ${{ steps.typecheck.outcome || 'skipped' }} |"
+            echo "| lint | ${{ steps.lint.outcome || 'skipped' }} |"
+            echo "| typecheck | ${{ steps.typecheck.outcome || 'skipped' }} |"
             echo "| verify:stories | ${{ steps.verify_stories.outcome || 'skipped' }} |"
-            echo "| test (vitest browser) | ${{ steps.test.outcome || 'skipped' }} |"
-            echo "| build (storybook) | ${{ steps.build.outcome || 'skipped' }} |"
-            echo ""
-            echo "_lint and typecheck have known pre-existing failures — see the header comment in \`.github/workflows/ci.yml\`._"
+            echo "| test | ${{ steps.test.outcome || 'skipped' }} |"
+            echo "| build | ${{ steps.build.outcome || 'skipped' }} |"
           } >> "$GITHUB_STEP_SUMMARY"

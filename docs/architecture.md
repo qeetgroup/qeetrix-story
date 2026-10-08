@@ -35,7 +35,7 @@ repo."*
   @qeetrix/ui            React components (Base UI + Tailwind v4), brand, hooks
           │              published to npm as @qeetrix/ui (v2.x)
           ▼
-  qeetrix-story          stories, docs, a11y gate, VRT, contract verification
+  qeetrix-story          stories, docs, a11y gate, contract verification
 ```
 
 There is **no separate `@qeetrix/tokens` package**. Tokens are a layer *inside*
@@ -43,12 +43,14 @@ There is **no separate `@qeetrix/tokens` package**. Tokens are a layer *inside*
 
 | Specifier | Contents |
 | --- | --- |
-| `@qeetrix/ui` | component barrel, hooks, `cn`, typed token constants (`CHART_COLOR`, `Z_INDEX`, `SHADOW`, …) |
+| `@qeetrix/ui` | component barrel, hooks, `cn`, the typed token values components read (`COMPONENT`, `DURATION`, `EASING`, `ICON_SIZE`, `ICON_STROKE`) |
 | `@qeetrix/ui/styles.css` | the full app layer — *semantic* tokens (`--background`, `--foreground`), fonts, base |
 | `@qeetrix/ui/tokens.css` | the raw primitive ramp (`--qx-color-*`), which apps do not normally load |
 | `@qeetrix/ui/qeetrix.css` | the semantic token layer on its own |
-| `@qeetrix/ui/tokens.json` | the same values as data (used by `Foundations/Colors`) |
-| `@qeetrix/ui/brand` | `QeetLogo` + brand icons |
+| `@qeetrix/ui/tokens.json` | every value as data, per theme (read by the Colors, Elevation, Opacity, Z-Index and Token Layers foundations) |
+
+Icons and `QeetLogo` are not in `@qeetrix/ui`: they come from `@qeetrix/icons`, the package
+`@qeetrix/ui` draws its own icons from.
 
 `.storybook/styles.css` imports both `styles.css` and `tokens.css` — the second only so
 the Foundations swatch galleries can resolve the primitive ramp, which a real app would
@@ -58,7 +60,7 @@ never pull in.
 
 This is the single most surprising thing about the repo.
 
-`package.json` lists `"@qeetrix/ui": "^2.1.0"` as a dependency, and it *is* installed into
+`package.json` lists `"@qeetrix/ui": "^2.1.4"` as a dependency, and it *is* installed into
 `node_modules`. **It is not what the workshop renders.** `.storybook/main.ts` rewrites
 every `@qeetrix/ui` specifier to `../qeetrix-ui/src` — a sibling git checkout on disk:
 
@@ -72,6 +74,12 @@ QG/qeetrix/
 `build`, not `test`. `scripts/gen-llms.mjs` fails loudly with clone instructions; the Vite
 aliases fail less loudly.
 
+**`tsc` does not follow the aliases.** `bun run typecheck` reads `@qeetrix/ui`'s types from
+`node_modules`. CI checks out the `qeetrix-ui` release tag that `bun.lock` installs, so there
+the two cannot drift; locally, keep `../qeetrix-ui` on that release. When they drift, the type
+check passes against one API while the workshop renders another, and an export the library has
+removed shows up only as an import error in `test` and `build`.
+
 ### The alias table (`.storybook/main.ts` → `viteFinal`)
 
 Order matters: specific subpaths must precede the generic rule, which must precede the
@@ -83,7 +91,7 @@ bare specifier.
 | `@qeetrix/ui/tokens.css` | `src/styles/tokens.raw.css` | published export is renamed |
 | `@qeetrix/ui/qeetrix.css` | `src/styles/tokens.css` | published export is renamed |
 | `@qeetrix/ui/tokens.json` | `src/styles/tokens.json` | generated file, not in `dist` layout |
-| `@qeetrix/ui/<anything>` | `src/<anything>` | the generic catch-all: `brand/`, `components/*`, `providers/*`, `lib/*`, `hooks/*`, `fonts/*` |
+| `@qeetrix/ui/<anything>` | `src/<anything>` | the generic catch-all: `components/*`, `providers/*`, `lib/*`, `hooks/*`, `fonts/*` |
 | `@qeetrix/ui` | `src/index.ts` | the barrel |
 | `@/<anything>` | `src/<anything>` | `@qeetrix/ui`'s *own* internal path alias, which its source uses and this repo never does |
 
@@ -178,7 +186,7 @@ Files prefixed `_` are not matched by the stories glob (`*.mdx`, `*.stories.@(ts
 | --- | --- |
 | `bun run llms` | `.storybook/public/llms.txt`, `llms-full.txt` (llmstxt.org convention) |
 | `bun run build` | `llms` step, then `storybook-static/` |
-| `bun run shoot` | `screenshots/` (ad-hoc capture, not the VRT layer) |
+| `bun run shoot` | `screenshots/` (ad-hoc capture) |
 
 `bun run build` is `node scripts/gen-llms.mjs && storybook build`, so the llms step gates
 the whole build. That step reads the **sibling checkout**, not `node_modules` — the
@@ -192,7 +200,6 @@ Documented so nobody burns an afternoon rediscovering it.
 
 | Thing | State |
 | --- | --- |
-| `bun run lint` | fails — all pre-existing, all in `.storybook/styles.css` (`noImportantStyles`, `noDescendingSpecificity`) plus a Biome CSS parse error on Tailwind's `@source` directive — 2 errors + 24 warnings |
-| `bun run typecheck` · `build` · `verify:stories` · `verify:foundations` · `test` | pass |
-| CI | `.github/workflows/ci.yml` — checks out **both repos side by side**, builds `@qeetrix/ui`'s generated tokens, then runs lint · typecheck · verify:stories · test · build. `lint` is expected red (see above) and is deliberately **not** `continue-on-error`; every gate runs even after an earlier failure so one run reports the whole picture. VRT is not in CI. |
+| `bun run lint` · `typecheck` · `build` · `verify:stories` · `verify:foundations` · `test` | pass. `lint` prints 24 warnings, all in `.storybook/styles.css` (`noImportantStyles`, `noDescendingSpecificity`); warnings do not fail it |
+| CI and release | `ci.yml`, `version.yml`, `release.yml`, `rollback.yml` — the same four as `qeetrix-ui`, `qeetrix-icons` and `qeetrix-docs`; see [testing.md](./testing.md#in-ci). Each checks out **both repos side by side**, `qeetrix-ui` at the release `bun.lock` installs, and builds its generated tokens. No gate is `continue-on-error`; every gate runs even after an earlier failure so one run reports the whole picture. |
 | RTL / dark-mode / responsive test matrices | **do not exist.** There is now a Direction toolbar global, a `DirectionProvider` decorator and four viewport presets — those are affordances for a human clicking around, not automated coverage. Nothing runs the suite in RTL, in dark mode, or at a non-default width. |

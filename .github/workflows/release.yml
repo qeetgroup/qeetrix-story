@@ -1,0 +1,243 @@
+name: Release
+
+# Deploys the Storybook workshop on merge to main, then tags the commit — the
+# same shape as qeetrix-docs' release, which deploys ui.qeet.in to Vercel, and
+# as qeetrix-ui's and qeetrix-icons', which publish to npm. The tag is created
+# *after* a successful deploy, so every `v*` tag is a version that is really live.
+#
+# The flow end to end:
+#
+#   1. Open a PR into main (develop → main). `version.yml` bumps the patch
+#      version on your branch, so the version you are about to ship is visible
+#      in the PR diff. Want a minor or major? Set it by hand in package.json and
+#      the bump leaves it alone.
+#   2. Merge to main. This workflow gates the commit, builds it, deploys it to
+#      Vercel production, pushes the matching `vX.Y.Z` tag and opens a GitHub
+#      Release.
+#   3. Bad release? Run `rollback.yml` with an earlier tag — it redeploys
+#      exactly the commit that tag names.
+#
+# Why deploy-then-tag rather than tag-then-deploy: GitHub raises no workflow
+# events for anything done with the default GITHUB_TOKEN, so a tag pushed by
+# this workflow could never trigger a separate `on: push: tags` deploy. A failed
+# deploy leaves no tag behind. Re-running is safe: if package.json's version is
+# already tagged, it is already live and everything below is skipped.
+#
+# The build needs the sibling qeetrix-ui checkout (see ci.yml), which Vercel's
+# own builders do not have — so vercel.json turns Vercel's Git deployments off,
+# and the CLI builds here and uploads the finished output. That also pins each
+# deployment to this commit.
+#
+# ── Required configuration ────────────────────────────────────────────────
+#
+#   Secret    VERCEL_TOKEN       the Qeet Group organisation secret, shared with
+#                                this repository (Organisation settings → Secrets
+#                                and variables → Actions → VERCEL_TOKEN → Repository
+#                                access)
+#   Variable  VERCEL_ORG_ID      from `vercel link` (.vercel/project.json)
+#   Variable  VERCEL_PROJECT_ID  same file
+#
+# Without them the workflow still gates the commit, then reports that deploying
+# is not configured and creates no tag.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  BUN_VERSION: 1.3.14
+  # Keep in step with the resolved `playwright` version in bun.lock.
+  PLAYWRIGHT_VERSION: 1.62.1
+
+jobs:
+  release:
+    # Production ships only from main — a manual run on another branch does nothing.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    permissions:
+      contents: write # push the version tag after a successful deploy
+    env:
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+    defaults:
+      run:
+        working-directory: qeetrix-story
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: qeetrix-story
+          fetch-depth: 0 # full history, so tags are visible
+
+      - id: version
+        name: is there anything to release?
+        run: |
+          set -uo pipefail
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version"    >> "$GITHUB_OUTPUT"
+
+          if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
+            echo "v$version is already tagged, so it is already live — nothing to do."
+            echo "release=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "v$version is new — releasing."
+            echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - id: ui
+        if: steps.version.outputs.release == 'true'
+        name: which @qeetrix/ui release does bun.lock install?
+        run: |
+          set -euo pipefail
+          version=$(grep -oE '"@qeetrix/ui@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3)
+          if [ -z "$version" ]; then
+            echo "::error::bun.lock does not resolve @qeetrix/ui."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - if: steps.version.outputs.release == 'true'
+        name: Checkout qeetrix-ui at that release
+        uses: actions/checkout@v4
+        with:
+          repository: qeetgroup/qeetrix-ui
+          ref: v${{ steps.ui.outputs.version }}
+          path: qeetrix-ui
+
+      - if: steps.version.outputs.release == 'true'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+
+      - if: steps.version.outputs.release == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24 # the Vercel CLI's runtime
+
+      - if: steps.version.outputs.release == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
+
+      - if: steps.version.outputs.release == 'true'
+        run: bun install --frozen-lockfile
+
+      - if: steps.version.outputs.release == 'true'
+        working-directory: qeetrix-ui
+        run: bun install --frozen-lockfile
+
+      - if: steps.version.outputs.release == 'true'
+        working-directory: qeetrix-ui
+        run: bun run build:tokens
+
+      # Gate before shipping — the same checks as CI. The build itself runs in
+      # `vercel build` below (vercel.json: `bun run build`).
+      - if: steps.version.outputs.release == 'true'
+        run: bunx playwright install --with-deps chromium
+      - if: steps.version.outputs.release == 'true'
+        run: bun run lint
+      - if: steps.version.outputs.release == 'true'
+        run: bun run typecheck
+      - if: steps.version.outputs.release == 'true'
+        run: bun run verify:stories
+      - if: steps.version.outputs.release == 'true'
+        run: bun run test
+
+      # Secrets are unavailable in a step-level `if`, so reduce the decision to
+      # a boolean output. Evaluates to "true"/"false" and never prints the token.
+      - id: creds
+        if: steps.version.outputs.release == 'true'
+        name: is deploying configured?
+        run: |
+          echo "ready=${{ secrets.VERCEL_TOKEN != '' && vars.VERCEL_ORG_ID != '' && vars.VERCEL_PROJECT_ID != '' }}" >> "$GITHUB_OUTPUT"
+
+      - if: steps.creds.outputs.ready == 'true'
+        name: install the Vercel CLI
+        run: npm install --global vercel@latest
+
+      - if: steps.creds.outputs.ready == 'true'
+        name: pull the production environment
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - if: steps.creds.outputs.ready == 'true'
+        name: build
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - id: deploy
+        if: steps.creds.outputs.ready == 'true'
+        name: deploy to production
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          set -euo pipefail
+          url=$(vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Tag AFTER a successful deploy, so every tag is a version that is live.
+      - if: steps.deploy.outcome == 'success'
+        name: tag the release and open a GitHub Release
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" --title "$TAG" --generate-notes --repo "$REPO"
+
+      - if: steps.deploy.outcome == 'success'
+        name: summarise
+        run: |
+          {
+            echo "## Released ${{ steps.version.outputs.tag }}"
+            echo
+            echo "Live at ${{ steps.deploy.outputs.url }}, rendering \`qeetrix-ui\` v${{ steps.ui.outputs.version }}."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - if: steps.version.outputs.release == 'false'
+        name: report that the version is unchanged
+        run: |
+          {
+            echo "## Nothing to release"
+            echo
+            echo "\`${{ steps.version.outputs.tag }}\` is already tagged and live."
+            echo "Open a PR into main to bump the version, then merge."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Succeeds rather than fails: an undeployed site is a legitimate state
+      # while the project is being set up, and a permanently red workflow gets
+      # ignored.
+      - if: steps.version.outputs.release == 'true' && steps.creds.outputs.ready != 'true'
+        name: report that deploying is not configured
+        run: |
+          {
+            echo "## Deploy skipped"
+            echo
+            echo "\`${{ steps.version.outputs.version }}\` passed every gate, but this repository"
+            echo "cannot deploy to Vercel. No tag was created."
+            echo
+            echo "Share the \`VERCEL_TOKEN\` organisation secret with this repository and add the"
+            echo "\`VERCEL_ORG_ID\` and \`VERCEL_PROJECT_ID\` variables (Settings → Secrets and"
+            echo "variables → Actions), then re-run this workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning title=Deploy skipped::VERCEL_TOKEN, VERCEL_ORG_ID or VERCEL_PROJECT_ID is not configured. See the job summary."

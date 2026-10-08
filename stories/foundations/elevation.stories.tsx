@@ -1,4 +1,4 @@
-import { SHADOW } from "@qeetrix/ui";
+import tokens from "@qeetrix/ui/tokens.json";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 
 import { Page, Section } from "../_helpers";
@@ -19,6 +19,20 @@ const meta: Meta = {
 };
 export default meta;
 type Story = StoryObj;
+
+/**
+ * A theme's shadow primitives as `[name, value]` pairs, the nested ramp flattened to `ramp-<step>`,
+ * so each name is the suffix of its CSS variable.
+ */
+function primitives(set: typeof tokens.light.shadow): [string, string][] {
+  const { ramp, ...named } = set;
+  return [
+    ...Object.entries(named),
+    ...Object.entries(ramp).map(([step, value]): [string, string] => [`ramp-${step}`, value]),
+  ];
+}
+
+const DARK_SHADOW = new Map(primitives(tokens.light["shadow-dark"]));
 
 /** The design ladder — what a component actually asks for. */
 const ROLES = [
@@ -183,7 +197,7 @@ export const Values: Story = {
     docs: {
       description: {
         story:
-          "The raw values behind the roles, as published in the typed `SHADOW` constant — the light-theme numbers the CSS variables resolve to — and the component tokens that pick a role.",
+          "The raw values behind the roles, for light and dark surfaces, as published in `@qeetrix/ui/tokens.json` — the numbers the CSS variables resolve to — and the component tokens that pick a role.",
       },
     },
   },
@@ -191,19 +205,21 @@ export const Values: Story = {
     <Page>
       <Section title="Primitive shadow values">
         <Prose>
-          Exported from <Code>@qeetrix/ui</Code> as <Code>SHADOW</Code>, for the rare case where a
-          shadow has to be composed in JavaScript — a canvas, an inline style computed at runtime, a
-          chart tooltip rendered outside the component tree.
+          Published in <Code>@qeetrix/ui/tokens.json</Code> (<Code>shadow</Code> and{" "}
+          <Code>shadow-dark</Code>), for tooling that needs the numbers — a design-tool import, a
+          canvas renderer, a chart tooltip drawn outside the component tree.
         </Prose>
         <TokenTable
-          caption="SHADOW — typed values, generated from the same token source as the CSS."
-          columns={["Constant", "CSS variable", "Value"]}
-          rows={Object.entries(SHADOW).map(([name, value]) => ({
-            token: `SHADOW.${name}`,
+          caption="Shadow primitives, generated from the same token source as the CSS."
+          columns={["Primitive", "Light — --qx-shadow-*", "Dark — --qx-shadow-dark-*"]}
+          rows={primitives(tokens.light.shadow).map(([name, light]) => ({
+            token: name,
             cells: [
-              `--qx-shadow-${name === "insetSubtle" ? "inset-subtle" : name}`,
-              <span key={name} className="break-all">
-                {value}
+              <span key="light" className="break-all">
+                {light}
+              </span>,
+              <span key="dark" className="break-all">
+                {DARK_SHADOW.get(name)}
               </span>,
             ],
           }))}
@@ -229,11 +245,12 @@ export const Values: Story = {
             { token: "--qx-component-dialog-elevation", cells: ["--qx-elevation-modal"] },
           ]}
         />
-        <Callout title="SHADOW is the light theme only">
-          The typed constant is generated from the light shadow values. Dark shadows exist only as
-          CSS — the <Code>--qx-elevation-*</Code> roles are redeclared under <Code>.dark</Code> — so
-          JavaScript that needs a theme-correct shadow should hand the browser{" "}
-          <Code>var(--qx-elevation-overlay)</Code> rather than a value from <Code>SHADOW</Code>.
+        <Callout title="Read a role, not a primitive">
+          A primitive is drawn for one background: <Code>--qx-shadow-*</Code> for light surfaces,{" "}
+          <Code>--qx-shadow-dark-*</Code> for dark ones. The <Code>--qx-elevation-*</Code> roles are
+          redeclared under <Code>.dark</Code> to pick the right one, so code that needs a
+          theme-correct shadow should hand the browser <Code>var(--qx-elevation-overlay)</Code>{" "}
+          rather than a value from <Code>tokens.json</Code>.
         </Callout>
         <Callout title="Shadows disappear under forced colors">
           The base layer sets <Code>box-shadow: none</Code> on everything inside a{" "}

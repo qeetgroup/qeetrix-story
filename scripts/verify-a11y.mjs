@@ -60,7 +60,7 @@ const server = createServer((request, response) => {
 
 await new Promise((resolve) => server.listen(PORT, "127.0.0.1", resolve));
 
-// Same enumeration source as tests/vrt.spec.ts and scripts/shoot.mjs.
+// Same enumeration source as scripts/shoot.mjs.
 const index = JSON.parse(readFileSync(join(STATIC, "index.json"), "utf8"));
 const stories = Object.values(index.entries)
   .filter((entry) => entry.type === "story")
