@@ -35,8 +35,9 @@ if (!existsSync(UI_COMPONENTS)) {
   console.error(
     `✖ gen-llms: @qeetrix/ui source not found at ${UI_COMPONENTS}\n` +
       "  This workshop resolves @qeetrix/ui from a sibling checkout, not from node_modules\n" +
-      "  (the published tarball ships dist/ only). Clone it next to this repo:\n" +
-      "    git clone https://github.com/qeetgroup/qeetrix-ui.git ../qeetrix-ui\n" +
+      "  (the published tarball ships dist/ only). Clone it next to this repo, at the release\n" +
+      "  bun.lock installs, with its tokens built:\n" +
+      "    bun run setup:ui\n" +
       "  See the alias block in .storybook/main.ts — `storybook build` needs it too.",
   );
   process.exit(1);

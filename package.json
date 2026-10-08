@@ -22,7 +22,7 @@
     "verify:foundations": "node scripts/verify-foundations.mjs",
     "verify:stories": "node scripts/verify-stories.mjs",
     "verify:a11y": "node scripts/verify-a11y.mjs",
-    "setup:ui": "cd ../qeetrix-ui && bun install && bun run build:tokens",
+    "setup:ui": "node scripts/setup-ui.mjs",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf storybook-static screenshots coverage"

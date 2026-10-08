@@ -20,13 +20,13 @@ works without it.
 
 ```
 QG/qeetrix/
-├── qeetrix-ui/      ← clone this too
+├── qeetrix-ui/      ← `bun run setup:ui` clones it if it is missing
 └── qeetrix-story/   ← you are here
 ```
 
 ```bash
-git clone https://github.com/qeetgroup/qeetrix-ui.git ../qeetrix-ui
 bun install          # bun, not pnpm or npm — bun >= 1.3, node >= 20
+bun run setup:ui     # ../qeetrix-ui: cloned at the release bun.lock installs if missing, then tokens built
 bun run dev          # workshop on http://localhost:6006
 ```
 
@@ -36,6 +36,7 @@ Only these exist. Do not assume a script that isn't in `package.json`.
 
 | Command | Does |
 | --- | --- |
+| `bun run setup:ui` | clones `../qeetrix-ui` at the release `bun.lock` installs if it is missing, installs it, builds its generated tokens |
 | `bun run dev` | dev server on :6006, no auto-open |
 | `bun run storybook` | dev server on :6006, opens a browser |
 | `bun run build` | `gen-llms` + `storybook build` → `storybook-static/` |
