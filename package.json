@@ -1,6 +1,6 @@
 {
   "name": "@qeetrix/stories",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "private": true,
   "type": "module",
   "description": "Storybook workshop for the Qeetrix design system (not published).",
