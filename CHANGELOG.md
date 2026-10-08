@@ -31,6 +31,11 @@
   layer.
 - **Fixes.** `lint` passes: Biome parses Tailwind's `@source` directive and its schema matches
   the installed 2.5.10. Every CI gate is green.
+- **Builds on Vercel.** `bun run setup:ui` clones `../qeetrix-ui` at the release `bun.lock`
+  installs when it is missing, then installs it and builds its tokens; `vercel.json` runs it
+  before `bun run build`. Vercel's own builders have no sibling checkout, so a dashboard deploy
+  failed at `gen-llms`; now a redeploy, and a preview of any branch but `main`, builds there.
+  Production still ships from `release.yml`.
 
 ### Minor Changes
 

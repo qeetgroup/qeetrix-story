@@ -23,10 +23,13 @@ name: Release
 # deploy leaves no tag behind. Re-running is safe: if package.json's version is
 # already tagged, it is already live and everything below is skipped.
 #
-# The build needs the sibling qeetrix-ui checkout (see ci.yml), which Vercel's
-# own builders do not have — so vercel.json turns Vercel's Git deployments off,
-# and the CLI builds here and uploads the finished output. That also pins each
-# deployment to this commit.
+# The build needs the sibling qeetrix-ui checkout (see ci.yml). Here it is checked
+# out below; on Vercel's own builders `bun run setup:ui`, part of vercel.json's
+# build command, clones it — so a dashboard redeploy, and a preview of any other
+# branch, builds there too. vercel.json turns off Vercel's Git deployments of
+# main: production ships only from this workflow, so a tag always names what is
+# live, and the CLI builds here and uploads the output, pinning each deployment
+# to this commit.
 #
 # ── Required configuration ────────────────────────────────────────────────
 #
