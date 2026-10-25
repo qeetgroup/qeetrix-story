@@ -1,0 +1,269 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Foundations/Iconography (iconography.stories.tsx): pixel grids, shape plates, component cells
+ * and icon tiles. Token values only, so every specimen follows the theme and density toolbar.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── An icon magnified on its pixel grid ───────────────────────────────────── */
+
+/*
+ * The box is the size token times the zoom; the background draws one square per pixel of that
+ * box. Each line sits at the end of its square, so the outline closes the start edges.
+ */
+.qx-ico-grid {
+  --qx-ico-zoom: 4;
+  --qx-ico-cell: calc(var(--qx-ico-zoom) * 1px);
+  --qx-ico-line: var(--qx-color-border-default);
+
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: calc(var(--qx-ico-box) * var(--qx-ico-zoom));
+  block-size: calc(var(--qx-ico-box) * var(--qx-ico-zoom));
+  outline: 1px solid var(--qx-ico-line);
+  background-color: var(--qx-color-surface-default);
+  background-image:
+    linear-gradient(to right, transparent calc(var(--qx-ico-cell) - 1px), var(--qx-ico-line) 0),
+    linear-gradient(to bottom, transparent calc(var(--qx-ico-cell) - 1px), var(--qx-ico-line) 0);
+  background-size: var(--qx-ico-cell) var(--qx-ico-cell);
+  color: var(--qx-color-icon-default);
+}
+
+.qx-ico-grid > svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+/* ── Size and stroke rows ──────────────────────────────────────────────────── */
+
+.qx-ico-meta-line {
+  display: block;
+  color: var(--qx-color-text-subtlest);
+}
+
+.qx-ico-sample {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qx-space-gap-xl) var(--qx-space-layout-md);
+}
+
+/* The column the largest grid fills, so every strip starts on the same line. */
+.qx-ico-zoom {
+  display: flex;
+  flex: none;
+  inline-size: calc(var(--qx-size-icon-lg) * 4 + 1px);
+}
+
+.qx-ico-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qx-space-gap-lg) var(--qx-space-gap-xl);
+  color: var(--qx-color-icon-default);
+}
+
+/* ── Shape and variant plates ──────────────────────────────────────────────── */
+
+.qx-ico-plates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qx-space-gap-lg);
+}
+
+.qx-ico-plate {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-inline-size: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+}
+
+.qx-ico-plate-stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qx-space-gap-xl) var(--qx-space-layout-md);
+  padding: var(--qx-space-layout-sm);
+  background: var(--qx-color-surface-canvas);
+}
+
+.qx-ico-plate-set {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  gap: var(--qx-space-gap-xl);
+  color: var(--qx-color-icon-default);
+}
+
+.qx-ico-plate-caption {
+  display: grid;
+  gap: var(--qx-space-gap-xs);
+  padding: var(--qx-space-inset-md) var(--qx-space-inset-lg);
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-ico-plate-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qx-space-gap-sm);
+}
+
+.qx-ico-plate-title {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-ico-plate-note {
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+/* ── Components, each with the size it draws ───────────────────────────────── */
+
+.qx-ico-demos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: var(--qx-space-gap-lg);
+}
+
+.qx-ico-demo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 1fr auto;
+  min-inline-size: 0;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+}
+
+.qx-ico-demo-stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qx-space-gap-sm);
+  min-block-size: 6.5rem;
+  padding: var(--qx-space-inset-xl) var(--qx-space-inset-lg);
+  background: var(--qx-color-surface-canvas);
+}
+
+.qx-ico-demo-fill {
+  display: block;
+  inline-size: 100%;
+}
+
+.qx-ico-demo-meta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qx-space-gap-md);
+  padding: var(--qx-space-inset-md) var(--qx-space-inset-lg);
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-ico-demo-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-ico-demo-size {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+  white-space: nowrap;
+}
+
+/* ── Icon tiles: the whole tile copies the import ──────────────────────────── */
+
+.qx-ico-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: var(--qx-space-gap-md) var(--qx-space-gap-lg);
+}
+
+.qx-ico-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--qx-space-gap-md);
+  min-inline-size: 0;
+  padding: var(--qx-space-inset-sm);
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-default);
+  transition:
+    transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard),
+    box-shadow var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
+}
+
+.qx-ico-tile:hover {
+  box-shadow: var(--qx-shadow-raised-hover);
+  transform: translateY(-1px);
+}
+
+.qx-ico-tile-well {
+  display: grid;
+  flex: none;
+  place-items: center;
+  inline-size: calc(var(--qx-size-icon-lg) * 2);
+  block-size: calc(var(--qx-size-icon-lg) * 2);
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-surface-canvas);
+  color: var(--qx-color-icon-default);
+}
+
+.qx-ico-tile-meta {
+  display: grid;
+  gap: 0.0625rem;
+  min-inline-size: 0;
+}
+
+.qx-ico-tile-name {
+  overflow: hidden;
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qx-ico-tile-copied {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--qx-space-gap-xs);
+  color: var(--qx-color-text-success);
+}
+
+.qx-ico-tile-id {
+  overflow: hidden;
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The tile's one target: an empty button stretched over it, named by its label. */
+.qx-ico-tile-hit {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.qx-ico-tile-hit:focus-visible {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: var(--qx-focus-ring-offset);
+}
+
+@container (max-width: 40rem) {
+  .qx-ico-plates {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

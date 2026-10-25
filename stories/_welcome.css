@@ -1,0 +1,701 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Welcome (stories/_welcome.tsx). The workshop's front page: token values only, so it follows the
+ * theme, density and direction toolbar like every component does.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* The front page is wider than a component page. */
+.sbdocs.sbdocs-content:has(.qx-welcome) {
+  max-width: 76rem;
+}
+
+.qx-welcome {
+  /* The ruled grid behind previews: the subtle border, half strength. */
+  --qx-welcome-rule: color-mix(in oklab, var(--qx-color-border-subtle) 55%, transparent);
+  container-type: inline-size;
+  display: grid;
+  gap: 4rem;
+  padding-block: 0.5rem 2rem;
+  color: var(--qx-color-text-default);
+}
+
+.qx-welcome a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.qx-welcome a:focus-visible {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: var(--qx-focus-ring-offset);
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+
+.qx-welcome-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: 3rem;
+  padding: 3.5rem 3rem;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-modal);
+  background:
+    radial-gradient(
+      55% 70% at 88% 18%,
+      color-mix(in oklab, var(--qx-color-bg-brand-bold) 16%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      40% 60% at 0% 100%,
+      color-mix(in oklab, var(--qx-color-bg-info-bold) 8%, transparent),
+      transparent 70%
+    ),
+    var(--qx-color-surface-default);
+}
+
+/* The ruled grid of the console design, fading out from the top. */
+.qx-welcome-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(var(--qx-color-border-subtle) 1px, transparent 1px) 0 0 / 2rem 2rem,
+    linear-gradient(90deg, var(--qx-color-border-subtle) 1px, transparent 1px) 0 0 / 2rem 2rem;
+  mask-image: radial-gradient(90% 80% at 60% 0%, black, transparent 75%);
+  opacity: 0.6;
+}
+
+.qx-welcome-hero-copy {
+  display: grid;
+  justify-items: start;
+  gap: 1.5rem;
+}
+
+.qx-welcome-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-inline-size: 100%;
+  padding-block: 0.25rem;
+  padding-inline: 0.25rem 0.75rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-full);
+  background: var(--qx-color-surface-raised);
+  box-shadow: var(--qx-shadow-raised);
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+  transition: border-color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
+}
+
+.qx-welcome-pill > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qx-welcome-pill:hover {
+  border-color: var(--qx-color-border-strong);
+  color: var(--qx-color-text-default);
+}
+
+.qx-welcome-title {
+  text-wrap: balance;
+}
+
+.qx-welcome-lede {
+  display: block;
+  max-inline-size: 30rem;
+  text-wrap: pretty;
+}
+
+.qx-welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Links that look like the large Button: they navigate, so they're anchors. */
+.qx-welcome-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  block-size: 2.75rem;
+  padding-inline: 1.25rem;
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-bg-brand-bold);
+  color: var(--qx-color-text-on-brand);
+  font: var(--qx-typography-label-lg);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  box-shadow: var(--qx-shadow-raised);
+  transition:
+    background-color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard),
+    transform var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
+}
+
+.qx-welcome a.qx-welcome-cta {
+  color: var(--qx-color-text-on-brand);
+}
+
+.qx-welcome-cta:hover {
+  background: var(--qx-color-bg-brand-bold-hover);
+}
+
+.qx-welcome-cta:active {
+  background: var(--qx-color-bg-brand-bold-pressed);
+}
+
+.qx-welcome a.qx-welcome-cta[data-variant="soft"] {
+  border: 1px solid var(--qx-color-border-default);
+  background: var(--qx-color-surface-raised);
+  color: var(--qx-color-text-default);
+}
+
+.qx-welcome-cta[data-variant="soft"]:hover {
+  border-color: var(--qx-color-border-strong);
+  background: var(--qx-color-bg-neutral-subtle-hover);
+}
+
+.qx-welcome-install {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-inline-size: 100%;
+  padding-block: 0.25rem;
+  padding-inline: 1rem 0.25rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-surface-sunken);
+}
+
+.qx-welcome-install code {
+  overflow-x: auto;
+  white-space: nowrap;
+  font: var(--qx-typography-code-md);
+  color: var(--qx-color-text-default);
+}
+
+.qx-welcome-install-prompt {
+  font: var(--qx-typography-code-md);
+  color: var(--qx-color-text-subtlest);
+  user-select: none;
+}
+
+/* ── Hero art: the console window ──────────────────────────────────────────── */
+
+.qx-welcome-art {
+  position: relative;
+  padding-block: 3rem 2.5rem;
+  padding-inline: 0 1rem;
+}
+
+.qx-welcome-window {
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-default);
+  border-radius: var(--qx-radius-overlay);
+  background: var(--qx-color-surface-raised);
+  box-shadow: var(--qx-shadow-modal);
+}
+
+.qx-welcome-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.625rem 0.875rem;
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-sunken);
+}
+
+.qx-welcome-dots {
+  display: inline-flex;
+  gap: 0.375rem;
+}
+
+.qx-welcome-dots i {
+  inline-size: 0.625rem;
+  block-size: 0.625rem;
+  border-radius: var(--qx-radius-full);
+  background: var(--qx-color-border-strong);
+}
+
+/* Short, so the policy card can rest on the bar's empty end. */
+.qx-welcome-url {
+  flex: 0 1 13rem;
+  padding: 0.125rem 0.75rem;
+  border-radius: var(--qx-radius-full);
+  background: var(--qx-color-surface-default);
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-welcome-window-body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.qx-welcome-rail {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 0.625rem;
+  border-inline-end: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-sunken);
+}
+
+.qx-welcome-rail > :first-child {
+  margin-block-end: 0.5rem;
+}
+
+.qx-welcome-rail > span {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--qx-radius-control);
+  color: var(--qx-color-icon-subtle);
+}
+
+.qx-welcome-rail > span[data-active] {
+  background: var(--qx-color-bg-selected);
+  color: var(--qx-color-icon-brand);
+}
+
+.qx-welcome-main {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.125rem 1.25rem;
+}
+
+.qx-welcome-main-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.qx-welcome-main-head > div {
+  display: grid;
+}
+
+.qx-welcome-main-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.qx-welcome-main-stats > * {
+  padding: 0.75rem 0.875rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-default);
+}
+
+.qx-welcome-members {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+}
+
+.qx-welcome-members li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.qx-welcome-members li + li {
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-welcome-member {
+  display: grid;
+  min-inline-size: 0;
+}
+
+.qx-welcome-member > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Two cards lifted off the window: a toast and a policy. */
+.qx-welcome-float {
+  position: absolute;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-overlay);
+  background: var(--qx-color-surface-overlay);
+  box-shadow: var(--qx-shadow-overlay);
+}
+
+.qx-welcome-float-toast {
+  inset-block-end: 0.5rem;
+  inset-inline-start: -1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.qx-welcome-float-toast > span {
+  display: grid;
+}
+
+.qx-welcome-float-icon {
+  color: var(--qx-color-icon-success);
+}
+
+.qx-welcome-float-policy {
+  inset-block-start: 0.75rem;
+  inset-inline-end: -0.25rem;
+  display: grid;
+  gap: 0.75rem;
+  inline-size: 13rem;
+  padding: 0.875rem 1rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .qx-welcome-window,
+  .qx-welcome-float {
+    animation: qx-welcome-rise var(--qx-motion-duration-slower) var(--qx-motion-easing-emphasized)
+      both;
+  }
+
+  .qx-welcome-float-policy {
+    animation-delay: 120ms;
+  }
+
+  .qx-welcome-float-toast {
+    animation-delay: 240ms;
+  }
+}
+
+@keyframes qx-welcome-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+}
+
+/* ── Stats ─────────────────────────────────────────────────────────────────── */
+
+.qx-welcome-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  border-block: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-welcome-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  justify-content: start;
+  gap: 0.25rem;
+  padding: 1.5rem 1.5rem 1.5rem 0;
+}
+
+.qx-welcome-stats > div + div {
+  padding-inline-start: 1.5rem;
+  border-inline-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-welcome-stats dt {
+  font: var(--qx-typography-body-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-welcome-stats dd {
+  margin: 0;
+  font: var(--qx-typography-display-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--qx-color-text-default);
+}
+
+/* ── Sections and cards ────────────────────────────────────────────────────── */
+
+.qx-welcome-section {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.qx-welcome-section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.qx-welcome-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.qx-welcome-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+  transition:
+    border-color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard),
+    box-shadow var(--qx-motion-duration-normal) var(--qx-motion-easing-standard),
+    transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
+}
+
+.qx-welcome-card:hover {
+  border-color: var(--qx-color-border-default);
+  box-shadow: var(--qx-shadow-raised-hover);
+  transform: translateY(-2px);
+}
+
+.qx-welcome-card-art {
+  display: grid;
+  place-items: center;
+  block-size: 11rem;
+  padding: 1.25rem;
+  overflow: hidden;
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+  background:
+    linear-gradient(var(--qx-welcome-rule) 1px, transparent 1px) 0 0 / 1.5rem 1.5rem,
+    linear-gradient(90deg, var(--qx-welcome-rule) 1px, transparent 1px) 0 0 / 1.5rem 1.5rem,
+    var(--qx-color-surface-sunken);
+  background-blend-mode: normal;
+}
+
+.qx-welcome-card[data-compact] .qx-welcome-card-art {
+  block-size: 8rem;
+}
+
+.qx-welcome-card-art > * {
+  max-inline-size: 100%;
+}
+
+.qx-welcome-card-copy {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+  padding: 1rem 1.125rem 1.125rem;
+}
+
+.qx-welcome-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.qx-welcome-card-arrow {
+  color: var(--qx-color-icon-subtle);
+  transition:
+    transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard),
+    color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
+}
+
+.qx-welcome-card:hover .qx-welcome-card-arrow {
+  color: var(--qx-color-icon-brand);
+  transform: translateX(3px);
+}
+
+[dir="rtl"] .qx-welcome-card:hover .qx-welcome-card-arrow {
+  transform: translateX(-3px) scaleX(-1);
+}
+
+/* Card art: each a small picture of where the card goes. */
+.qx-welcome-card-art [data-slot="code-block"] {
+  inline-size: 100%;
+}
+
+.qx-welcome-specimen {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+}
+
+.qx-welcome-specimen-type {
+  font: var(--qx-typography-display-lg);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-display);
+  line-height: 1;
+  color: var(--qx-color-text-default);
+}
+
+.qx-welcome-swatches {
+  display: flex;
+}
+
+.qx-welcome-swatches i {
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
+  border: 2px solid var(--qx-color-surface-sunken);
+  border-radius: var(--qx-radius-full);
+}
+
+.qx-welcome-swatches i + i {
+  margin-inline-start: -0.375rem;
+}
+
+.qx-welcome-swatches [data-tone="brand"] {
+  background: var(--qx-color-bg-brand-bold);
+}
+.qx-welcome-swatches [data-tone="info"] {
+  background: var(--qx-color-bg-info-bold);
+}
+.qx-welcome-swatches [data-tone="success"] {
+  background: var(--qx-color-bg-success-bold);
+}
+.qx-welcome-swatches [data-tone="warning"] {
+  background: var(--qx-color-bg-warning-bold);
+}
+.qx-welcome-swatches [data-tone="danger"] {
+  background: var(--qx-color-bg-danger-bold);
+}
+.qx-welcome-swatches [data-tone="neutral"] {
+  background: var(--qx-color-bg-neutral-bold);
+}
+
+.qx-welcome-cluster {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-items: start;
+  gap: 0.75rem 1rem;
+}
+
+.qx-welcome-signin {
+  display: grid;
+  gap: 0.625rem;
+  inline-size: 13rem;
+  padding: 1rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+  box-shadow: var(--qx-shadow-raised);
+}
+
+.qx-welcome-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.qx-welcome-meters {
+  display: grid;
+  gap: 0.75rem;
+  inline-size: 11rem;
+}
+
+/* ── Principles ────────────────────────────────────────────────────────────── */
+
+.qx-welcome-principles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qx-welcome-principles li {
+  display: grid;
+  align-content: start;
+  gap: 0.375rem;
+}
+
+.qx-welcome-principle-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  margin-block-end: 0.5rem;
+  border: 1px solid var(--qx-color-border-brand);
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-bg-brand-subtle);
+  color: var(--qx-color-icon-brand);
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────────── */
+
+.qx-welcome-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-welcome-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.qx-welcome-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-welcome a.qx-welcome-link:hover {
+  color: var(--qx-color-text-link-hover);
+}
+
+/* ── Narrower docs columns ─────────────────────────────────────────────────── */
+
+/* Two lines for the title wherever the hero is still two columns. */
+@container (max-width: 72rem) {
+  .qx-welcome .qx-welcome-title {
+    font: var(--qx-typography-display-md);
+    font-variation-settings: "GEOM" var(--qx-font-geometry-display);
+  }
+}
+
+@container (max-width: 64rem) {
+  .qx-welcome-grid,
+  .qx-welcome-principles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 56rem) {
+  .qx-welcome-hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 2.5rem 1.5rem;
+  }
+
+  .qx-welcome-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .qx-welcome-stats > div:nth-child(3) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+}
+
+@container (max-width: 36rem) {
+  .qx-welcome-grid,
+  .qx-welcome-principles {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qx-welcome-float {
+    display: none;
+  }
+}

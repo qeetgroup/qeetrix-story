@@ -2,7 +2,7 @@ name: Rollback
 
 # Puts an earlier release of the workshop back in production by redeploying
 # exactly the commit its tag names — the same workflow as qeetrix-docs', and the
-# counterpart of qeetrix-ui's rollback, which moves npm's `latest` back.
+# counterpart of qeetrix-react's rollback, which moves npm's `latest` back.
 #
 # Run it from Actions → Rollback → Run workflow, and give it the tag to go back
 # to (for example v0.0.10). Only tags `release.yml` created are accepted, so a
@@ -10,9 +10,11 @@ name: Rollback
 # the release history stays as it was, and the next merge to main ships forward
 # again as usual.
 #
-# The tagged commit renders the qeetrix-ui release its own bun.lock installs, so
-# an old workshop is rebuilt against the library it was released with, not
-# against whatever qeetrix-ui ships today.
+# The tagged commit renders the library release its own bun.lock installs, so an
+# old workshop is rebuilt against the library it was released with. Tags up to
+# v0.0.11 render @qeetrix/ui from a sibling qeetrix-ui checkout at its release
+# tag; later tags render the published @qeetrix/react and need no checkout. The
+# `ui` step tells the two apart, and the sibling steps run only for the old ones.
 #
 # For an instant switch without a rebuild, Vercel's dashboard can also promote
 # an earlier production deployment (Deployments → … → Instant Rollback). This
@@ -84,22 +86,27 @@ jobs:
 
       - id: ui
         if: steps.creds.outputs.ready == 'true'
-        name: which @qeetrix/ui release does the tag's bun.lock install?
+        name: which library release does the tag's bun.lock install?
         run: |
           set -euo pipefail
-          version=$(grep -oE '"@qeetrix/ui@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3)
-          if [ -z "$version" ]; then
-            echo "::error::bun.lock does not resolve @qeetrix/ui."
+          legacy=$(grep -oE '"@qeetrix/ui@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3 || true)
+          react=$(grep -oE '"@qeetrix/react@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3 || true)
+          if [ -n "$legacy" ]; then
+            echo "legacy=$legacy" >> "$GITHUB_OUTPUT"
+            echo "library=qeetrix-ui v$legacy" >> "$GITHUB_OUTPUT"
+          elif [ -n "$react" ]; then
+            echo "library=@qeetrix/react $react" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::bun.lock resolves neither @qeetrix/ui nor @qeetrix/react."
             exit 1
           fi
-          echo "version=$version" >> "$GITHUB_OUTPUT"
 
-      - if: steps.creds.outputs.ready == 'true'
+      - if: steps.creds.outputs.ready == 'true' && steps.ui.outputs.legacy != ''
         name: Checkout qeetrix-ui at that release
         uses: actions/checkout@v4
         with:
           repository: qeetgroup/qeetrix-ui
-          ref: v${{ steps.ui.outputs.version }}
+          ref: v${{ steps.ui.outputs.legacy }}
           path: qeetrix-ui
 
       - if: steps.creds.outputs.ready == 'true'
@@ -115,11 +122,11 @@ jobs:
       - if: steps.creds.outputs.ready == 'true'
         run: bun install --frozen-lockfile
 
-      - if: steps.creds.outputs.ready == 'true'
+      - if: steps.creds.outputs.ready == 'true' && steps.ui.outputs.legacy != ''
         working-directory: qeetrix-ui
         run: bun install --frozen-lockfile
 
-      - if: steps.creds.outputs.ready == 'true'
+      - if: steps.creds.outputs.ready == 'true' && steps.ui.outputs.legacy != ''
         working-directory: qeetrix-ui
         run: bun run build:tokens
 
@@ -158,7 +165,7 @@ jobs:
             echo "## Rolled back to $TAG"
             echo
             echo "Production now serves $TAG (deployment: ${{ steps.deploy.outputs.url }}),"
-            echo "rendering \`qeetrix-ui\` v${{ steps.ui.outputs.version }}."
+            echo "rendering ${{ steps.ui.outputs.library }}."
             echo "The next merge to main releases forward again as usual."
           } >> "$GITHUB_STEP_SUMMARY"
 

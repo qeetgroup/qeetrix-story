@@ -1,251 +1,356 @@
-import { KeyRoundIcon, MonitorIcon, ShieldCheckIcon } from "@qeetrix/icons";
+import { QeetLogo } from "@qeetrix/icons";
+import { AppWindowIcon } from "@qeetrix/icons/icons/app-window";
+import { BuildingIcon } from "@qeetrix/icons/icons/building";
+import { FingerprintPatternIcon } from "@qeetrix/icons/icons/fingerprint-pattern";
+import { HouseIcon } from "@qeetrix/icons/icons/house";
+import { KeyRoundIcon } from "@qeetrix/icons/icons/key-round";
+import { LayoutGridIcon } from "@qeetrix/icons/icons/layout-grid";
+import { LifeBuoyIcon } from "@qeetrix/icons/icons/life-buoy";
+import { MailIcon } from "@qeetrix/icons/icons/mail";
+import { MonitorSmartphoneIcon } from "@qeetrix/icons/icons/monitor-smartphone";
+import { ScrollTextIcon } from "@qeetrix/icons/icons/scroll-text";
+import { SettingsIcon } from "@qeetrix/icons/icons/settings";
+import { ShieldUserIcon } from "@qeetrix/icons/icons/shield-user";
+import { SmartphoneIcon } from "@qeetrix/icons/icons/smartphone";
+import { UserGroupIcon } from "@qeetrix/icons/icons/user-group";
+import { UsersIcon } from "@qeetrix/icons/icons/users";
+import { WebhookIcon } from "@qeetrix/icons/icons/webhook";
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
+  Avatar,
+  Button,
+  Card,
+  Field,
+  IconButton,
+  Inline,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuTrigger,
+  Radio,
+  RadioGroup,
+  Select,
+  Stack,
+  Switch,
+  Text,
+  TextField,
+} from "@qeetrix/react";
+import {
+  AppShell,
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  Button,
-  Callout,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  DataState,
-  DescriptionDetails,
-  DescriptionList,
-  DescriptionTerm,
-  Field,
-  FieldControl,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
   Form,
-  FormActions,
-  Input,
-  Label,
-  NativeSelect,
+  PageContent,
   PageHeader,
-  Separator,
-  Spinner,
-  StatusPill,
-  Switch,
-  Typography,
-} from "@qeetrix/ui";
+  Sidebar,
+  SidebarGroup,
+  SidebarItem,
+  TopBar,
+  TopBarSearch,
+  TopBarSwitcher,
+} from "@qeetrix/react/experimental";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import * as React from "react";
-import { qx } from "../_contract";
+import { type ComponentProps, type ReactNode, useState } from "react";
+import { expect, waitFor } from "storybook/test";
 
 /**
- * One sign-in method or session. It is its own object with its own status and action, not a form
- * field, so it is an `article` named by its title and described by its status and description.
+ * The console's router link, in miniature: it handles the click itself. Storybook's preview sets
+ * `<base target="_parent">`, so a plain `#` link would leave the workshop.
  */
-function SecurityRow({
-  icon,
-  title,
-  description,
-  status,
-  details,
-  actions,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  status: string;
-  details: { label: string; value: string }[];
-  actions: React.ReactNode;
-}) {
-  const id = React.useId();
+function RouterLink({ href, onClick, ...props }: ComponentProps<"a">) {
   return (
-    <article
-      aria-label={title}
-      aria-describedby={`${id}-status ${id}-description`}
-      className="grid gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground shadow-rest sm:grid-cols-[auto_minmax(0,1fr)_auto]"
-    >
-      <div
-        aria-hidden="true"
-        className="flex size-9 items-center justify-center rounded-lg bg-surface-sunken text-muted-foreground [&>svg]:size-4"
-      >
-        {icon}
-      </div>
-      <div className="min-w-0 space-y-3">
-        <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-1.5">
-          <div className="min-w-0">
-            <h3 className="font-heading text-sm font-semibold text-foreground">{title}</h3>
-            <p id={`${id}-description`} className="mt-0.5 text-sm text-muted-foreground">
-              {description}
-            </p>
-          </div>
-          <StatusPill id={`${id}-status`} status={status} />
-        </div>
-        <DescriptionList className="gap-y-1 text-xs sm:grid-cols-[minmax(6rem,9rem)_minmax(0,1fr)]">
-          {details.map((detail) => (
-            <React.Fragment key={detail.label}>
-              <DescriptionTerm>{detail.label}</DescriptionTerm>
-              <DescriptionDetails>{detail.value}</DescriptionDetails>
-            </React.Fragment>
-          ))}
-        </DescriptionList>
-      </div>
-      <div className="flex flex-wrap items-start gap-2 sm:justify-self-end">{actions}</div>
-    </article>
+    <a
+      {...props}
+      href={href}
+      onClick={(event) => {
+        onClick?.(event);
+        event.preventDefault();
+      }}
+    />
   );
 }
 
-/** One settings section: a heading, a sentence of context, and its controls. */
-function SettingsSection({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children: React.ReactNode;
-}) {
+/** For every in-page link: Sidebar, Breadcrumb and TopBar items take it as `render`. */
+const route = <RouterLink />;
+
+/** The Qeet ID console frame (qeetrix-react's `tests/fixtures/qeet-id-console.tsx`). */
+function ConsoleFrame({ children }: { children: ReactNode }) {
   return (
-    <Card>
-      <CardHeader>
-        <Typography as="h2" variant="small" className="font-heading text-base">
-          {title}
-        </Typography>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>{children}</CardContent>
+    <AppShell
+      topBar={
+        <TopBar
+          launcher={<IconButton icon={LayoutGridIcon} aria-label="Qeet products" tone="neutral" />}
+          logo={<QeetLogo variant="dark" height={20} />}
+          product="Qeet ID"
+          href="#home"
+          render={route}
+          context={
+            <>
+              <Menu>
+                <MenuTrigger render={<TopBarSwitcher mark="AC" label="Acme Pvt Ltd" />} />
+                <MenuContent>
+                  <MenuItem>Acme Pvt Ltd</MenuItem>
+                  <MenuItem>Acme Labs</MenuItem>
+                </MenuContent>
+              </Menu>
+              <TopBarSwitcher status="success" label="Production" />
+            </>
+          }
+          search={<TopBarSearch placeholder="Search or jump to…" shortcut={["⌘", "K"]} />}
+          account={<Avatar name="Priya Sharma" size="sm" />}
+        />
+      }
+      sidebar={
+        <Sidebar
+          label="Qeet ID"
+          footer={
+            <SidebarGroup>
+              <SidebarItem
+                label="Settings"
+                href="#settings"
+                render={route}
+                icon={SettingsIcon}
+                current
+              />
+              <SidebarItem label="Help and docs" href="#help" render={route} icon={LifeBuoyIcon} />
+            </SidebarGroup>
+          }
+        >
+          <SidebarGroup>
+            <SidebarItem label="Overview" href="#overview" render={route} icon={HouseIcon} />
+          </SidebarGroup>
+          <SidebarGroup label="Directory">
+            <SidebarItem
+              label="Users"
+              href="#users"
+              render={route}
+              icon={UsersIcon}
+              badge="1,284"
+            />
+            <SidebarItem
+              label="Groups"
+              href="#groups"
+              render={route}
+              icon={UserGroupIcon}
+              badge="38"
+            />
+            <SidebarItem label="Organisations" href="#orgs" render={route} icon={BuildingIcon} />
+          </SidebarGroup>
+          <SidebarGroup label="Access">
+            <SidebarItem
+              label="Applications"
+              href="#apps"
+              render={route}
+              icon={AppWindowIcon}
+              badge="12"
+            />
+            <SidebarItem label="Roles" href="#roles" render={route} icon={ShieldUserIcon} />
+          </SidebarGroup>
+          <SidebarGroup label="Security">
+            <SidebarItem
+              label="Authentication"
+              href="#authn"
+              render={route}
+              icon={FingerprintPatternIcon}
+            />
+            <SidebarItem
+              label="Sessions"
+              href="#sessions"
+              render={route}
+              icon={MonitorSmartphoneIcon}
+            />
+            <SidebarItem label="Audit logs" href="#audit" render={route} icon={ScrollTextIcon} />
+          </SidebarGroup>
+          <SidebarGroup label="Developers">
+            <SidebarItem label="API keys" href="#keys" render={route} icon={KeyRoundIcon} />
+            <SidebarItem label="Webhooks" href="#webhooks" render={route} icon={WebhookIcon} />
+          </SidebarGroup>
+        </Sidebar>
+      }
+    >
+      {children}
+    </AppShell>
+  );
+}
+
+function SettingsPage({ children }: { children: ReactNode }) {
+  return (
+    <ConsoleFrame>
+      <PageHeader
+        breadcrumb={
+          <Breadcrumb>
+            <BreadcrumbItem href="#settings" render={route}>
+              Settings
+            </BreadcrumbItem>
+            <BreadcrumbItem current>Account</BreadcrumbItem>
+          </Breadcrumb>
+        }
+        title="Account settings"
+        description="How you appear across every Qeet product."
+      />
+      <PageContent width="narrow">
+        <Stack gap="xl">{children}</Stack>
+      </PageContent>
+    </ConsoleFrame>
+  );
+}
+
+const TIME_ZONES = [
+  { value: "Asia/Kolkata", label: "(GMT+05:30) India Standard Time" },
+  { value: "Asia/Singapore", label: "(GMT+08:00) Singapore" },
+  { value: "Europe/London", label: "(GMT+00:00) London" },
+];
+
+const LANGUAGES = [
+  { value: "en-IN", label: "English (India)" },
+  { value: "hi-IN", label: "हिन्दी" },
+];
+
+/**
+ * Values that change together are saved together: a Form around the Card, Save in its footer.
+ * `dirty` starts with edits made; `errors` are the server's, keyed by field `name`. Either way,
+ * Form's error summary lists them above the Card: an `h2`, beside the Card's title.
+ */
+function ProfileCard({
+  dirty: initiallyDirty = false,
+  errors,
+}: {
+  dirty?: boolean;
+  errors?: Record<string, string>;
+}) {
+  const [dirty, setDirty] = useState(initiallyDirty);
+  return (
+    <Form
+      aria-label="Profile"
+      summaryTitle="Fix this to save your profile"
+      errors={errors}
+      onChange={() => setDirty(true)}
+      onReset={() => setDirty(false)}
+      onFormSubmit={() => setDirty(false)}
+    >
+      <Card
+        title="Profile"
+        level={2}
+        description="Shown to everyone in Acme Pvt Ltd."
+        footer={
+          <Inline gap="sm" justify="between" style={{ flex: 1 }}>
+            <Text size="sm" tone="subtle">
+              {dirty ? "You have unsaved changes." : ""}
+            </Text>
+            <Inline gap="sm">
+              <Button type="reset" variant="ghost" disabled={!dirty}>
+                Discard changes
+              </Button>
+              <Button type="submit" disabled={!dirty}>
+                Save changes
+              </Button>
+            </Inline>
+          </Inline>
+        }
+      >
+        <Stack gap="lg">
+          <TextField
+            label="Full name"
+            name="name"
+            defaultValue={initiallyDirty ? "Priya S. Sharma" : "Priya Sharma"}
+            autoComplete="name"
+            validate={(value) => (String(value ?? "").trim() ? null : "Enter your full name")}
+          />
+          <TextField
+            label="Work email"
+            name="email"
+            type="email"
+            defaultValue="priya@acme.in"
+            readOnly
+            description="Synced from Azure AD."
+          />
+          <TextField label="Job title" name="title" defaultValue="Engineering Manager" optional />
+          <Field label="Time zone" name="timeZone">
+            <Select
+              items={TIME_ZONES}
+              defaultValue={initiallyDirty ? "Asia/Singapore" : "Asia/Kolkata"}
+            />
+          </Field>
+          <Field label="Language" name="language">
+            <Select items={LANGUAGES} defaultValue="en-IN" />
+          </Field>
+        </Stack>
+      </Card>
+    </Form>
+  );
+}
+
+/** Each method needs a line of explanation, so they're choice tiles. */
+function SignInCard() {
+  return (
+    <Form aria-label="Preferred sign-in">
+      <Card
+        title="Preferred sign-in"
+        level={2}
+        description="What Qeet ID asks for first."
+        footer={<Button type="submit">Save preference</Button>}
+      >
+        <RadioGroup
+          label="Sign in with"
+          name="method"
+          variant="tile"
+          columns={3}
+          defaultValue="passkey"
+        >
+          <Radio
+            value="passkey"
+            icon={FingerprintPatternIcon}
+            label="Passkey"
+            description="Touch ID, Windows Hello or a security key."
+          />
+          <Radio
+            value="authenticator"
+            icon={SmartphoneIcon}
+            label="Authenticator app"
+            description="A 6-digit code that changes every 30 seconds."
+          />
+          <Radio
+            value="email"
+            icon={MailIcon}
+            label="Email code"
+            description="Turned off by your administrator."
+            disabled
+          />
+        </RadioGroup>
+      </Card>
+    </Form>
+  );
+}
+
+/** Switches apply at once, so this card has no Save button. */
+function NotificationsCard() {
+  return (
+    <Card title="Email notifications" level={2} description="Sent to priya@acme.in.">
+      <Stack gap="lg">
+        <Switch
+          label="Weekly summary"
+          description="Sign-in anomalies and expiring keys."
+          defaultChecked
+        />
+        <Switch label="Product updates" description="New releases, about once a month." />
+        <Switch
+          label="Security alerts"
+          description="Required by Acme Pvt Ltd."
+          defaultChecked
+          disabled
+        />
+      </Stack>
     </Card>
   );
 }
 
-/**
- * A switch row. The description is wired to the control with `aria-describedby`
- * rather than left as loose text, so screen-reader users get the same caveat
- * sighted users read before flipping it.
- */
-function ToggleRow({
-  id,
-  label,
-  description,
-  defaultChecked,
-  disabled,
-}: {
-  id: string;
-  label: string;
-  description: string;
-  defaultChecked?: boolean;
-  disabled?: boolean;
-}) {
-  return (
-    <div className="flex items-start justify-between gap-6 py-3">
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <Label htmlFor={id}>{label}</Label>
-        <p id={`${id}-hint`} className="text-sm text-muted-foreground">
-          {description}
-        </p>
-      </div>
-      <Switch
-        id={id}
-        aria-describedby={`${id}-hint`}
-        defaultChecked={defaultChecked}
-        disabled={disabled}
-        className="mt-1"
-      />
-    </div>
-  );
-}
-
-function ProfileFields({ disabled }: { disabled?: boolean }) {
-  return (
-    <FieldGroup>
-      <Field>
-        <FieldLabel>Full name</FieldLabel>
-        <FieldControl render={<Input defaultValue="Ada Lovelace" disabled={disabled} />} />
-      </Field>
-      <Field>
-        <FieldLabel>Work email</FieldLabel>
-        <FieldControl
-          render={<Input type="email" defaultValue="ada.lovelace@acme.in" disabled readOnly />}
-        />
-        <FieldDescription>
-          Provisioned by SCIM from Acme&apos;s directory — change it there, not here.
-        </FieldDescription>
-      </Field>
-      <Field>
-        <FieldLabel>Job title</FieldLabel>
-        <FieldControl render={<Input defaultValue="Principal Engineer" disabled={disabled} />} />
-      </Field>
-    </FieldGroup>
-  );
-}
-
-function LocaleFields({ disabled }: { disabled?: boolean }) {
-  return (
-    <FieldGroup>
-      <Field>
-        <FieldLabel>Time zone</FieldLabel>
-        <FieldControl
-          render={
-            <NativeSelect defaultValue="Asia/Kolkata" disabled={disabled}>
-              <option value="Asia/Kolkata">(GMT+05:30) India Standard Time</option>
-              <option value="Asia/Singapore">(GMT+08:00) Singapore</option>
-              <option value="Europe/London">(GMT+00:00) London</option>
-              <option value="America/New_York">(GMT−05:00) New York</option>
-            </NativeSelect>
-          }
-        />
-        <FieldDescription>
-          Used for audit-log timestamps and Qeet People attendance windows.
-        </FieldDescription>
-      </Field>
-      <Field>
-        <FieldLabel>Date format</FieldLabel>
-        <FieldControl
-          render={
-            <NativeSelect defaultValue="dd-mm-yyyy" disabled={disabled}>
-              <option value="dd-mm-yyyy">31-03-2026</option>
-              <option value="yyyy-mm-dd">2026-03-31</option>
-              <option value="mm-dd-yyyy">03-31-2026</option>
-            </NativeSelect>
-          }
-        />
-      </Field>
-    </FieldGroup>
-  );
-}
-
 const meta: Meta = {
-  title: "Patterns/AccountSettings",
+  title: "Patterns/Account settings",
   parameters: {
-    qeetrix: qx({ category: "forms", status: "stable" }),
-    layout: "padded",
+    layout: "fullscreen",
     docs: {
+      story: { inline: false, iframeHeight: 900 },
       description: {
-        component: [
-          "**A settings page that saves explicitly.** `PageHeader` for the title and trail, one",
-          "`Card` per section, `Field`-wrapped controls inside each, and a single save/cancel row",
-          "that governs the whole page. The states below are the ones a real settings screen has to",
-          "render: pristine, dirty, in-flight, rejected, and still loading.",
-          "",
-          "**Use it** for any *self-service* account or preference screen — Qeet ID profile, Qeet",
-          "Logs retention preferences, Qeet Notify channel defaults, Qeet People payroll",
-          "preferences. The load-bearing decision is the *explicit save*: several related values",
-          "change together, so they are staged and committed as one.",
-          "",
-          "**Do not use it** when each control takes effect on its own — a row of independent",
-          "feature toggles should apply immediately and confirm with a toast, and a save button",
-          "there just invents a transaction that does not exist. Also do not use it for",
-          "administering *other* people (member and role management is a table pattern — see",
-          "`Patterns/DataTableToolbar`), or for anything destructive: deleting an organisation needs",
-          "a confirmation dialog, not a Save button.",
-          "",
-          "**Composition notes.** Section headings are real `h2`s under the `PageHeader`'s `h1`, and",
-          "each security row contributes an `h3` below them, so the page has a sane outline. Every switch",
-          "description is attached with `aria-describedby` rather than floating next to the control.",
-          "Fields that a directory owns (`Work email`) are disabled *and* explain who owns them —",
-          "a disabled control with no explanation is the most common complaint about settings pages.",
-        ].join("\n"),
+        component: "A Qeet ID settings page: forms that save, and switches that apply at once.",
       },
     },
   },
@@ -255,325 +360,102 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The resting state. Nothing has changed yet, so **Save changes** is disabled — the page is honest that there is nothing to commit rather than offering a button that would be a no-op.",
-      },
-    },
-  },
   render: () => (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <PageHeader
-        breadcrumb={
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink href="#qeet-id">Qeet ID</BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                <BreadcrumbPage>Account settings</BreadcrumbPage>
-              </BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-        }
-        title="Account settings"
-        description="How you appear across Qeet ID, Qeet Logs, Qeet Notify, Qeet Pay and Qeet People."
-      />
-      <Form onSubmit={(event) => event.preventDefault()}>
-        <SettingsSection
-          title="Profile"
-          description="Shown to everyone in Acme Technologies and recorded against every audit event."
-        >
-          <ProfileFields />
-        </SettingsSection>
-        <SettingsSection
-          title="Locale and formatting"
-          description="Applies to every Qeet product you open with this account."
-        >
-          <LocaleFields />
-        </SettingsSection>
-        <SettingsSection
-          title="Email notifications"
-          description="Delivered by Qeet Notify to ada.lovelace@acme.in."
-        >
-          <div className="divide-y divide-border">
-            <ToggleRow
-              id="settings-digest"
-              label="Weekly summary"
-              description="One email each Monday with sign-in anomalies and expiring API keys."
-              defaultChecked
-            />
-            <ToggleRow
-              id="settings-product"
-              label="Product updates"
-              description="New Qeet releases and deprecation notices. Roughly monthly."
-            />
-            <ToggleRow
-              id="settings-security"
-              label="Security alerts"
-              description="New device sign-ins and passkey changes. Required by your organisation."
-              defaultChecked
-              disabled
-            />
-          </div>
-        </SettingsSection>
-        <FormActions>
-          <Button type="button" variant="ghost" disabled>
-            Cancel
-          </Button>
-          <Button type="submit" disabled>
-            Save changes
-          </Button>
-        </FormActions>
-      </Form>
-    </div>
+    <SettingsPage>
+      <ProfileCard />
+      <SignInCard />
+      <NotificationsCard />
+    </SettingsPage>
   ),
 };
 
 export const UnsavedChanges: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The dirty state, after editing the job title and switching time zone. The action row wakes up and a `Callout` names exactly what is pending — a generic “you have unsaved changes” tells the user nothing they did not already know.",
-      },
-    },
-  },
+  name: "Unsaved changes",
   render: () => (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <PageHeader
-        title="Account settings"
-        description="How you appear across Qeet ID, Qeet Logs, Qeet Notify, Qeet Pay and Qeet People."
-      />
-      <Form onSubmit={(event) => event.preventDefault()}>
-        <Callout variant="warning">
-          2 unsaved changes: <strong>Job title</strong> and <strong>Time zone</strong>. They take
-          effect for every Qeet product once you save.
-        </Callout>
-        <SettingsSection
-          title="Profile"
-          description="Shown to everyone in Acme Technologies and recorded against every audit event."
-        >
-          <FieldGroup>
-            <Field>
-              <FieldLabel>Full name</FieldLabel>
-              <FieldControl render={<Input defaultValue="Ada Lovelace" />} />
-            </Field>
-            <Field>
-              <FieldLabel>Job title</FieldLabel>
-              <FieldControl render={<Input defaultValue="Distinguished Engineer" />} />
-              <FieldDescription>Changed from “Principal Engineer”.</FieldDescription>
-            </Field>
-          </FieldGroup>
-        </SettingsSection>
-        <SettingsSection
-          title="Locale and formatting"
-          description="Applies to every Qeet product you open with this account."
-        >
-          <LocaleFields />
-        </SettingsSection>
-        <FormActions>
-          <Button type="button" variant="ghost">
-            Discard changes
-          </Button>
-          <Button type="submit">Save changes</Button>
-        </FormActions>
-      </Form>
-    </div>
-  ),
-};
-
-export const Saving: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "In flight. Controls are disabled instead of unmounted so nothing reflows, and the submit button carries a labelled `Spinner` so the wait is announced rather than merely drawn.",
-      },
-    },
-  },
-  render: () => (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <PageHeader title="Account settings" description="Saving your changes…" />
-      <Form onSubmit={(event) => event.preventDefault()}>
-        <SettingsSection
-          title="Profile"
-          description="Shown to everyone in Acme Technologies and recorded against every audit event."
-        >
-          <ProfileFields disabled />
-        </SettingsSection>
-        <FormActions>
-          <Button type="button" variant="ghost" disabled>
-            Cancel
-          </Button>
-          <Button type="submit" disabled>
-            <Spinner size="sm" label="Saving" className="text-current" />
-            Saving…
-          </Button>
-        </FormActions>
-      </Form>
-    </div>
+    <SettingsPage>
+      <ProfileCard dirty />
+    </SettingsPage>
   ),
 };
 
 export const SaveFailed: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The server rejected the save. The `Alert` sits above the sections it applies to, says which field the server objected to and why, and — critically — the edits are still in the form. Wiping a user's input on a failed save is the fastest way to lose their trust.",
-      },
-    },
-  },
+  name: "Save failed",
   render: () => (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <PageHeader title="Account settings" description="Your changes were not saved." />
-      <Form onSubmit={(event) => event.preventDefault()}>
-        <Alert variant="danger">
-          <AlertTitle>Couldn&apos;t save your profile</AlertTitle>
-          <AlertDescription>
-            Acme Technologies enforces SCIM-managed display names, so Qeet ID rejected the change to
-            <strong> Full name</strong>. Your other edits are still here — remove that one and save
-            again, or ask an owner to relax the policy.
-          </AlertDescription>
-        </Alert>
-        <SettingsSection
-          title="Profile"
-          description="Shown to everyone in Acme Technologies and recorded against every audit event."
-        >
-          <FieldGroup>
-            <Field>
-              <FieldLabel>Full name</FieldLabel>
-              <FieldControl render={<Input defaultValue="A. Lovelace" aria-invalid="true" />} />
-              <FieldDescription>Directory value: Ada Lovelace.</FieldDescription>
-            </Field>
-            <Field>
-              <FieldLabel>Job title</FieldLabel>
-              <FieldControl render={<Input defaultValue="Distinguished Engineer" />} />
-            </Field>
-          </FieldGroup>
-        </SettingsSection>
-        <FormActions>
-          <Button type="button" variant="ghost">
-            Discard changes
-          </Button>
-          <Button type="submit">Save changes</Button>
-        </FormActions>
-      </Form>
-    </div>
+    <SettingsPage>
+      <ProfileCard
+        dirty
+        errors={{ name: "Acme Pvt Ltd manages names in Azure AD. Change yours there." }}
+      />
+    </SettingsPage>
   ),
 };
 
-export const SecuritySection: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The security half of the same page. These rows are not form fields — each one is its own object with its own lifecycle, so each row is an `article` with its own `h3`, status and action instead of pooling them under one Save button.",
-      },
-    },
-  },
+export const EditWakesSave: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: editing turns Save on",
   render: () => (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <PageHeader
-        title="Account settings"
-        description="How you appear across Qeet ID, Qeet Logs, Qeet Notify, Qeet Pay and Qeet People."
-      />
-      <section className="flex flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <Typography as="h2" variant="small" className="font-heading text-base">
-            Sign-in and security
-          </Typography>
-          <Typography variant="muted">
-            Each item applies the moment you change it — there is nothing to save here.
-          </Typography>
-        </div>
-        <SecurityRow
-          icon={<KeyRoundIcon />}
-          title="Passkeys"
-          description="Phishing-resistant sign-in bound to your devices."
-          status="active"
-          details={[
-            { label: "Registered", value: "2 devices" },
-            { label: "Last used", value: "Today at 09:14 IST · MacBook Pro" },
-          ]}
-          actions={
-            <Button variant="outline" size="sm">
-              Manage
-            </Button>
-          }
-        />
-        <SecurityRow
-          icon={<ShieldCheckIcon />}
-          title="Two-factor authentication"
-          description="Required for every admin session in Acme Technologies."
-          status="enabled"
-          details={[
-            { label: "Method", value: "Authenticator app (TOTP)" },
-            { label: "Recovery codes", value: "8 of 10 unused" },
-          ]}
-          actions={
-            <Button variant="outline" size="sm">
-              Regenerate codes
-            </Button>
-          }
-        />
-        <SecurityRow
-          icon={<MonitorIcon />}
-          title="Active sessions"
-          description="Signing out revokes the refresh token immediately across every Qeet product."
-          status="pending"
-          details={[
-            { label: "This device", value: "Chrome on macOS · Bengaluru" },
-            { label: "Other", value: "2 sessions, oldest 6 days" },
-          ]}
-          actions={
-            <Button variant="destructive" size="sm">
-              Sign out others
-            </Button>
-          }
-        />
-        <Separator />
-        <Callout variant="info">
-          Session and passkey changes are written to the Qeet Logs audit stream and cannot be
-          deleted.
-        </Callout>
-      </section>
-    </div>
+    <SettingsPage>
+      <ProfileCard />
+    </SettingsPage>
   ),
+  play: async ({ canvas, userEvent }) => {
+    // Disabled buttons stay focusable, so they're `aria-disabled` rather than `disabled`.
+    const save = canvas.getByRole("button", { name: "Save changes" });
+    await expect(save).toHaveAttribute("aria-disabled", "true");
+    const jobTitle = canvas.getByRole("textbox", { name: /Job title/ });
+    await userEvent.clear(jobTitle);
+    await userEvent.type(jobTitle, "Director of Engineering");
+    await waitFor(() => expect(save).toHaveAttribute("aria-disabled", "false"));
+    await expect(canvas.getByText("You have unsaved changes.")).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Discard changes" }));
+    await waitFor(() => expect(save).toHaveAttribute("aria-disabled", "true"));
+    await expect(jobTitle).toHaveValue("Engineering Manager");
+  },
 };
 
-export const Loading: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "First paint, before the profile resolves. `DataState` renders skeleton rows shaped roughly like the form that replaces them, so the page does not jump when the data lands. The header is real because its content is already known from the route.",
-      },
-    },
-  },
+export const EmptyNameIsCaught: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: an empty name is caught on Save",
   render: () => (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <PageHeader
-        title="Account settings"
-        description="How you appear across Qeet ID, Qeet Logs, Qeet Notify, Qeet Pay and Qeet People."
-      />
-      <Card>
-        <CardHeader>
-          <Typography as="h2" variant="small" className="font-heading text-base">
-            Profile
-          </Typography>
-          <CardDescription>Loading your profile from Qeet ID…</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DataState isLoading skeletonRows={4} skeletonHeight="h-9" className="p-0">
-            <ProfileFields />
-          </DataState>
-        </CardContent>
-      </Card>
-    </div>
+    <SettingsPage>
+      <ProfileCard />
+    </SettingsPage>
   ),
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.clear(canvas.getByRole("textbox", { name: "Full name" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Save changes" }));
+    const name = canvas.getByRole("textbox", { name: "Full name" });
+    await waitFor(() => expect(name).toHaveAttribute("aria-invalid", "true"));
+    await expect(name).toHaveAccessibleDescription(expect.stringContaining("Enter your full name"));
+    // Form's error summary lists it too, linked to the field.
+    const summary = canvas.getByRole("link", { name: "Enter your full name" });
+    await expect(summary).toBeVisible();
+    await expect(summary).toHaveAttribute("href", `#${name.id}`);
+    // Its heading sits beside the Card's h2, and it takes focus so the heading is read first.
+    const heading = canvas.getByRole("heading", {
+      level: 2,
+      name: "Fix this to save your profile",
+    });
+    await waitFor(() => expect(heading.closest("[data-slot=error-summary]")).toHaveFocus());
+  },
+};
+
+export const ChooseSignIn: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a click anywhere on a tile chooses it",
+  render: () => (
+    <SettingsPage>
+      <SignInCard />
+    </SettingsPage>
+  ),
+  play: async ({ canvas, userEvent }) => {
+    // The label covers the whole tile: click what's really under the description.
+    const description = canvas.getByText("A 6-digit code that changes every 30 seconds.");
+    const box = description.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+    await expect(hit?.closest("label")).not.toBeNull();
+    await userEvent.click(hit as HTMLElement);
+    await expect(canvas.getByRole("radio", { name: /Authenticator app/ })).toBeChecked();
+    await expect(canvas.getByRole("radio", { name: /Passkey/ })).not.toBeChecked();
+  },
 };

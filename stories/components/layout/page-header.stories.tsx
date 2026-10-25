@@ -1,125 +1,309 @@
-import { PlusIcon } from "@qeetrix/icons";
-import { Badge, Button, PageHeader } from "@qeetrix/ui";
+import { DownloadIcon } from "@qeetrix/icons/icons/download";
+import { PlusIcon } from "@qeetrix/icons/icons/plus";
+import {
+  Badge,
+  Button,
+  Card,
+  formatCurrency,
+  Stack,
+  Tab,
+  Table,
+  Tabs,
+  TabsList,
+  TabsPanel,
+  Text,
+  TextField,
+} from "@qeetrix/react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  PageContent,
+  PageHeader,
+  PageHeaderBack,
+  Stat,
+  StatGroup,
+} from "@qeetrix/react/experimental";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import type { ComponentProps } from "react";
+import { expect } from "storybook/test";
 import { qx } from "../../_contract";
+
+/**
+ * The console's router link, in miniature: like a router's `Link`, it handles the click itself.
+ * Storybook sends a plain link to the parent frame, which would leave Storybook.
+ */
+function RouterLink({ href, onClick, ...props }: ComponentProps<"a">) {
+  return (
+    <a
+      {...props}
+      href={href}
+      onClick={(event) => {
+        onClick?.(event);
+        event.preventDefault();
+      }}
+    />
+  );
+}
+
+const routerLink = <RouterLink />;
+
+const usersBreadcrumb = (
+  <Breadcrumb>
+    <BreadcrumbItem href="#directory" render={routerLink}>
+      Directory
+    </BreadcrumbItem>
+    <BreadcrumbItem current>Users</BreadcrumbItem>
+  </Breadcrumb>
+);
+
+const usersActions = (
+  <>
+    <Button variant="soft" icon={DownloadIcon}>
+      Export
+    </Button>
+    <Button icon={PlusIcon}>Invite users</Button>
+  </>
+);
+
+const usersSummary = (
+  <StatGroup>
+    <Stat
+      label="Total users"
+      value={1284}
+      note="+38 this week"
+      tone="positive"
+      trend={[1080, 1110, 1139, 1172, 1205, 1246, 1284]}
+    />
+    <Stat
+      label="Passkey adoption"
+      value="72%"
+      note="+6 pts this month"
+      tone="positive"
+      trend={[41, 47, 53, 58, 63, 69, 72]}
+    />
+    <Stat
+      label="Pending invitations"
+      value={64}
+      note="9 expire this week"
+      tone="warning"
+      trend={[30, 31, 38, 52, 55, 61, 64]}
+    />
+  </StatGroup>
+);
+
+const usersTabs = (
+  <TabsList>
+    <Tab value="all">All users</Tab>
+    <Tab value="invitations">Invitations</Tab>
+    <Tab value="blocked">Blocked</Tab>
+  </TabsList>
+);
 
 const meta: Meta<typeof PageHeader> = {
   title: "Components/Layout/PageHeader",
   component: PageHeader,
+  subcomponents: { PageContent, PageHeaderBack },
   parameters: {
-    qeetrix: qx({ category: "layout", status: "stable" }),
-    layout: "padded",
-    docs: {
-      description: {
-        component:
-          "The standard top-of-page title block used across all Qeet product admin UIs. Accepts an optional `breadcrumb` eyebrow, a `title`, a `description`, a `metadata` row and trailing `actions`. Presentational and router-agnostic — pass pre-resolved strings or React nodes.\n\nIt responds to the width it is given, not to the viewport: the text column claims at least 20rem before it shares a line with the actions, so in a narrow panel, a split pane or a phone the actions wrap beneath the title instead of squeezing it to a word per line.",
-      },
-    },
+    qeetrix: qx({ category: "layout", status: "experimental" }),
+    layout: "fullscreen",
   },
-  tags: ["autodocs"],
+  args: {
+    title: "Users",
+    description: "People who can sign in to Acme Pvt Ltd's applications.",
+  },
+  tags: ["autodocs", "experimental"],
 };
+
 export default meta;
 type Story = StoryObj<typeof PageHeader>;
 
-export const Default: Story = {
-  render: () => (
-    <div className="w-full max-w-3xl">
-      <PageHeader
-        breadcrumb={<span>Settings › API keys</span>}
-        title="API keys"
-        description="Manage the keys used to authenticate machine-to-machine requests to the Qeet ID API. Keys with the client_credentials grant never expire unless manually revoked."
-        actions={
-          <Button>
-            <PlusIcon /> New key
-          </Button>
-        }
-      />
-    </div>
+// The breadcrumb, status and actions start as the Users page's; type to replace them.
+export const Playground: Story = {
+  args: { count: 1284 },
+  render: (args) => (
+    <PageHeader
+      {...args}
+      breadcrumb={args.breadcrumb ?? usersBreadcrumb}
+      status={args.status ?? <Badge tone="success">Directory synced</Badge>}
+      actions={args.actions ?? usersActions}
+    />
   ),
 };
 
-export const NoActions: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Read-only pages (e.g. audit log view in qeet-logs) omit the `actions` slot — the title and description stand alone.",
-      },
-    },
-  },
+export const Minimal: Story = {};
+
+export const WithSummary: Story = {
+  name: "With summary",
+  args: { breadcrumb: usersBreadcrumb, actions: usersActions, summary: usersSummary },
+};
+
+const withTabs: Story["render"] = (args) => (
+  <Tabs defaultValue="all">
+    <PageHeader {...args} />
+  </Tabs>
+);
+
+export const WithTabs: Story = {
+  name: "With tabs",
+  args: { breadcrumb: usersBreadcrumb, actions: usersActions, tabs: usersTabs },
+  render: withTabs,
+};
+
+export const DetailPage: Story = {
+  name: "Detail page",
   render: () => (
-    <div className="w-full max-w-3xl">
+    <>
       <PageHeader
-        breadcrumb={<span>qeet-logs › Audit log</span>}
-        title="Audit log"
-        description="A tamper-evident record of every action performed in your organisation — exported as JSON or streamed via webhook."
+        back={
+          <PageHeaderBack href="#users" render={routerLink}>
+            Users
+          </PageHeaderBack>
+        }
+        title="Priya Sharma"
+        status={<Badge tone="success">Active</Badge>}
+        description="priya@acme.in · Engineering"
+        actions={<Button variant="soft">Reset password</Button>}
       />
-    </div>
+      <PageContent width="narrow">
+        <Card title="Profile" level={2} footer={<Button size="sm">Save changes</Button>}>
+          <Stack gap="md">
+            <TextField label="Full name" defaultValue="Priya Sharma" />
+            <TextField label="Work email" defaultValue="priya@acme.in" />
+          </Stack>
+        </Card>
+      </PageContent>
+    </>
   ),
 };
 
-export const WithMetadata: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`metadata` holds facts about the page's subject — a status badge, an identifier, a freshness stamp — laid out as a wrapping row beneath the description. Here, a qeet-pay invoice detail page.",
-      },
-    },
-  },
+const INVOICES = [
+  { id: "INV-2026-0412", customer: "Bharat Logistics", amount: 124500, status: "Paid" },
+  { id: "INV-2026-0411", customer: "Nilgiri Foods", amount: 58999, status: "Due" },
+  { id: "INV-2026-0409", customer: "Konkan Textiles", amount: 212000, status: "Overdue" },
+] as const;
+
+const INVOICE_TONE = { Paid: "success", Due: "info", Overdue: "danger" } as const;
+const rupees = (amount: number) =>
+  formatCurrency(amount, "INR", "en-IN", { maximumFractionDigits: 0 });
+
+export const InContext: Story = {
+  name: "In context",
   render: () => (
-    <div className="w-full max-w-3xl">
+    <>
       <PageHeader
-        breadcrumb={<span>qeet-pay › Invoices</span>}
-        title="INV-2026-0412"
-        description="Tax invoice for Acme Inc. — Growth plan, September 2026, including 18% IGST."
-        metadata={
-          <>
-            <Badge variant="success">Paid</Badge>
-            <span>GSTIN 29ABCDE1234F1Z5</span>
-            <span>₹5,898.82</span>
-            <span>Updated 4 min ago</span>
-          </>
+        breadcrumb={
+          <Breadcrumb>
+            <BreadcrumbItem href="#invoices" render={routerLink}>
+              Invoices
+            </BreadcrumbItem>
+            <BreadcrumbItem current>Sent</BreadcrumbItem>
+          </Breadcrumb>
         }
-        actions={
-          <>
-            <Button variant="outline">Download PDF</Button>
-            <Button>Send receipt</Button>
-          </>
-        }
+        title="Sent invoices"
+        count={312}
+        actions={<Button icon={PlusIcon}>New invoice</Button>}
       />
-    </div>
+      <PageContent>
+        <Card>
+          <Table
+            label="Sent invoices"
+            rows={INVOICES}
+            rowId={(row) => row.id}
+            rowLabel={(row) => row.id}
+            columns={[
+              { id: "invoice", header: "Invoice", cell: (row) => row.id },
+              { id: "customer", header: "Customer", cell: (row) => row.customer },
+              {
+                id: "status",
+                header: "Status",
+                cell: (row) => <Badge tone={INVOICE_TONE[row.status]}>{row.status}</Badge>,
+              },
+              { id: "amount", header: "Amount", numeric: true, cell: (row) => rupees(row.amount) },
+            ]}
+          />
+        </Card>
+      </PageContent>
+    </>
   ),
 };
 
-export const Narrow: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The same header in a 20rem container — a split pane or a phone. The title column keeps its 20rem minimum, so the actions wrap beneath it instead of crushing the title. The layout follows the width it is given, not the viewport breakpoint.",
-      },
-    },
-  },
-  render: () => (
-    <div className="w-80 rounded-md border border-dashed p-4">
-      <PageHeader
-        breadcrumb={<span>Qeet ID › Connections</span>}
-        title="Okta SAML — Acme Inc."
-        description="Members sign in through Okta. Changes apply to new sessions only."
-        metadata={
-          <>
-            <Badge variant="success">Active</Badge>
-            <span>24 members</span>
-          </>
-        }
-        actions={
-          <>
-            <Button variant="outline">Test connection</Button>
-            <Button>Edit</Button>
-          </>
-        }
-      />
-    </div>
+const COMPLETE = {
+  breadcrumb: usersBreadcrumb,
+  count: 1284,
+  actions: usersActions,
+  summary: usersSummary,
+  tabs: usersTabs,
+};
+
+export const NarrowWindow: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Test: narrow window",
+  globals: { viewport: { value: "mobile", isRotated: false } },
+  args: COMPLETE,
+  render: withTabs,
+};
+
+export const TabsInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: the header's tabs switch the page",
+  args: COMPLETE,
+  render: (args) => (
+    <Tabs defaultValue="all">
+      <PageHeader {...args} />
+      <PageContent>
+        <TabsPanel value="all">
+          <Text>1,284 users at Acme Pvt Ltd.</Text>
+        </TabsPanel>
+        <TabsPanel value="invitations">
+          <Text>64 invitations are waiting, 9 of them expire this week.</Text>
+        </TabsPanel>
+        <TabsPanel value="blocked">
+          <Text>3 users are blocked.</Text>
+        </TabsPanel>
+      </PageContent>
+    </Tabs>
   ),
+  play: async ({ canvas, canvasElement, userEvent }) => {
+    const title = canvas.getByRole("heading", { level: 1, name: "Users" });
+    await expect(title).toBeVisible();
+    await expect(canvas.getByText("1,284 users at Acme Pvt Ltd.")).toBeVisible();
+
+    // The first tab's label sits on the title's gutter; the tabs' rule runs edge to edge.
+    const header = canvasElement.querySelector("[data-slot=page-header]") as HTMLElement;
+    const list = canvas.getByRole("tablist");
+    const label = list.querySelector("[data-slot=tab-label]") as HTMLElement;
+    const left = (element: Element) => element.getBoundingClientRect().left;
+    await expect(Math.abs(left(label) - left(title))).toBeLessThanOrEqual(1);
+    await expect(Math.abs(left(list) - left(header))).toBeLessThanOrEqual(1);
+    await expect(
+      Math.abs(list.getBoundingClientRect().right - header.getBoundingClientRect().right),
+    ).toBeLessThanOrEqual(1);
+
+    await userEvent.click(canvas.getByRole("tab", { name: "Invitations" }));
+    await expect(canvas.getByRole("tab", { name: "Invitations" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await expect(canvas.getByText(/64 invitations are waiting/)).toBeVisible();
+  },
+};
+
+export const BackInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: the back link names its page",
+  render: DetailPage.render,
+  play: async ({ canvas }) => {
+    const back = canvas.getByRole("link", { name: "Back to Users" });
+    await expect(back).toHaveAttribute("href", "#users");
+    await expect(back).toHaveTextContent("Users");
+    // Above the title, its arrow on the title's start edge.
+    const title = canvas.getByRole("heading", { level: 1, name: "Priya Sharma" });
+    const arrow = back.querySelector("svg") as SVGElement;
+    await expect(back.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      title.getBoundingClientRect().top,
+    );
+    await expect(
+      Math.abs(arrow.getBoundingClientRect().left - title.getBoundingClientRect().left),
+    ).toBeLessThanOrEqual(1);
+  },
 };

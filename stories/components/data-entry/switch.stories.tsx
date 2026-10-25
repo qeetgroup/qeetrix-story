@@ -1,6 +1,6 @@
-import { Label, Switch } from "@qeetrix/ui";
+import { Stack, Switch } from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect } from "storybook/test";
+import { expect, fn } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Switch> = {
@@ -9,69 +9,80 @@ const meta: Meta<typeof Switch> = {
   parameters: {
     qeetrix: qx({ category: "data-entry", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          'A toggle for binary on/off settings that take effect immediately without a submit button. Supports a `size` prop (`"sm"` | `"default"`) and an `aria-invalid` state. Common uses include enabling MFA enforcement, toggling passkey-only login, and activating qeet-notify channels.',
-      },
-    },
+  },
+  args: {
+    label: "Require a passkey for all members",
+    onCheckedChange: fn(),
   },
   tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Switch>;
 
-export const Default: Story = {
-  args: { defaultChecked: true, "aria-label": "Enable passkey login" },
-};
+export const Playground: Story = {};
 
-export const WithLabel: Story = {
+export const States: Story = {
   render: () => (
-    <div className="flex items-center gap-2">
-      <Switch id="mfa" defaultChecked />
-      <Label htmlFor="mfa">Require MFA for all members</Label>
-    </div>
+    <Stack gap="xs">
+      <Switch label="Weekly security summary" />
+      <Switch label="New device alerts" defaultChecked />
+      <Switch label="Allow password sign-in" disabled />
+      <Switch label="Audit log export" disabled defaultChecked />
+    </Stack>
   ),
 };
 
-export const Small: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story: "Compact `sm` size for dense settings rows in the Qeet ID admin panel.",
-      },
-    },
+export const InContext: Story = {
+  name: "In context",
+  render: () => (
+    <Stack gap="xs" style={{ inlineSize: 400 }}>
+      <Switch
+        label="New device sign-in"
+        description="Email Priya Sharma when a member signs in from a new device."
+        defaultChecked
+      />
+      <Switch label="Failed passkey attempts" description="After 5 in an hour." defaultChecked />
+      <Switch label="Weekly security summary" description="Mondays at 9:00 IST." />
+    </Stack>
+  ),
+};
+
+export const SpaceToggles: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: Space toggles",
+  play: async ({ args, canvas, userEvent }) => {
+    const control = canvas.getByRole("switch", { name: "Require a passkey for all members" });
+    await userEvent.tab();
+    await expect(control).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(control).toBeChecked();
+    await expect(args.onCheckedChange).toHaveBeenLastCalledWith(true, expect.anything());
+    await userEvent.keyboard(" ");
+    await expect(control).not.toBeChecked();
+    await expect(args.onCheckedChange).toHaveBeenLastCalledWith(false, expect.anything());
   },
-  render: () => (
-    <div className="flex items-center gap-2">
-      <Switch id="email-notif" size="sm" defaultChecked />
-      <Label htmlFor="email-notif">Email notifications</Label>
-    </div>
-  ),
 };
 
-export const ToggleInteraction: Story = {
-  name: "Interaction: toggling the switch",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A switch reports its state through the `switch` role and checked state, which is what assistive technology reads — not the thumb position.",
-      },
-    },
-  },
-  render: () => (
-    <div className="flex items-center gap-2">
-      <Switch id="interaction-mfa" defaultChecked />
-      <Label htmlFor="interaction-mfa">Require MFA for all members</Label>
-    </div>
-  ),
+export const LabelToggles: Story = {
+  ...InContext,
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: the label toggles it",
   play: async ({ canvas, userEvent }) => {
-    const toggle = canvas.getByRole("switch", { name: "Require MFA for all members" });
-    await expect(toggle).toBeChecked();
+    const control = canvas.getByRole("switch", { name: "New device sign-in" });
+    await expect(control).toHaveAccessibleDescription(
+      "Email Priya Sharma when a member signs in from a new device.",
+    );
+    await userEvent.click(canvas.getByText("New device sign-in"));
+    await expect(control).not.toBeChecked();
+  },
+};
 
-    await userEvent.click(toggle);
-
-    await expect(toggle).not.toBeChecked();
+export const NamedWithoutLabel: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: aria-label names a switch with no visible label",
+  args: { label: undefined, "aria-label": "Enable Acme HR" },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("switch", { name: "Enable Acme HR" })).toBeVisible();
   },
 };

@@ -1,118 +1,203 @@
-import { Checkbox, CheckboxGroup, Label } from "@qeetrix/ui";
+import { KeyRoundIcon } from "@qeetrix/icons/icons/key-round";
+import { MailIcon } from "@qeetrix/icons/icons/mail";
+import { SmartphoneIcon } from "@qeetrix/icons/icons/smartphone";
+import { Checkbox, CheckboxGroup, Grid, Stack } from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect } from "storybook/test";
+import { expect, fn } from "storybook/test";
 import { qx } from "../../_contract";
+
+const SCOPES = [
+  { value: "openid", label: "openid", description: "Confirm who they are." },
+  { value: "profile", label: "profile", description: "Read their name and photo." },
+  { value: "email", label: "email", description: "Read their work email." },
+];
 
 const meta: Meta<typeof Checkbox> = {
   title: "Components/Data Entry/Checkbox",
   component: Checkbox,
+  subcomponents: { CheckboxGroup },
   parameters: {
     qeetrix: qx({ category: "data-entry", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          "A binary toggle for boolean settings and multi-select lists. Supports an `indeterminate` state for parent checkboxes in scope or permission trees — common in Qeet ID's OAuth scope selector and qeet-people's bulk-action tables.",
-      },
-    },
+  },
+  args: {
+    label: "Keep me signed in on this device",
+    onCheckedChange: fn(),
   },
   tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Checkbox>;
 
-export const Default: Story = {
+export const Playground: Story = {};
+
+export const States: Story = {
   render: () => (
-    <div className="flex items-center gap-2">
-      <Checkbox id="terms" defaultChecked />
-      <Label htmlFor="terms">I accept the Qeet ID terms of service</Label>
-    </div>
+    <Stack gap="xs">
+      <Checkbox label="Email GST invoices" />
+      <Checkbox label="Send payment receipts" defaultChecked />
+      <Checkbox label="2 of 5 users selected" indeterminate />
+      <Checkbox label="Allow password sign-in" disabled />
+      <Checkbox label="Require a passkey" disabled defaultChecked />
+    </Stack>
   ),
 };
-
-export const Indeterminate: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Parent checkbox when only some child scopes are selected — clicking it selects or deselects all.",
-      },
-    },
-  },
-  render: () => (
-    <div className="flex items-center gap-2">
-      <Checkbox id="all" indeterminate />
-      <Label htmlFor="all">Select all OAuth scopes</Label>
-    </div>
-  ),
-};
-
-export const Disabled: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Org-level policy has locked this setting — an admin must override it in the Qeet ID security policy panel.",
-      },
-    },
-  },
-  render: () => (
-    <div className="flex items-center gap-2">
-      <Checkbox id="locked" defaultChecked disabled />
-      <Label htmlFor="locked">Require passkey for all members (enforced by policy)</Label>
-    </div>
-  ),
-};
-
-const SCOPES: Array<[string, string]> = [
-  ["openid", "openid — verify identity"],
-  ["profile", "profile — read display name & avatar"],
-  ["email", "email — read email address"],
-];
 
 export const Group: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "OAuth scope picker shown during Qeet ID application consent — pre-selects required scopes.",
-      },
-    },
-  },
   render: () => (
-    <CheckboxGroup defaultValue={["openid", "email"]} aria-label="OAuth scopes">
-      {SCOPES.map(([value, label]) => (
-        <div key={value} className="flex items-center gap-2">
-          <Checkbox id={`scope-${value}`} name={value} value={value} />
-          <Label htmlFor={`scope-${value}`}>{label}</Label>
-        </div>
+    <Grid columns={2} gap="2xl" style={{ inlineSize: 480 }}>
+      <CheckboxGroup
+        label="Notify me by"
+        description="About sign-ins from new devices."
+        defaultValue={["email"]}
+      >
+        <Checkbox value="email" label="Email" />
+        <Checkbox value="sms" label="SMS" />
+        <Checkbox value="whatsapp" label="WhatsApp" />
+      </CheckboxGroup>
+      <CheckboxGroup label="Weekly report" error="Choose at least one." orientation="horizontal">
+        <Checkbox value="email" label="Email" />
+        <Checkbox value="slack" label="Slack" />
+      </CheckboxGroup>
+    </Grid>
+  ),
+};
+
+export const Tiles: Story = {
+  render: () => (
+    <div style={{ inlineSize: 400 }}>
+      <CheckboxGroup label="Sign-in methods" variant="tile" defaultValue={["passkey", "totp"]}>
+        <Checkbox
+          value="passkey"
+          icon={KeyRoundIcon}
+          label="Passkey"
+          description="Face, fingerprint or screen lock."
+        />
+        <Checkbox
+          value="totp"
+          icon={SmartphoneIcon}
+          label="Authenticator app"
+          description="A 6-digit code from an app."
+        />
+        <Checkbox
+          value="email"
+          icon={MailIcon}
+          label="Email link"
+          description="A one-time link to their inbox."
+        />
+      </CheckboxGroup>
+    </div>
+  ),
+};
+
+export const InContext: Story = {
+  name: "In context",
+  render: () => (
+    <CheckboxGroup
+      label="Scopes Acme HR may use"
+      allValues={SCOPES.map((scope) => scope.value)}
+      defaultValue={["openid"]}
+    >
+      <Checkbox parent label="All scopes" />
+      {SCOPES.map((scope) => (
+        <Checkbox
+          key={scope.value}
+          value={scope.value}
+          label={scope.label}
+          description={scope.description}
+          style={{ marginInlineStart: 24 }}
+        />
       ))}
     </CheckboxGroup>
   ),
 };
 
-export const ToggleInteraction: Story = {
-  name: "Interaction: toggling via the label",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Clicking the *label* rather than the box is the real test: it only toggles if `htmlFor` is wired to the input, which is also what gives the checkbox its accessible name.",
-      },
-    },
+export const SpaceToggles: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: Space toggles",
+  play: async ({ args, canvas, userEvent }) => {
+    const checkbox = canvas.getByRole("checkbox", { name: "Keep me signed in on this device" });
+    await userEvent.tab();
+    await expect(checkbox).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(checkbox).toBeChecked();
+    await expect(args.onCheckedChange).toHaveBeenLastCalledWith(true, expect.anything());
+    await userEvent.keyboard(" ");
+    await expect(checkbox).not.toBeChecked();
+    await expect(args.onCheckedChange).toHaveBeenLastCalledWith(false, expect.anything());
   },
-  render: () => (
-    <div className="flex items-center gap-2">
-      <Checkbox id="interaction-terms" defaultChecked />
-      <Label htmlFor="interaction-terms">I accept the Qeet ID terms of service</Label>
-    </div>
-  ),
+};
+
+export const LabelToggles: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: the whole row is the click target",
+  args: {
+    label: "Email GST invoices",
+    description: "To the billing contact, finance@acme.in.",
+    defaultChecked: true,
+  },
   play: async ({ canvas, userEvent }) => {
-    const box = canvas.getByRole("checkbox", { name: "I accept the Qeet ID terms of service" });
-    await expect(box).toBeChecked();
+    const checkbox = canvas.getByRole("checkbox", { name: "Email GST invoices" });
+    await expect(checkbox).toHaveAccessibleDescription("To the billing contact, finance@acme.in.");
+    await userEvent.click(canvas.getByText("Email GST invoices"));
+    await expect(checkbox).not.toBeChecked();
+  },
+};
 
-    await userEvent.click(canvas.getByText("I accept the Qeet ID terms of service"));
+export const ParentChecksAll: Story = {
+  ...InContext,
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: the parent checks every scope, with a dash while mixed",
+  play: async ({ canvas, userEvent }) => {
+    // The mark's drawing: a dash while mixed, the tick once checked.
+    const mark = (name: string) =>
+      canvas.getByRole("checkbox", { name }).querySelector("[data-slot=checkbox-mark] svg")
+        ?.innerHTML;
+    const parent = canvas.getByRole("checkbox", { name: "All scopes" });
+    await expect(parent).toHaveAttribute("aria-checked", "mixed");
+    await expect(mark("All scopes")).toBeTruthy();
+    await expect(mark("All scopes")).not.toBe(mark("openid"));
+    await userEvent.click(parent);
+    for (const scope of SCOPES) {
+      await expect(canvas.getByRole("checkbox", { name: scope.label })).toBeChecked();
+    }
+    await expect(parent).toBeChecked();
+    await expect(mark("All scopes")).toBe(mark("openid"));
+    // Unchecking one child puts the parent back to mixed.
+    await userEvent.click(canvas.getByRole("checkbox", { name: "email" }));
+    await expect(parent).toHaveAttribute("aria-checked", "mixed");
+  },
+};
 
-    await expect(box).not.toBeChecked();
+export const GroupErrorMarksOptions: Story = {
+  ...Group,
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a group error marks its options invalid",
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("group", { name: "Notify me by" })).toBeVisible();
+    await expect(canvas.getByRole("checkbox", { name: "Slack" })).toHaveAttribute(
+      "data-invalid",
+      "",
+    );
+  },
+};
+
+export const TilesKeys: Story = {
+  ...Tiles,
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: checkbox tiles each take Tab; Space toggles",
+  play: async ({ canvas, userEvent }) => {
+    await expect(canvas.getByRole("checkbox", { name: "Passkey" })).toHaveAccessibleDescription(
+      "Face, fingerprint or screen lock.",
+    );
+    await userEvent.tab();
+    await expect(canvas.getByRole("checkbox", { name: "Passkey" })).toHaveFocus();
+    await userEvent.tab();
+    await userEvent.tab();
+    const email = canvas.getByRole("checkbox", { name: "Email link" });
+    await expect(email).toHaveFocus();
+    await userEvent.keyboard(" ");
+    await expect(email).toBeChecked();
   },
 };

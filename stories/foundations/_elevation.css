@@ -1,0 +1,580 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Foundations / Elevation (elevation.stories.tsx). Token values only, so every specimen follows
+ * the theme, density and direction toolbars like a component.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Shared: the canvas a specimen floats on, captions under a tile ────────── */
+
+.qx-elev-stage {
+  position: relative;
+  padding: 2.5rem 2rem;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-canvas);
+}
+
+.qx-elev-caption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
+  gap: 0.25rem;
+  min-inline-size: 0;
+}
+
+/* Values are code: they read left to right in either direction, light before dark. */
+.qx-elev-numbers {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* A shadow's numbers follow the scheme on screen, like the shadow itself. */
+.qx-elev-numbers [data-scheme="dark"],
+[data-qx-color-scheme="dark"] .qx-elev-numbers [data-scheme="light"] {
+  display: none;
+}
+
+[data-qx-color-scheme="dark"] .qx-elev-numbers [data-scheme="dark"] {
+  display: inline;
+}
+
+/* ── Shadows: one card per shadow, lowest to highest ───────────────────────── */
+
+.qx-elev-shadows {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 2rem 1.5rem;
+}
+
+.qx-elev-shadow {
+  display: grid;
+  gap: 1rem;
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.qx-elev-shadow-tile {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  block-size: 7rem;
+  padding: 0.875rem 1rem;
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+  box-shadow: var(--shadow);
+  transition:
+    box-shadow var(--qx-motion-duration-normal) var(--qx-motion-easing-standard),
+    translate var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
+}
+
+.qx-elev-shadow-tile[data-shadow="inset"] {
+  background: var(--qx-color-surface-sunken);
+}
+
+.qx-elev-shadow-tile[data-shadow="overlay"] {
+  border-radius: var(--qx-radius-overlay);
+  background: var(--qx-color-surface-overlay);
+}
+
+.qx-elev-shadow-tile[data-shadow="modal"] {
+  border-radius: var(--qx-radius-modal);
+  background: var(--qx-color-surface-overlay);
+}
+
+/* The resting card lifts to raised-hover under the pointer, as a product card does. */
+.qx-elev-shadow-tile[data-shadow="raised"]:hover {
+  box-shadow: var(--qx-shadow-raised-hover);
+  translate: 0 -2px;
+}
+
+.qx-elev-shadow-use {
+  font: var(--qx-typography-label-lg);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-elev-shadow-note {
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+/* ── Borders: the width itself, beside the token ───────────────────────────── */
+
+.qx-elev-sample {
+  inline-size: 100%;
+  max-inline-size: 24rem;
+}
+
+.qx-elev-rule-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qx-elev-use {
+  display: block;
+  margin-block-start: 0.125rem;
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-elev-rule {
+  flex: none;
+  inline-size: 1.5rem;
+  background: var(--qx-color-border-strong);
+}
+
+/* ── Layers: the rungs as planes of one screen, exploded in projection ─────── */
+
+.qx-elev-layers {
+  --plane: 11.5rem;
+  --step: 2.5rem;
+  --legend: 15rem;
+  --lead: 2.5rem;
+  --turn: -45deg;
+  --shift: -1;
+  display: grid;
+  gap: 1.5rem;
+  padding-block: 1.25rem 2.5rem;
+  overflow: hidden;
+}
+
+.qx-elev-layers:dir(rtl) {
+  --turn: 45deg;
+  --shift: 1;
+}
+
+.qx-elev-layers-bar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.qx-elev-scene {
+  position: relative;
+  isolation: isolate;
+  inline-size: calc(var(--legend) + var(--lead) + var(--plane) * 1.4142);
+  max-inline-size: 100%;
+  block-size: calc((var(--rungs) - 1) * var(--step) + var(--plane) * 0.7071);
+  margin-inline: auto;
+}
+
+/* The legend: each rung's token, value and readers, level with its plane's near corner. */
+.qx-elev-legend {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inline-size: calc(var(--legend) + var(--lead));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transition: opacity var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
+}
+
+.qx-elev-legend li {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: calc(var(--plane) * 0.3536 + var(--rung) * var(--step));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--lead);
+  align-items: center;
+  translate: 0 50%;
+}
+
+.qx-elev-legend li::after {
+  content: "";
+  margin-inline-start: 0.5rem;
+  border-block-start: var(--qx-border-width-default) dashed var(--qx-color-border-strong);
+}
+
+.qx-elev-legend-text {
+  display: grid;
+  justify-items: end;
+  min-inline-size: 0;
+  text-align: end;
+}
+
+.qx-elev-legend-token {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-inline-size: 100%;
+}
+
+.qx-elev-legend-token > code {
+  font: var(--qx-typography-code-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--qx-color-text-default);
+}
+
+.qx-elev-legend-note {
+  max-inline-size: 100%;
+  overflow: hidden;
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qx-elev-planes {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(var(--legend) + var(--lead));
+  inline-size: calc(var(--plane) * 1.4142);
+}
+
+/*
+ * A square plane turned 45° and squashed to half height is a diamond whose near corner sits at its
+ * vertical centre. Base sits at the bottom; each rung rises one step.
+ */
+.qx-elev-plane {
+  position: absolute;
+  inset-inline-start: calc(var(--plane) * 0.2071);
+  inset-block-end: calc(var(--plane) * -0.1464);
+  inline-size: var(--plane);
+  block-size: var(--plane);
+  border: var(--qx-border-width-default) dashed var(--qx-color-border-strong);
+  transform: translate(0, calc(var(--rung) * var(--step) * -1)) scale(1, 0.5) rotate(var(--turn));
+  transition:
+    transform var(--qx-motion-duration-slower) var(--qx-motion-easing-emphasized),
+    border-color var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
+}
+
+.qx-elev-plane[data-layer="base"] {
+  border-style: solid;
+  border-color: var(--qx-color-border-default);
+  background: var(--qx-color-surface-default);
+}
+
+.qx-elev-plane-el,
+.qx-elev-page-line {
+  position: absolute;
+}
+
+.qx-elev-page-line {
+  inset-inline-start: 8%;
+  block-size: 6%;
+  border-radius: var(--qx-radius-sm);
+  background: var(--qx-color-bg-neutral-subtle);
+}
+
+.qx-elev-page-line:nth-child(2) {
+  inset-block-start: 26%;
+  inline-size: 52%;
+}
+
+.qx-elev-page-line:nth-child(3) {
+  inset-block-start: 42%;
+  inline-size: 84%;
+}
+
+.qx-elev-page-line:nth-child(4) {
+  inset-block-start: 58%;
+  inline-size: 68%;
+}
+
+[data-layer="sticky"] > .qx-elev-plane-el {
+  inset: 0 0 auto;
+  block-size: 15%;
+  border-block-end: var(--qx-border-width-default) solid var(--qx-color-border-default);
+  background: var(--qx-color-surface-raised);
+}
+
+[data-layer="dropdown"] > .qx-elev-plane-el {
+  inset-block-start: 19%;
+  inset-inline-start: 6%;
+  inline-size: 34%;
+  block-size: 30%;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-overlay);
+  background: var(--qx-color-surface-overlay);
+  box-shadow: var(--qx-shadow-overlay);
+}
+
+[data-layer="overlay"] > .qx-elev-plane-el {
+  inset: 0;
+  background: var(--qx-color-overlay-scrim);
+}
+
+[data-layer="modal"] > .qx-elev-plane-el {
+  inset-block-start: 28%;
+  inset-inline-start: 20%;
+  inline-size: 60%;
+  block-size: 42%;
+  border-block-start: var(--qx-border-width-accent) solid var(--qx-color-border-brand);
+  border-radius: var(--qx-radius-modal);
+  background: var(--qx-color-surface-overlay);
+  box-shadow: var(--qx-shadow-modal);
+}
+
+[data-layer="popover"] > .qx-elev-plane-el {
+  inset-block-start: 56%;
+  inset-inline-start: 58%;
+  inline-size: 32%;
+  block-size: 20%;
+  border-radius: var(--qx-radius-overlay);
+  background: var(--qx-color-surface-overlay);
+  box-shadow: var(--qx-shadow-overlay);
+}
+
+[data-layer="toast"] > .qx-elev-plane-el {
+  inset-block-start: 84%;
+  inset-inline-start: 50%;
+  inline-size: 44%;
+  block-size: 11%;
+  border-inline-start: var(--qx-border-width-accent) solid var(--qx-color-icon-info);
+  border-radius: var(--qx-radius-overlay);
+  background: var(--qx-color-surface-overlay);
+  box-shadow: var(--qx-shadow-overlay);
+}
+
+[data-layer="tooltip"] > .qx-elev-plane-el {
+  inset-block-start: 76%;
+  inset-inline-start: 14%;
+  inline-size: 24%;
+  block-size: 8%;
+  border-radius: var(--qx-radius-tooltip);
+  background: var(--qx-color-surface-inverse);
+}
+
+/* A guided tour's ring, around the popover it points out. */
+[data-layer="spotlight"] > .qx-elev-plane-el {
+  inset-block-start: 49%;
+  inset-inline-start: 57%;
+  inline-size: 34%;
+  block-size: 34%;
+  border: var(--qx-border-width-strong) solid var(--qx-color-border-brand);
+  border-radius: var(--qx-radius-full);
+}
+
+[data-layer="skip-link"] > .qx-elev-plane-el {
+  inset-block-start: 3%;
+  inset-inline-start: 4%;
+  inline-size: 30%;
+  block-size: 9%;
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-surface-default);
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+}
+
+/* Composed: the planes fold flat into the one screen a person sees, centred on the stage. */
+.qx-elev-layers[data-view="composed"] .qx-elev-plane {
+  transform: translate(
+      calc((var(--legend) + var(--lead)) / 2 * var(--shift)),
+      calc((var(--rungs) - 1) * var(--step) / -2)
+    )
+    scale(1.8, 1.8) rotate(0deg);
+}
+
+.qx-elev-layers[data-view="composed"] .qx-elev-plane:not([data-layer="base"]) {
+  border-color: transparent;
+}
+
+.qx-elev-layers[data-view="composed"] .qx-elev-legend {
+  visibility: hidden;
+  opacity: 0;
+}
+
+/* ── Opacity: tiles over the default surface ───────────────────────────────── */
+
+.qx-elev-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  gap: 1.5rem 1rem;
+  inline-size: 100%;
+}
+
+.qx-elev-tile {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.qx-elev-tile-sample {
+  display: grid;
+  place-items: center;
+  block-size: 5rem;
+  overflow: hidden;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-default);
+}
+
+.qx-elev-tile-sample > svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.qx-elev-tile-sample[data-faded] > svg {
+  opacity: var(--qx-opacity-disabled);
+}
+
+.qx-elev-tile-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-elev-selection {
+  font: var(--qx-typography-title-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-heading);
+}
+
+.qx-elev-selection > mark {
+  background: var(--qx-color-selection);
+  color: inherit;
+}
+
+/* ── Focus ring: the edge zoomed eight times, then the real controls ───────── */
+
+.qx-elev-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 2rem;
+}
+
+.qx-elev-zoom {
+  --zoom: 8;
+  --ring: calc(var(--qx-focus-ring-width) * var(--zoom));
+  --gap: calc(var(--qx-focus-ring-offset) * var(--zoom));
+  --edge: 64%;
+  position: relative;
+  block-size: 9rem;
+  overflow: hidden;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-canvas);
+}
+
+.qx-elev-zoom-control {
+  position: absolute;
+  inset-block-start: 2.25rem;
+  inset-inline-start: var(--edge);
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.qx-elev-zoom[data-ring="inside"] .qx-elev-zoom-control {
+  border-start-start-radius: calc(var(--qx-radius-control) * var(--zoom));
+  background: var(--qx-color-bg-neutral-subtle);
+  box-shadow: inset 0 0 0 var(--ring) var(--qx-color-border-focus);
+}
+
+.qx-elev-zoom[data-ring="outside"] .qx-elev-zoom-control {
+  border: calc(var(--qx-border-width-default) * var(--zoom)) solid var(--qx-color-border-strong);
+  border-start-start-radius: calc(var(--qx-radius-sm) * var(--zoom));
+  background: var(--qx-color-bg-input);
+  outline: var(--ring) solid var(--qx-color-border-focus);
+  outline-offset: var(--gap);
+}
+
+/* A callout: label, a leader, then a bracket over what it measures (or a dot on what it names). */
+.qx-elev-callout {
+  position: absolute;
+  inset-block-start: var(--top);
+  inset-inline-start: 0.875rem;
+  inset-inline-end: calc(100% - var(--to));
+  display: flex;
+  align-items: center;
+  translate: 0 -50%;
+}
+
+.qx-elev-callout-label {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.375rem;
+  padding-inline-end: 0.5rem;
+}
+
+.qx-elev-callout-label > code {
+  font: var(--qx-typography-code-sm);
+  font-weight: 600;
+  color: var(--qx-color-text-default);
+}
+
+.qx-elev-callout-lead {
+  flex: 1;
+  min-inline-size: 0.75rem;
+  border-block-start: var(--qx-border-width-default) solid var(--qx-color-text-subtle);
+}
+
+.qx-elev-callout-mark {
+  flex: none;
+  inline-size: calc(var(--to) - var(--from));
+  block-size: 0.75rem;
+  border-inline: var(--qx-border-width-default) solid var(--qx-color-text-default);
+  background:
+    linear-gradient(var(--qx-color-text-default), var(--qx-color-text-default)) center / 100% 1px
+    no-repeat;
+}
+
+.qx-elev-callout[data-point] .qx-elev-callout-mark {
+  inline-size: 0.5rem;
+  block-size: 0.5rem;
+  margin-inline-end: -0.25rem;
+  border: 0;
+  border-radius: var(--qx-radius-full);
+  background: var(--qx-color-text-default);
+}
+
+/* The rings @qeetrix/react draws on :focus-visible, drawn statically for the picture. */
+.qx-elev-focus-live {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  padding-block: 0.25rem;
+}
+
+.qx-elev-focus-live .qx-input {
+  inline-size: 13rem;
+}
+
+.qx-elev-focus-live[data-ring="inside"] :is(.qx-button, .qx-input) {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: calc(-1 * var(--qx-focus-ring-width));
+}
+
+.qx-elev-focus-live[data-ring="inside"] .qx-button {
+  box-shadow: inset 0 0 0 calc(var(--qx-focus-ring-width) + var(--qx-border-width-default))
+    var(--qx-color-surface-default);
+}
+
+.qx-elev-focus-live[data-ring="inside"] .qx-input {
+  box-shadow: none;
+}
+
+.qx-elev-focus-live[data-ring="outside"] :is(.qx-checkbox, .qx-link) {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: var(--qx-focus-ring-offset);
+}
+
+/* ── Narrow cards and reduced motion ───────────────────────────────────────── */
+
+@container (max-width: 44rem) {
+  .qx-elev-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .qx-elev-layers {
+    --plane: 8.5rem;
+    --step: 2.25rem;
+    --legend: 11rem;
+    --lead: 1.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qx-elev-shadow-tile,
+  .qx-elev-legend,
+  .qx-elev-plane {
+    transition: none;
+  }
+}

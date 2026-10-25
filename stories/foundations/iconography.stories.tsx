@@ -1,27 +1,71 @@
+import type { IconProps } from "@qeetrix/icons";
+import { BellIcon } from "@qeetrix/icons/icons/bell";
+import { CheckIcon } from "@qeetrix/icons/icons/check";
+import { ChevronDownIcon } from "@qeetrix/icons/icons/chevron-down";
+import { CircleAlertIcon } from "@qeetrix/icons/icons/circle-alert";
+import { CircleCheckIcon } from "@qeetrix/icons/icons/circle-check";
+import { CopyIcon } from "@qeetrix/icons/icons/copy";
+import { DownloadIcon } from "@qeetrix/icons/icons/download";
+import { EllipsisIcon } from "@qeetrix/icons/icons/ellipsis";
+import { FunnelIcon } from "@qeetrix/icons/icons/funnel";
+import { HouseIcon } from "@qeetrix/icons/icons/house";
+import { InfoIcon } from "@qeetrix/icons/icons/info";
+import { KeyRoundIcon } from "@qeetrix/icons/icons/key-round";
+import { LayoutDashboardIcon } from "@qeetrix/icons/icons/layout-dashboard";
+import { LockIcon } from "@qeetrix/icons/icons/lock";
+import { LogOutIcon } from "@qeetrix/icons/icons/log-out";
+import { MailIcon } from "@qeetrix/icons/icons/mail";
+import { PencilIcon } from "@qeetrix/icons/icons/pencil";
+import { PlusIcon } from "@qeetrix/icons/icons/plus";
+import { ScanFaceIcon } from "@qeetrix/icons/icons/scan-face";
+import { SearchIcon } from "@qeetrix/icons/icons/search";
+import { SettingsIcon } from "@qeetrix/icons/icons/settings";
+import { ShieldCheckIcon } from "@qeetrix/icons/icons/shield-check";
+import { StarIcon } from "@qeetrix/icons/icons/star";
+import { TrashIcon } from "@qeetrix/icons/icons/trash";
+import { TriangleAlertIcon } from "@qeetrix/icons/icons/triangle-alert";
+import { UserIcon } from "@qeetrix/icons/icons/user";
+import { UsersIcon } from "@qeetrix/icons/icons/users";
 import {
-  BellIcon,
-  CheckIcon,
-  LockIcon,
-  SearchIcon,
-  SettingsIcon,
-  TrashIcon,
-  UserIcon,
-} from "@qeetrix/icons";
-import { Button, ICON_SIZE, ICON_STROKE, Icon } from "@qeetrix/ui";
+  Badge,
+  Button,
+  IconButton,
+  Input,
+  Menu,
+  MenuContent,
+  MenuItem,
+  MenuSeparator,
+  MenuTrigger,
+  Select,
+  Tab,
+  Tabs,
+  TabsList,
+  Text,
+  Toggle,
+} from "@qeetrix/react";
+import { ICON_SIZE, ICON_STROKE } from "@qeetrix/tokens";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import type { ComponentType, SVGProps } from "react";
+import {
+  type ComponentType,
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import { expect } from "storybook/test";
 
-import { Page, Section } from "../_helpers";
-import { Callout, Code, Prose, TokenTable } from "./_foundation";
+import { CopyToken, Group, Specimen, SpecimenRow, SpecimenRows } from "../_helpers";
+import "./_iconography.css";
 
 const meta: Meta = {
   title: "Foundations/Iconography",
   parameters: {
-    layout: "fullscreen",
+    layout: "padded",
     docs: {
       description: {
         component:
-          "Two token families carry iconography: `--qx-icon-size-*` (14 / 16 / 20 / 24px) and `--qx-icon-stroke-*` (1.5 / 2). Both are published as the typed `ICON_SIZE` and `ICON_STROKE` constants, and the `<Icon>` wrapper is how a component consumes them. The sizes are even numbers on a 24px grid so a glyph centres exactly inside a control instead of landing on a half pixel; the two stroke weights exist so a large icon does not read heavier than the text beside it. Everything else about an icon — whether it has a name, whether it is announced at all — is an accessibility decision, and it is the one the wrapper makes you state.",
+          "Icons from `@qeetrix/icons`, drawn on a 24-unit grid in round and sharp shapes. Components take one as `icon={PlusIcon}` and size it for you.",
       },
     },
   },
@@ -30,280 +74,481 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-const SIZES = [
-  { name: "xs", px: ICON_SIZE.xs, use: "Badges, inline code, table cell affordances." },
-  { name: "sm", px: ICON_SIZE.sm, use: "Compact rows, small buttons, dense chrome." },
-  { name: "md", px: ICON_SIZE.md, use: "The default. Body copy and button labels." },
-  { name: "lg", px: ICON_SIZE.lg, use: "Standalone icon buttons and primary navigation." },
-] as const;
+type Outline = ComponentType<IconProps<"outline">>;
+type Fillable = ComponentType<IconProps<"outline" | "filled">>;
+
+/** The drawing grid, in units: every icon's viewBox is 24 × 24. */
+const GRID = 24;
+
+const SIZES = (Object.entries(ICON_SIZE) as Array<[keyof typeof ICON_SIZE, number]>).sort(
+  (a, b) => a[1] - b[1],
+);
+const STROKES = (Object.entries(ICON_STROKE) as Array<[keyof typeof ICON_STROKE, number]>).sort(
+  (a, b) => b[1] - a[1],
+);
 
 /**
- * A Qeetrix glyph sized — and optionally stroked — from its CSS token. Each icon renders a
- * fixed 24×24 `<svg>` with `width`/`height`/`stroke-width` presentation attributes, and CSS
- * outranks presentation attributes — so this is the token doing the work, live, rather than
- * a number copied out of it. Colour needs no help: the icons paint with `currentColor`.
+ * An icon magnified on a pixel grid: the box is the size token times four, one square per pixel,
+ * so the box and the stroke can be counted.
  */
-type GlyphComponent = ComponentType<SVGProps<SVGSVGElement>>;
-
-function Glyph({
-  icon: Cmp,
-  sizeVar,
-  strokeVar,
-}: {
-  icon: GlyphComponent;
-  sizeVar: string;
-  strokeVar?: string;
-}) {
+function PixelGrid({ box, children }: { box: string; children: ReactNode }) {
   return (
-    <Cmp
-      aria-hidden="true"
-      focusable="false"
-      style={{
-        width: `var(${sizeVar})`,
-        height: `var(${sizeVar})`,
-        ...(strokeVar ? { strokeWidth: `var(${strokeVar})` } : null),
-      }}
-    />
+    <span className="qx-ico-grid" style={{ "--qx-ico-box": box } as CSSProperties}>
+      {children}
+    </span>
   );
 }
 
-export const Sizing: Story = {
+/** The same five icons in every row, so only the size or the stroke changes. */
+const STRIP: Array<{ Icon: Outline; id: string }> = [
+  { Icon: SettingsIcon, id: "settings" },
+  { Icon: SearchIcon, id: "search" },
+  { Icon: BellIcon, id: "bell" },
+  { Icon: UsersIcon, id: "users" },
+  { Icon: ShieldCheckIcon, id: "shield-check" },
+];
+
+/** One size or stroke: magnified on its grid, then the strip at actual size. */
+function ScaleSample({ box, stroke }: { box: string; stroke?: string }) {
+  const style = stroke ? { strokeWidth: stroke } : undefined;
+  return (
+    <div className="qx-ico-sample" aria-hidden="true">
+      <span className="qx-ico-zoom">
+        <PixelGrid box={box}>
+          <SettingsIcon shape="sharp" size="100%" style={style} />
+        </PixelGrid>
+      </span>
+      <span className="qx-ico-strip">
+        {STRIP.map(({ Icon, id }) => (
+          <Icon key={id} shape="sharp" size={box} style={style} />
+        ))}
+      </span>
+    </div>
+  );
+}
+
+/** The stroke a box draws: the regular stroke is in grid units, so it scales with the box. */
+const renderedStroke = (px: number) => Number(((ICON_STROKE.regular * px) / GRID).toFixed(2));
+
+/* ── Size and stroke ──────────────────────────────────────────────────────── */
+
+export const Sizes: Story = {
+  name: "Size and stroke",
   parameters: {
     docs: {
       description: {
         story:
-          "The four-step size scale, each glyph sized directly from `--qx-icon-size-*` so the specimen is the token rather than a copy of it.",
+          "Four box sizes and two stroke weights, magnified on the pixel grid, then actual size.",
       },
     },
   },
   render: () => (
-    <Page>
-      <Section title="Size scale">
-        <Prose>
-          Four steps, all even, all divisors of the 24px artwork grid. Pick the step that matches
-          the text the icon sits next to — an icon that is larger than its label reads as the
-          subject of the row rather than a modifier on it.
-        </Prose>
-        <div className="flex flex-wrap items-end gap-10">
-          {SIZES.map((size) => (
-            <div key={size.name} className="flex flex-col items-center gap-3">
-              <Glyph icon={SettingsIcon} sizeVar={`--qx-icon-size-${size.name}`} />
-              <code className="text-xs text-muted-foreground">
-                {size.name} · {size.px}px
-              </code>
-            </div>
+    <Specimen>
+      <Group label="Sizes" aside="Magnified 4×: one square is one pixel">
+        <SpecimenRows>
+          {SIZES.map(([name, px]) => (
+            <SpecimenRow
+              key={name}
+              token={`--qx-size-icon-${name}`}
+              meta={
+                <>
+                  {px}px · ICON_SIZE.{name}
+                  <span className="qx-ico-meta-line">stroke {renderedStroke(px)}px</span>
+                </>
+              }
+            >
+              <ScaleSample box={`var(--qx-size-icon-${name})`} />
+            </SpecimenRow>
           ))}
-        </div>
-        <TokenTable
-          caption="--qx-icon-size-* — also exported as the typed ICON_SIZE constant."
-          columns={["Token", "CSS variable", "Value", "Where it belongs"]}
-          rows={SIZES.map((size) => ({
-            token: `ICON_SIZE.${size.name}`,
-            cells: [
-              `--qx-icon-size-${size.name}`,
-              `${size.px}px`,
-              <span key={size.name} className="font-sans">
-                {size.use}
-              </span>,
-            ],
-          }))}
-        />
-      </Section>
-
-      <Section title="Stroke weight">
-        <Prose>
-          <Code>&lt;Icon&gt;</Code> forwards the stroke token to the glyph as{" "}
-          <Code>strokeWidth</Code>. <Code>regular</Code> is the default and matches the weight of UI
-          text; <Code>thin</Code> is for display-scale icons in hero headings and large stat tiles,
-          where a 2px stroke starts to look heavy.
-        </Prose>
-        <div className="flex flex-wrap items-center gap-10">
-          {(Object.entries(ICON_STROKE) as Array<[keyof typeof ICON_STROKE, number]>).map(
-            ([name, width]) => (
-              <div key={name} className="flex flex-col items-center gap-3">
-                <Glyph
-                  icon={SearchIcon}
-                  sizeVar="--qx-icon-size-lg"
-                  strokeVar={`--qx-icon-stroke-${name}`}
-                />
-                <code className="text-xs text-muted-foreground">
-                  {name} · {width}
-                </code>
-              </div>
-            ),
-          )}
-        </div>
-        <TokenTable
-          caption="--qx-icon-stroke-* — also exported as the typed ICON_STROKE constant."
-          columns={["Token", "CSS variable", "Value"]}
-          rows={(Object.entries(ICON_STROKE) as Array<[string, number]>).map(([name, width]) => ({
-            token: `ICON_STROKE.${name}`,
-            cells: [`--qx-icon-stroke-${name}`, String(width)],
-          }))}
-        />
-        <Callout title="Stroke is measured in the 24-unit grid, not in pixels">
-          Every <Code>@qeetrix/icons</Code> glyph is drawn on a 24×24 <Code>viewBox</Code>, so{" "}
-          <Code>strokeWidth</Code> scales with the icon: <Code>regular</Code> is a true 2px at{" "}
-          <Code>lg</Code> (24px) but about 1.2px at <Code>xs</Code> (14px). That is what keeps a
-          small glyph from closing up into a blob — pick the stroke for the size the icon is{" "}
-          <em>designed</em> at, and let it scale.
-        </Callout>
-      </Section>
-    </Page>
+        </SpecimenRows>
+      </Group>
+      <Group label="Stroke" aside="In grid units, so a stroke scales with its box">
+        <SpecimenRows>
+          {STROKES.map(([name, width]) => (
+            <SpecimenRow
+              key={name}
+              token={`--qx-icon-stroke-${name}`}
+              meta={`${width} · ICON_STROKE.${name}`}
+            >
+              <ScaleSample box="var(--qx-size-icon-lg)" stroke={`var(--qx-icon-stroke-${name})`} />
+            </SpecimenRow>
+          ))}
+        </SpecimenRows>
+      </Group>
+    </Specimen>
   ),
 };
 
-export const Alignment: Story = {
+/* ── Shapes ───────────────────────────────────────────────────────────────── */
+
+/** Icons with a filled drawing, so every shape and variant exists. */
+const SPECIMENS: Array<{ Icon: Fillable; id: string }> = [
+  { Icon: StarIcon, id: "star" },
+  { Icon: BellIcon, id: "bell" },
+  { Icon: ShieldCheckIcon, id: "shield-check" },
+  { Icon: KeyRoundIcon, id: "key-round" },
+  { Icon: UsersIcon, id: "users" },
+  { Icon: HouseIcon, id: "house" },
+];
+
+type Shape = "round" | "sharp";
+type Variant = "outline" | "filled";
+
+/** One drawing style: a magnified icon and the specimen set, captioned with its prop. */
+function Plate({
+  title,
+  prop,
+  note,
+  Detail,
+  shape,
+  variant,
+}: {
+  title: string;
+  prop: string;
+  note: string;
+  Detail: Fillable;
+  shape: Shape;
+  variant: Variant;
+}) {
+  return (
+    <figure className="qx-ico-plate">
+      <div className="qx-ico-plate-stage" aria-hidden="true">
+        <PixelGrid box="var(--qx-size-icon-lg)">
+          <Detail shape={shape} variant={variant} size="100%" />
+        </PixelGrid>
+        <span className="qx-ico-plate-set">
+          {SPECIMENS.map(({ Icon, id }) => (
+            <Icon key={id} shape={shape} variant={variant} size="var(--qx-size-icon-lg)" />
+          ))}
+        </span>
+      </div>
+      <figcaption className="qx-ico-plate-caption">
+        <span className="qx-ico-plate-head">
+          <span className="qx-ico-plate-title">{title}</span>
+          <CopyToken value={prop} />
+        </span>
+        <span className="qx-ico-plate-note">{note}</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+export const Shapes: Story = {
   parameters: {
     docs: {
       description: {
         story:
-          "Icons sit on the text they annotate, not beside it. The rules that make that hold across line heights, wrapping and translation.",
+          "Every icon has both shapes. Components draw sharp; a filled drawing marks selection.",
       },
     },
   },
   render: () => (
-    <Page>
-      <Section title="Optical alignment">
-        <Prose>
-          An icon in a row of text is centred on the text&rsquo;s line box, not on its baseline — a
-          glyph has no descender to sit on. <Code>flex</Code> plus <Code>items-center</Code> is the
-          whole technique, and it survives the label wrapping onto a second line where a hand-tuned{" "}
-          <Code>vertical-align</Code> would not.
-        </Prose>
-        <div className="flex max-w-md flex-col gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground">
-          {[
-            { icon: UserIcon, label: "Ada Lovelace" },
-            { icon: LockIcon, label: "Passkey required" },
-            { icon: BellIcon, label: "Notify me when this session expires" },
-          ].map((row) => (
-            <div key={row.label} className="flex items-center gap-2 text-sm">
-              <Glyph icon={row.icon} sizeVar="--qx-icon-size-sm" />
-              <span>{row.label}</span>
-            </div>
-          ))}
+    <Specimen>
+      <Group label="Shape">
+        <div className="qx-ico-plates">
+          <Plate
+            title="Round"
+            prop='shape="round"'
+            note="Lucide's round caps and joins. The default."
+            Detail={KeyRoundIcon}
+            shape="round"
+            variant="outline"
+          />
+          <Plate
+            title="Sharp"
+            prop='shape="sharp"'
+            note="Square caps, mitered joins, squared corners. What every component draws."
+            Detail={KeyRoundIcon}
+            shape="sharp"
+            variant="outline"
+          />
         </div>
-      </Section>
+      </Group>
+      <Group label="Variant">
+        <div className="qx-ico-plates">
+          <Plate
+            title="Outline"
+            prop='variant="outline"'
+            note="Every icon has one. The default."
+            Detail={BellIcon}
+            shape="sharp"
+            variant="outline"
+          />
+          <Plate
+            title="Filled"
+            prop='variant="filled"'
+            note="Only where a solid form means something: a selected tab, a pressed toggle."
+            Detail={BellIcon}
+            shape="sharp"
+            variant="filled"
+          />
+        </div>
+      </Group>
+    </Specimen>
+  ),
+};
 
-      <Section title="Icons never shrink">
-        <Prose>
-          <Code>&lt;Icon&gt;</Code> applies <Code>shrink-0</Code> unconditionally. Inside a flex row
-          a squeezed icon is the first thing to distort, and a 20px glyph compressed to 14 by a long
-          label is worse than the label truncating — which is what should happen instead.
-        </Prose>
-        <div className="flex w-64 items-center gap-2 rounded-lg border border-border bg-card p-3 text-sm text-card-foreground">
-          <Glyph icon={SearchIcon} sizeVar="--qx-icon-size-md" />
-          <span className="truncate">
-            A deliberately long label that has to truncate rather than crush the icon
+/* ── In components ────────────────────────────────────────────────────────── */
+
+/**
+ * A live component and the icon size it draws, read from the rendered `<svg>` rather than
+ * written down, so the label can't drift from the library.
+ */
+function Demo({ name, children }: { name: string; children: ReactNode }) {
+  const stage = useRef<HTMLDivElement>(null);
+  const [px, setPx] = useState<number>();
+  useEffect(() => {
+    const width = stage.current?.querySelector("svg")?.getAttribute("width");
+    setPx(width ? Number(width) : undefined);
+  }, []);
+  const token = SIZES.find(([, value]) => value === px)?.[0];
+  return (
+    <div className="qx-ico-demo">
+      <div ref={stage} className="qx-ico-demo-stage">
+        {children}
+      </div>
+      <div className="qx-ico-demo-meta">
+        <span className="qx-ico-demo-name">{name}</span>
+        {px ? (
+          <code className="qx-ico-demo-size">{token ? `${px}px · ${token}` : `${px}px`}</code>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+export const InComponents: Story = {
+  name: "In components",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Components size the icon for you: 16px in a control, 20px in a large one. Read live.",
+      },
+    },
+  },
+  render: () => (
+    <Specimen>
+      <div className="qx-ico-demos">
+        <Demo name="Button">
+          <Button icon={PlusIcon}>Invite users</Button>
+        </Demo>
+        <Demo name="Button, large">
+          <Button size="lg" variant="soft" icon={KeyRoundIcon}>
+            Rotate keys
+          </Button>
+        </Demo>
+        <Demo name="IconButton">
+          <IconButton icon={SettingsIcon} aria-label="Organisation settings" variant="soft" />
+        </Demo>
+        <Demo name="Input">
+          <span className="qx-ico-demo-fill">
+            <Input icon={SearchIcon} aria-label="Search users" placeholder="Search users" />
           </span>
-        </div>
-      </Section>
-
-      <Section title="Inside controls">
-        <Prose>
-          Button sizes its own icons — the variant carries{" "}
-          <Code>[&amp;_svg:not([class*=&apos;size-&apos;])]:size-4</Code>, so a bare glyph lands at
-          16px and anything with an explicit size class is left alone. Do not fight it with a
-          wrapper; pass the size class on the icon itself if you need a different step.
-        </Prose>
-        <div className="flex flex-wrap items-center gap-4">
-          <Button>
-            <CheckIcon aria-hidden="true" />
-            Approve request
-          </Button>
-          <Button variant="outline">
-            <SettingsIcon aria-hidden="true" />
-            Settings
-          </Button>
-          <Button variant="destructive">
-            <TrashIcon aria-hidden="true" />
-            Delete
-          </Button>
-        </div>
-      </Section>
-    </Page>
+        </Demo>
+        <Demo name="Select">
+          <span className="qx-ico-demo-fill">
+            <Select
+              aria-label="Role"
+              items={[
+                { value: "admin", label: "Admin" },
+                { value: "member", label: "Member" },
+              ]}
+              defaultValue="member"
+            />
+          </span>
+        </Demo>
+        <Demo name="Menu">
+          <Menu>
+            <MenuTrigger
+              render={
+                <Button variant="soft" icon={ChevronDownIcon}>
+                  Actions
+                </Button>
+              }
+            />
+            <MenuContent>
+              <MenuItem icon={PencilIcon}>Rename</MenuItem>
+              <MenuItem icon={CopyIcon}>Duplicate</MenuItem>
+              <MenuSeparator />
+              <MenuItem icon={TrashIcon} tone="danger">
+                Delete
+              </MenuItem>
+            </MenuContent>
+          </Menu>
+        </Demo>
+        <Demo name="Tabs">
+          <Tabs defaultValue="overview">
+            <TabsList>
+              <Tab value="overview" icon={HouseIcon} filledWhenSelected>
+                Home
+              </Tab>
+              <Tab value="users" icon={UsersIcon} filledWhenSelected>
+                Users
+              </Tab>
+            </TabsList>
+          </Tabs>
+        </Demo>
+        <Demo name="Toggle">
+          <Toggle icon={StarIcon} filledWhenPressed defaultPressed aria-label="Favourite" />
+          <Toggle icon={BellIcon} filledWhenPressed aria-label="Notifications" />
+        </Demo>
+        <Demo name="Badge">
+          <Badge tone="success" icon={CircleCheckIcon}>
+            Verified
+          </Badge>
+        </Demo>
+      </div>
+    </Specimen>
   ),
 };
 
-export const DecorativeVersusMeaningful: Story = {
+/* ── Common icons ─────────────────────────────────────────────────────────── */
+
+type Tone = "info" | "success" | "warning" | "danger";
+
+interface Glyph {
+  Icon: Outline;
+  id: string;
+  /** Status icons paint their tone's icon colour, the way Toast draws them. */
+  tone?: Tone;
+}
+
+const COMMON: Array<{ label: string; aside?: string; icons: Glyph[] }> = [
+  {
+    label: "Actions",
+    icons: [
+      { Icon: PlusIcon, id: "plus" },
+      { Icon: PencilIcon, id: "pencil" },
+      { Icon: CopyIcon, id: "copy" },
+      { Icon: TrashIcon, id: "trash" },
+      { Icon: DownloadIcon, id: "download" },
+      { Icon: SearchIcon, id: "search" },
+      { Icon: FunnelIcon, id: "funnel" },
+      { Icon: EllipsisIcon, id: "ellipsis" },
+    ],
+  },
+  {
+    label: "Status",
+    aside: "The tone icons Toast draws",
+    icons: [
+      { Icon: InfoIcon, id: "info", tone: "info" },
+      { Icon: CircleCheckIcon, id: "circle-check", tone: "success" },
+      { Icon: TriangleAlertIcon, id: "triangle-alert", tone: "warning" },
+      { Icon: CircleAlertIcon, id: "circle-alert", tone: "danger" },
+    ],
+  },
+  {
+    label: "Identity and access",
+    icons: [
+      { Icon: UserIcon, id: "user" },
+      { Icon: UsersIcon, id: "users" },
+      { Icon: KeyRoundIcon, id: "key-round" },
+      { Icon: LockIcon, id: "lock" },
+      { Icon: ShieldCheckIcon, id: "shield-check" },
+      { Icon: ScanFaceIcon, id: "scan-face" },
+      { Icon: MailIcon, id: "mail" },
+      { Icon: LogOutIcon, id: "log-out" },
+    ],
+  },
+  {
+    label: "Navigation",
+    icons: [
+      { Icon: HouseIcon, id: "house" },
+      { Icon: LayoutDashboardIcon, id: "layout-dashboard" },
+      { Icon: SettingsIcon, id: "settings" },
+      { Icon: BellIcon, id: "bell" },
+    ],
+  },
+];
+
+/** `circle-check` → `CircleCheckIcon`: the export is the id in PascalCase plus `Icon`. */
+const componentName = (id: string) =>
+  `${id
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("")}Icon`;
+
+/** One icon: click the tile to copy its import statement. */
+function GlyphTile({ Icon, id, tone }: Glyph) {
+  const [copied, setCopied] = useState(false);
+  const name = componentName(id);
+  const statement = `import { ${name} } from "@qeetrix/icons/icons/${id}";`;
+  const copy = () => {
+    void navigator.clipboard?.writeText(statement).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    });
+  };
+  return (
+    <div className="qx-ico-tile">
+      <span
+        className="qx-ico-tile-well"
+        style={tone ? { color: `var(--qx-color-icon-${tone})` } : undefined}
+      >
+        <Icon shape="sharp" size="var(--qx-size-icon-lg)" />
+      </span>
+      <span className="qx-ico-tile-meta">
+        <span className="qx-ico-tile-name">
+          {copied ? (
+            <span role="status" className="qx-ico-tile-copied">
+              <CheckIcon size={12} aria-hidden /> Copied
+            </span>
+          ) : (
+            name
+          )}
+        </span>
+        <code className="qx-ico-tile-id">{id}</code>
+      </span>
+      {/* Stretched over the whole tile, so the tile is one target. */}
+      <button
+        type="button"
+        className="qx-ico-tile-hit"
+        onClick={copy}
+        title={statement}
+        aria-label={`Copy the import for ${name}`}
+      />
+    </div>
+  );
+}
+
+export const CommonIcons: Story = {
+  name: "Common icons",
   parameters: {
     docs: {
       description: {
-        story:
-          "The only iconography decision that can fail an audit. `<Icon>` defaults to decorative and makes the meaningful case explicit, because the failure mode of the opposite default is silent.",
+        story: "The icons consoles reach for most. Click one to copy its import.",
       },
     },
   },
   render: () => (
-    <Page>
-      <Section title="Decorative by default">
-        <Prose>
-          An icon next to a visible label adds nothing for a screen reader — announcing it produces
-          &ldquo;lock, Passkey required&rdquo;, which is noise. <Code>&lt;Icon&gt;</Code> therefore
-          renders <Code>aria-hidden=&quot;true&quot;</Code> unless you give it a <Code>title</Code>,
-          at which point it becomes <Code>role=&quot;img&quot;</Code> with an{" "}
-          <Code>aria-label</Code>. Getting this backwards is invisible in a screenshot and obvious
-          in a screen reader, which is exactly why the default is the safe one.
-        </Prose>
-        <div className="flex max-w-lg flex-col gap-4 rounded-xl border border-border bg-card p-4 text-card-foreground">
-          <div className="flex items-center gap-3 text-sm">
-            <Icon icon={LockIcon} title="Locked" className="size-5" />
-            <div>
-              <p className="font-medium">Meaningful</p>
-              <p className="text-xs text-muted-foreground">
-                title=&quot;Locked&quot; → role=&quot;img&quot;, aria-label=&quot;Locked&quot;. The
-                icon is the only thing carrying the state.
-              </p>
-            </div>
+    <Specimen>
+      {COMMON.map(({ label, aside, icons }) => (
+        <Group key={label} label={label} aside={aside}>
+          <div className="qx-ico-tiles">
+            {icons.map((glyph) => (
+              <GlyphTile key={glyph.id} {...glyph} />
+            ))}
           </div>
-          <div className="flex items-center gap-3 text-sm">
-            <Icon icon={BellIcon} className="size-5" />
-            <div>
-              <p className="font-medium">Decorative</p>
-              <p className="text-xs text-muted-foreground">
-                No title → aria-hidden. The text beside it already says everything.
-              </p>
-            </div>
-          </div>
-        </div>
-      </Section>
-
-      <Section title="Which one is it?">
-        <TokenTable
-          caption="Deciding whether an icon needs a name."
-          columns={["Situation", "Treatment"]}
-          rows={[
-            {
-              token: "Icon beside a visible label",
-              cells: ["Decorative — no title. The label is the accessible name."],
-            },
-            {
-              token: "Icon-only button",
-              cells: [
-                "Name the button, not the icon. IconButton takes the label; the glyph stays hidden.",
-              ],
-            },
-            {
-              token: "Icon as the only status indicator",
-              cells: ["Meaningful — pass title, and never rely on the icon's colour alone."],
-            },
-            {
-              token: "Icon repeating adjacent text",
-              cells: ["Decorative. Two announcements of the same fact is worse than one."],
-            },
-            {
-              token: "Purely ornamental illustration",
-              cells: ["Decorative, always."],
-            },
-          ]}
-        />
-        <Callout title="An icon-only control is a labelling problem, not an icon problem">
-          The accessible name belongs on the interactive element. Putting it on the glyph inside a
-          button produces a control whose name comes from a child that should not have been in the
-          accessibility tree at all — and if the icon is ever swapped for text, the name vanishes
-          with it.
-        </Callout>
-      </Section>
-    </Page>
+        </Group>
+      ))}
+    </Specimen>
   ),
+};
+
+/* ── Hidden test: the stylesheet and the typed exports agree ──────────────── */
+
+export const InteractionTokensMatch: Story = {
+  name: "Interaction: tokens match the exports",
+  tags: ["!dev", "!autodocs"],
+  render: () => <Text size="sm">Checks the icon tokens against ICON_SIZE and ICON_STROKE.</Text>,
+  play: async () => {
+    const style = getComputedStyle(document.documentElement);
+    for (const [name, px] of SIZES) {
+      await expect(style.getPropertyValue(`--qx-size-icon-${name}`).trim()).toBe(`${px}px`);
+    }
+    for (const [name, width] of STROKES) {
+      await expect(style.getPropertyValue(`--qx-icon-stroke-${name}`).trim()).toBe(`${width}`);
+    }
+  },
 };

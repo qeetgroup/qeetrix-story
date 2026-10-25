@@ -1,0 +1,204 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Foundations/Colour (colour.stories.tsx): the token list and the surface stack. Token values only.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── The token list ────────────────────────────────────────────────────────── */
+
+.qx-tokens-wrap {
+  inline-size: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+}
+
+.qx-tokens {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-default);
+}
+
+.qx-tokens :is(th, td) {
+  padding: 0.625rem 1rem;
+  text-align: start;
+  vertical-align: middle;
+}
+
+.qx-tokens thead th {
+  padding-block: 0.625rem;
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-canvas);
+  font: var(--qx-typography-label-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+  white-space: nowrap;
+}
+
+/* The preview column hugs its tile; Light and Dark stay one line. */
+.qx-tokens :is(th, td):first-child {
+  inline-size: 1%;
+  padding-inline-end: 0.25rem;
+}
+
+.qx-tokens :is(th, td):nth-last-child(-n + 2) {
+  inline-size: 1%;
+  white-space: nowrap;
+}
+
+.qx-tokens tbody tr:not(.qx-tokens-group) + tr :is(th, td) {
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-tokens tbody tr:not(.qx-tokens-group):hover :is(th, td) {
+  background: var(--qx-color-surface-canvas);
+}
+
+/* A group's label row: small caps on the sunken band, like a table section. */
+.qx-tokens .qx-tokens-group th {
+  padding-block: 0.5rem;
+  border-block: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-sunken);
+  font: var(--qx-typography-label-caps);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  text-transform: uppercase;
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-tokens tbody:first-of-type .qx-tokens-group th {
+  border-block-start: 0;
+}
+
+.qx-tokens tbody th[scope="row"] {
+  font-weight: inherit;
+}
+
+.qx-tokens-token {
+  display: grid;
+  justify-items: start;
+  gap: 0.25rem;
+}
+
+.qx-tokens-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-tokens-usage {
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-tokens td:nth-last-child(-n + 2) {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+}
+
+/* ── Previews: the role as it's used, light half then dark half ────────────── */
+
+.qx-tone {
+  display: flex;
+  inline-size: 4.5rem;
+  block-size: 2.5rem;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-control);
+}
+
+.qx-tone-half {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  background: var(--qx-color-surface-default);
+  font: var(--qx-typography-title-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-heading);
+}
+
+.qx-tone-half[data-sample]::before {
+  content: "Aa";
+}
+
+.qx-tone-edge {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border: 2px solid;
+  border-radius: var(--qx-radius-sm);
+}
+
+/* ── The surface stack ─────────────────────────────────────────────────────── */
+
+.qx-stacks {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+
+.qx-stack,
+.qx-stack-page,
+.qx-stack-card,
+.qx-stack-menu,
+.qx-stack-well {
+  color: var(--qx-color-text-default);
+}
+
+.qx-stack {
+  display: grid;
+  gap: 0.625rem;
+  padding: 1rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-canvas);
+}
+
+.qx-stack-page {
+  position: relative;
+  display: grid;
+  gap: 0.625rem;
+  padding: 0.875rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-default);
+}
+
+.qx-stack-card {
+  display: grid;
+  gap: 0.625rem;
+  inline-size: 70%;
+  padding: 0.875rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+  box-shadow: var(--qx-shadow-raised);
+}
+
+.qx-stack-well {
+  padding: 0.5rem 0.625rem;
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-surface-sunken);
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-stack-menu {
+  position: absolute;
+  inset-block-start: 2.5rem;
+  inset-inline-end: 0.875rem;
+  inline-size: 38%;
+  padding: 0.75rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-overlay);
+  background: var(--qx-color-surface-overlay);
+  box-shadow: var(--qx-shadow-overlay);
+}
+
+.qx-stack-label {
+  font: var(--qx-typography-label-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+/* Narrow cards: the usage column is the first to go. */
+@container (max-width: 48rem) {
+  .qx-tokens-usage {
+    display: none;
+  }
+}

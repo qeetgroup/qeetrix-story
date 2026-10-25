@@ -1,346 +1,231 @@
-import { CalendarIcon } from "@qeetrix/icons";
-import {
-  Button,
-  DatePicker,
-  datePickerTriggerVariants,
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-  useFieldControl,
-} from "@qeetrix/ui";
+import { Card, Field, QeetrixProvider, Stack } from "@qeetrix/react";
+import { DatePicker } from "@qeetrix/react/experimental";
+import { hi } from "@qeetrix/react/locales/hi";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import * as React from "react";
-import { expect, screen, waitFor, within } from "storybook/test";
+import { expect, fn, screen, waitFor, within } from "storybook/test";
 import { qx } from "../../_contract";
+
+/** Pinned, so the placeholder, the calendar and the tests never drift. */
+const TODAY = "2026-10-25";
+
+const isWeekend = (iso: string) => [0, 6].includes(new Date(`${iso}T00:00:00Z`).getUTCDay());
+
+/** A date as the calendar reads it out: "Wednesday, 21 October 2026" */
+const longDate = (iso: string) =>
+  new Intl.DateTimeFormat("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${iso}T00:00:00Z`));
+
+const focusedDate = () => (document.activeElement as HTMLElement | null)?.dataset.date;
 
 const meta: Meta<typeof DatePicker> = {
   title: "Components/Data Entry/DatePicker",
   component: DatePicker,
   parameters: {
-    qeetrix: qx({ category: "data-entry", status: "stable" }),
+    qeetrix: qx({ category: "data-entry", status: "experimental" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          "Single-date picker with an inline calendar popover — used for billing cycle start dates in qeet-pay, report cut-off dates in qeet-logs, and employee start dates in qeet-people. Pre-populate with `defaultValue` for edit forms; leave empty for creation flows.\n\nThe trigger is drawn as a field, not an outline button: it shares the input's boundary, height, focus recipe, placeholder colour and the invalid / warning / success edges a `Field` gives it. Bound the choosable days with `min` / `max`, strike out taken days with `unavailable`, start the week on Monday with `weekStartsOn={1}`, and opt an optional field into a Clear action with `clearable`. Inside a `Field` the trigger is named by the label *followed by* the selected date, and `name` submits a `yyyy-mm-dd` local calendar day.\n\nThe trigger recipe is exported as `datePickerTriggerVariants`. It has no variant axis — it is a single base class string — so it is not a styling knob on `DatePicker`; it is for a consumer composing their own chooser (a fiscal quarter, a billing month) that has to sit in the same form row.",
-      },
-    },
   },
-  argTypes: {
-    clearable: { control: "boolean" },
-    disabled: { control: "boolean" },
-    weekStartsOn: {
-      control: "select",
-      options: [0, 1, 2, 3, 4, 5, 6],
-    },
-    locale: {
-      control: "select",
-      options: ["en-US", "en-GB", "en-IN", "hi-IN"],
-    },
-    placeholder: { control: "text" },
+  args: {
+    today: TODAY,
+    onValueChange: fn(),
   },
-  tags: ["autodocs"],
+  render: (args) => (
+    <Field label="Joining date" style={{ inlineSize: 360 }}>
+      <DatePicker {...args} />
+    </Field>
+  ),
+  tags: ["autodocs", "experimental"],
 };
+
 export default meta;
 type Story = StoryObj<typeof DatePicker>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Empty date picker for creation forms — the user selects a date from the calendar popover.",
-      },
-    },
-  },
-  render: () => (
-    <div className="w-64">
-      <DatePicker />
-    </div>
-  ),
+export const Playground: Story = {
+  args: { defaultValue: "2026-10-20" },
 };
 
-export const Preselected: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Pre-populated date for edit forms, such as updating a billing cycle start or an employee start date.",
-      },
-    },
-  },
-  render: () => (
-    <div className="w-64">
-      <DatePicker defaultValue={new Date()} />
-    </div>
-  ),
-};
-
-export const PickDateInteraction: Story = {
-  name: "Interaction: opening the calendar and picking a day",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Asserts the calendar opens and a chosen day lands in the field. The day is read from the rendered grid rather than hard-coded, so the test does not rot when the month rolls over.",
-      },
-    },
-  },
-  render: () => (
-    <div className="w-64">
-      <DatePicker />
-    </div>
-  ),
+export const Open: Story = {
+  // Padded, so the popover opens under the field; its own frame on the docs page.
+  parameters: { layout: "padded", docs: { story: { inline: false, height: "460px" } } },
+  args: { defaultValue: "2026-10-20" },
   play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button"));
-
-    const grid = await screen.findByRole("grid");
-    await waitFor(() => expect(grid).toBeVisible());
-
-    // Take whatever day the grid offers rather than pinning a date — the calendar
-    // opens on the current month, so a hard-coded day would break every month end.
-    // Note the clickable day is a button *inside* the gridcell; clicking the cell
-    // itself does nothing, which is easy to miss because the test still "runs".
-    const days = within(grid)
-      .getAllByRole("button")
-      .filter(
-        (day) => !day.hasAttribute("disabled") && /^\d+$/.test(day.textContent?.trim() ?? ""),
-      );
-    const chosen = days[Math.floor(days.length / 2)];
-    const label = chosen.textContent?.trim();
-
-    await userEvent.click(chosen);
-
-    await waitFor(() => expect(screen.queryByRole("grid")).not.toBeInTheDocument());
-    await expect(canvas.getByRole("button")).toHaveTextContent(String(label));
+    await userEvent.click(canvas.getByRole("button", { name: "Choose date for Joining date" }));
+    await screen.findByRole("dialog", { name: "Choose date for Joining date" });
+    await waitFor(() => expect(focusedDate()).toBe("2026-10-20"));
   },
 };
 
-export const InField: Story = {
-  name: "Interaction: named by its Field label and value",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A qeet-people joining date inside a `Field`. The trigger's accessible name is the label *followed by* the selected date, so the current value stays audible, and the Field's description and error reach it through `aria-describedby` and `aria-invalid` — the error also turns the field's boundary red. `locale` is pinned so the server and browser render the same text.",
-      },
-    },
+export const Limits: Story = {
+  args: {
+    min: "2026-11-01",
+    max: "2026-12-31",
+    isDateDisabled: isWeekend,
+    defaultValue: "2026-11-12",
   },
-  render: () => (
-    <Field className="w-72">
-      <FieldLabel>Joining date</FieldLabel>
-      <DatePicker locale="en-GB" defaultValue={new Date(2026, 7, 2)} name="joiningDate" />
-      <FieldDescription>The first working day on the Bengaluru payroll.</FieldDescription>
-      <FieldError>Joining date falls on a Sunday.</FieldError>
+  render: (args) => (
+    <Field label="Probation review" style={{ inlineSize: 360 }}>
+      <DatePicker {...args} />
     </Field>
   ),
-  play: async ({ canvas }) => {
-    const trigger = canvas.getByRole("button", { name: "Joining date 2 Aug 2026" });
-    await expect(trigger).toHaveAttribute("aria-invalid", "true");
-    await expect(trigger).toHaveAccessibleDescription(
-      "The first working day on the Bengaluru payroll. Joining date falls on a Sunday.",
-    );
+};
+
+export const States: Story = {
+  render: (args) => (
+    <Stack gap="lg" style={{ inlineSize: 360 }}>
+      <Field label="Joining date" error="18/10/2026 is a Sunday.">
+        <DatePicker {...args} defaultValue="2026-10-18" />
+      </Field>
+      <Field label="Billing starts" disabled>
+        <DatePicker {...args} defaultValue="2026-04-01" disabled />
+      </Field>
+      <Field label="Account created">
+        <DatePicker {...args} defaultValue="2026-10-01" readOnly />
+      </Field>
+    </Stack>
+  ),
+};
+
+export const InContext: Story = {
+  name: "In context",
+  render: (args) => (
+    <div style={{ inlineSize: 400 }}>
+      <Card title="Employment" level={3}>
+        <Stack gap="lg">
+          <Field label="Joining date">
+            <DatePicker {...args} defaultValue="2026-10-20" />
+          </Field>
+          <Field label="Last working day" optional>
+            <DatePicker {...args} min="2026-10-20" />
+          </Field>
+        </Stack>
+      </Card>
+    </div>
+  ),
+};
+
+export const Hindi: Story = {
+  tags: ["!dev", "!autodocs"],
+  render: (args) => (
+    <QeetrixProvider locale="hi-IN" messages={hi}>
+      <Field label="जॉइनिंग की तारीख़" optional style={{ inlineSize: 360 }}>
+        <DatePicker {...args} />
+      </Field>
+    </QeetrixProvider>
+  ),
+};
+
+export const TypingInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: typing in en-IN order",
+  play: async ({ args, canvas, userEvent }) => {
+    const field = canvas.getByRole("textbox", { name: "Joining date" });
+    await expect(field).toHaveAttribute("placeholder", "e.g. 31/12/2026");
+
+    await userEvent.type(field, "5-3-26");
+    await expect(args.onValueChange).not.toHaveBeenCalled();
+    await userEvent.tab();
+    await expect(args.onValueChange).toHaveBeenLastCalledWith("2026-03-05");
+    await expect(field).toHaveValue("05/03/2026");
+
+    await userEvent.clear(field);
+    await userEvent.type(field, "25.10.2026{Enter}");
+    await expect(args.onValueChange).toHaveBeenLastCalledWith("2026-10-25");
+    await expect(field).toHaveValue("25/10/2026");
   },
 };
 
-export const Bounds: Story = {
-  name: "Interaction: min, max and unavailable days",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`min` and `max` bound the choosable window (inclusive, by calendar day) and stop month navigation at its edges; `unavailable` marks days that exist but cannot be picked — here weekends and an office holiday. Unavailable days are struck through in a sunken well and named “…, unavailable”, so the reason is not carried by colour. `weekStartsOn={1}` starts the grid on Monday, as Indian payroll calendars do. The test asserts the holiday is announced and refused, and a neighbouring working day can still be picked.",
-      },
-    },
+export const InvalidTextInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: text that isn't a date",
+  render: (args) => (
+    <Field label="Joining date" validationMode="onBlur" style={{ inlineSize: 360 }}>
+      <DatePicker {...args} defaultValue="2026-10-20" />
+    </Field>
+  ),
+  play: async ({ args, canvas, userEvent }) => {
+    const field = canvas.getByRole("textbox", { name: "Joining date" });
+    await userEvent.clear(field);
+    await userEvent.type(field, "31/02/2026");
+    await userEvent.tab();
+    await expect(field).toHaveValue("31/02/2026");
+    await expect(field).toHaveAttribute("aria-invalid", "true");
+    await expect(canvas.getByText("Enter a date like 31/12/2026")).toBeVisible();
+    await expect(args.onValueChange).toHaveBeenLastCalledWith(null);
+
+    await userEvent.clear(field);
+    await userEvent.type(field, "28/02/2026");
+    await userEvent.tab();
+    await expect(args.onValueChange).toHaveBeenLastCalledWith("2026-02-28");
+    await expect(field).not.toHaveAttribute("aria-invalid");
   },
-  render: () => (
-    <Field className="w-72">
-      <FieldLabel>Probation review</FieldLabel>
-      <DatePicker
-        locale="en-GB"
-        defaultValue={new Date(2026, 7, 10)}
-        min={new Date(2026, 7, 3)}
-        max={new Date(2026, 7, 31)}
-        unavailable={[{ dayOfWeek: [0, 6] }, new Date(2026, 7, 26)]}
-        weekStartsOn={1}
-      />
-      <FieldDescription>
-        Any working day in August 2026. 26 Aug is an office holiday.
-      </FieldDescription>
+};
+
+export const LimitsInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: typed dates outside min and max",
+  args: { min: "2026-11-01", max: "2026-12-31", isDateDisabled: isWeekend },
+  render: (args) => (
+    <Field label="Probation review" validationMode="onBlur" style={{ inlineSize: 360 }}>
+      <DatePicker {...args} />
     </Field>
   ),
   play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: /^Probation review/ }));
+    const field = canvas.getByRole("textbox", { name: "Probation review" });
+    const cases = [
+      ["25/10/2026", "Choose 01/11/2026 or later"],
+      ["05/01/2027", "Choose 31/12/2026 or earlier"],
+      ["14/11/2026", "14/11/2026 isn't available"],
+    ] as const;
+    for (const [typed, message] of cases) {
+      await userEvent.clear(field);
+      await userEvent.type(field, typed);
+      await userEvent.tab();
+      await expect(field).toHaveAttribute("aria-invalid", "true");
+      await expect(canvas.getByText(message)).toBeVisible();
+    }
+  },
+};
 
-    const grid = await screen.findByRole("grid");
-    await waitFor(() => expect(grid).toBeVisible());
+export const CalendarInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: choose from the calendar",
+  args: { defaultValue: "2026-10-20" },
+  play: async ({ args, canvas, userEvent }) => {
+    const button = canvas.getByRole("button", { name: "Choose date for Joining date" });
+    await userEvent.click(button);
+    const dialog = await screen.findByRole("dialog", { name: "Choose date for Joining date" });
+    await waitFor(() => expect(focusedDate()).toBe("2026-10-20"));
 
-    const holiday = within(grid).getByRole("button", { name: /26 August 2026/ });
-    await expect(holiday).toBeDisabled();
-    await expect(holiday).toHaveAccessibleName(/, unavailable$/);
-
-    await userEvent.click(within(grid).getByRole("button", { name: /27 August 2026/ }));
-
-    await waitFor(() => expect(screen.queryByRole("grid")).not.toBeInTheDocument());
+    await userEvent.keyboard("{ArrowRight}");
     await expect(
-      canvas.getByRole("button", { name: "Probation review 27 Aug 2026" }),
-    ).toBeInTheDocument();
-  },
-};
-
-export const Clearable: Story = {
-  name: "Interaction: Clear empties an optional date",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "An optional qeet-pay contract end date. Re-picking the selected day confirms it rather than emptying the field, so clearing is explicit: `clearable` adds a Clear action to the popover while a value is set. The test asserts the trigger falls back to its placeholder and the submitted value — the hidden `name` input — is emptied with it.",
-      },
-    },
-  },
-  render: () => (
-    <Field className="w-72">
-      <FieldLabel>Contract end date</FieldLabel>
-      <DatePicker
-        locale="en-GB"
-        defaultValue={new Date(2026, 11, 31)}
-        clearable
-        name="contractEnd"
-        placeholder="No end date"
-      />
-      <FieldDescription>Leave empty for a rolling contract.</FieldDescription>
-    </Field>
-  ),
-  play: async ({ canvas, canvasElement, userEvent }) => {
-    const submitted = canvasElement.querySelector<HTMLInputElement>('input[name="contractEnd"]');
-    await expect(submitted).toHaveValue("2026-12-31");
-
-    await userEvent.click(canvas.getByRole("button", { name: "Contract end date 31 Dec 2026" }));
-    const dialog = await screen.findByRole("dialog", { name: "Choose a date" });
-    await userEvent.click(within(dialog).getByRole("button", { name: "Clear" }));
+      within(dialog).getByRole("button", { name: longDate("2026-10-21") }),
+    ).toHaveFocus();
+    await userEvent.keyboard("{Enter}");
 
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    await expect(
-      canvas.getByRole("button", { name: "Contract end date No end date" }),
-    ).toHaveAttribute("data-empty", "true");
-    await expect(submitted).toHaveValue("");
+    await expect(canvas.getByRole("textbox", { name: "Joining date" })).toHaveValue("21/10/2026");
+    await expect(args.onValueChange).toHaveBeenLastCalledWith("2026-10-21");
+    await waitFor(() => expect(button).toHaveFocus());
   },
 };
 
-export const Disabled: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A locked billing cycle start in qeet-pay — the date is shown but cannot be opened once the first invoice has been issued.",
-      },
-    },
-  },
-  render: () => (
-    <Field className="w-72">
-      <FieldLabel>Billing cycle starts</FieldLabel>
-      <DatePicker locale="en-GB" defaultValue={new Date(2026, 3, 1)} disabled />
-      <FieldDescription>Fixed after the first invoice.</FieldDescription>
-    </Field>
-  ),
-};
-
-const GST_QUARTERS = [
-  { id: "2026-q1", label: "Q1 FY27 · Apr–Jun 2026" },
-  { id: "2026-q2", label: "Q2 FY27 · Jul–Sep 2026" },
-  { id: "2026-q3", label: "Q3 FY27 · Oct–Dec 2026" },
-  { id: "2026-q4", label: "Q4 FY27 · Jan–Mar 2027" },
-];
-
-/**
- * A chooser that is not a calendar, drawn with the DatePicker trigger recipe and wired into the
- * surrounding Field through `useFieldControl` — the same two pieces DatePicker itself uses.
- */
-function GstQuarterPicker() {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState<string>();
-  const valueId = React.useId();
-  const field = useFieldControl({ contentLabelId: valueId });
-  const selected = GST_QUARTERS.find((quarter) => quarter.id === value);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        id={field.id}
-        aria-labelledby={field["aria-labelledby"]}
-        aria-describedby={field["aria-describedby"]}
-        data-placeholder={selected ? undefined : ""}
-        className={datePickerTriggerVariants()}
-      >
-        <CalendarIcon aria-hidden />
-        <span id={valueId} className="min-w-0 truncate">
-          {selected?.label ?? "Pick a quarter"}
-        </span>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-64 p-1" aria-label="Choose a GST quarter">
-        <div className="flex flex-col">
-          {GST_QUARTERS.map((quarter) => (
-            <Button
-              key={quarter.id}
-              variant="ghost"
-              className="justify-start"
-              aria-pressed={quarter.id === value}
-              onClick={() => {
-                setValue(quarter.id);
-                setOpen(false);
-              }}
-            >
-              {quarter.label}
-            </Button>
-          ))}
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-export const CustomTrigger: Story = {
-  name: "Interaction: a custom chooser on the trigger recipe",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`datePickerTriggerVariants()` on a consumer's own `PopoverTrigger`: a GST return-quarter picker for qeet-pay that sits in the same form row as a real `DatePicker` — same height, boundary, focus and placeholder colour — without restating the recipe. `useFieldControl({ contentLabelId })` gives it the Field's label-plus-value name and description, as DatePicker does. The test asserts Escape dismisses the popover with focus back on the trigger, and a picked quarter becomes part of the trigger's name.",
-      },
-    },
-  },
-  render: () => (
-    <div className="flex w-150 items-start gap-4">
-      <Field>
-        <FieldLabel>Invoice date</FieldLabel>
-        <DatePicker locale="en-GB" defaultValue={new Date(2026, 7, 18)} />
-      </Field>
-      <Field>
-        <FieldLabel>GST return period</FieldLabel>
-        <GstQuarterPicker />
-        <FieldDescription>Indian fiscal year, April to March.</FieldDescription>
-      </Field>
-    </div>
-  ),
+export const AltDownInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: Alt+Down opens, Escape closes",
   play: async ({ canvas, userEvent }) => {
-    const trigger = canvas.getByRole("button", { name: "GST return period Pick a quarter" });
-    await expect(trigger).toHaveAccessibleDescription("Indian fiscal year, April to March.");
+    const field = canvas.getByRole("textbox", { name: "Joining date" });
+    await userEvent.click(field);
+    await userEvent.keyboard("{Alt>}{ArrowDown}{/Alt}");
+    await screen.findByRole("dialog", { name: "Choose date for Joining date" });
+    await waitFor(() => expect(focusedDate()).toBe(TODAY));
 
-    await userEvent.click(trigger);
-    await screen.findByRole("dialog", { name: "Choose a GST quarter" });
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    await waitFor(() => expect(trigger).toHaveFocus());
-
-    await userEvent.click(trigger);
-    const dialog = await screen.findByRole("dialog", { name: "Choose a GST quarter" });
-    await userEvent.click(within(dialog).getByRole("button", { name: "Q2 FY27 · Jul–Sep 2026" }));
-
-    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
-    await expect(trigger).toHaveAccessibleName("GST return period Q2 FY27 · Jul–Sep 2026");
+    await waitFor(() => expect(field).toHaveFocus());
+    await expect(field).toHaveValue("");
   },
 };

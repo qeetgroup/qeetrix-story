@@ -1,0 +1,154 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Components/Overview (stories/playground/_overview.tsx). Token values only, like the Welcome page
+ * whose cards these tiles match.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.sbdocs.sbdocs-content:has(.qx-overview) {
+  max-width: 76rem;
+}
+
+.qx-overview {
+  /* The ruled grid behind previews: the subtle border, half strength. */
+  --qx-welcome-rule: color-mix(in oklab, var(--qx-color-border-subtle) 55%, transparent);
+  container-type: inline-size;
+  display: grid;
+  gap: 2.5rem;
+  padding-block: 0.5rem 2rem;
+  color: var(--qx-color-text-default);
+}
+
+.qx-overview-header {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.qx-overview-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Search and status stay in reach while the grid scrolls under them. */
+.qx-overview-toolbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block: -1rem;
+  padding-block: 1rem;
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-default);
+}
+
+.qx-overview-search {
+  flex: 1 1 18rem;
+  max-inline-size: 26rem;
+}
+
+.qx-overview-group {
+  display: grid;
+  gap: 1rem;
+  scroll-margin-block-start: 5rem;
+}
+
+.qx-overview-group-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.qx-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+/* ── Tiles ─────────────────────────────────────────────────────────────────── */
+
+.qx-overview-tile {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard),
+    box-shadow var(--qx-motion-duration-normal) var(--qx-motion-easing-standard),
+    transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
+}
+
+a.qx-overview-tile:hover {
+  border-color: var(--qx-color-border-default);
+  box-shadow: var(--qx-shadow-raised-hover);
+  transform: translateY(-2px);
+}
+
+a.qx-overview-tile:focus-visible {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: var(--qx-focus-ring-offset);
+}
+
+.qx-overview-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  block-size: 11rem;
+  padding: 1rem;
+  overflow: hidden;
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+  background:
+    linear-gradient(var(--qx-welcome-rule) 1px, transparent 1px) 0 0 / 1.5rem 1.5rem,
+    linear-gradient(90deg, var(--qx-welcome-rule) 1px, transparent 1px) 0 0 / 1.5rem 1.5rem,
+    var(--qx-color-surface-sunken);
+}
+
+.qx-overview-art > [data-preview] {
+  max-inline-size: 100%;
+}
+
+/* Status rides on the picture, so the name below never has to share its line. */
+.qx-overview-status {
+  position: absolute;
+  inset-block-start: 0.625rem;
+  inset-inline-end: 0.625rem;
+}
+
+.qx-overview-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-inline-size: 0;
+  padding: 0.875rem 1rem;
+}
+
+.qx-overview-meta > :first-child {
+  min-inline-size: 0;
+}
+
+.qx-overview-arrow {
+  margin-inline-start: auto;
+  flex: none;
+  color: var(--qx-color-icon-subtle);
+  transition:
+    transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard),
+    color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
+}
+
+a.qx-overview-tile:hover .qx-overview-arrow {
+  color: var(--qx-color-icon-brand);
+  transform: translateX(3px);
+}
+
+[dir="rtl"] .qx-overview-arrow {
+  transform: scaleX(-1);
+}
+
+[dir="rtl"] a.qx-overview-tile:hover .qx-overview-arrow {
+  transform: translateX(-3px) scaleX(-1);
+}

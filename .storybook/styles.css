@@ -1,388 +1,653 @@
-/* Pulls in the full Qeetrix layer (tokens, fonts, base) exactly as a real app
- * would. The imported stylesheet already @sources the compiled @qeetrix/ui
- * classes; we add the stories so their own Tailwind utilities are generated. */
-@import "@qeetrix/ui/styles.css";
-/* @qeetrix/ui/styles.css carries only the *semantic* runtime tokens (--background, …).
- * The Foundations/Colors story also documents the raw primitive ramp (--qx-color-*),
- * which ships as a separate subpath apps don't normally load — pull it in here so
- * those swatches resolve instead of rendering empty/white. */
-@import "@qeetrix/ui/tokens.css";
+/* Loads Qeetrix exactly as a Qeet product does (the @qeetrix/react README): the tokens
+ * (colours, type, the Qeet Sans and Fira Code faces, densities), then the component
+ * stylesheet in the `components` layer, so utilities can override it.
+ *
+ * Tailwind is here for the workshop's own chrome only (foundation specimens, helpers),
+ * and *without* its preflight reset: a global reset would hide what a product without
+ * Tailwind sees, such as a list's default margins and bullets. Components never need it. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "@qeetrix/tokens/tokens.css";
+@import "@qeetrix/react/styles.css" layer(components);
 @source "../stories";
 
+/* ── Workshop theme names → @qeetrix/tokens ──────────────────────────────────
+ * The workshop chrome was written against the theme names of @qeetrix/ui. Each now
+ * points at the @qeetrix/tokens semantic token that means the same thing, so the
+ * chrome follows the colour scheme and the design language (square 4px corners,
+ * warm graphite, the Ember accent) without a rewrite. Stories use components, and
+ * components use the tokens directly. */
+:root,
+[data-qx-color-scheme] {
+  --background: var(--qx-color-surface-default);
+  --foreground: var(--qx-color-text-default);
+  --card: var(--qx-color-surface-raised);
+  --muted: var(--qx-color-bg-neutral-subtle);
+  --muted-foreground: var(--qx-color-text-subtle);
+  --border: var(--qx-color-border-default);
+  --primary: var(--qx-color-bg-brand-bold);
+  --primary-foreground: var(--qx-color-text-on-brand);
+  --qeet-brand: var(--qx-color-border-brand);
+  --font-sans: var(--qx-font-family-sans);
+  --font-ui: var(--qx-font-family-sans);
+  --font-heading: var(--qx-font-family-heading);
+  --font-display: var(--qx-font-family-heading);
+  --font-mono: var(--qx-font-family-mono);
+  --radius-md: var(--qx-radius-control);
+  --radius-lg: var(--qx-radius-surface);
+  --radius-xl: var(--qx-radius-surface);
+}
+
+@theme inline {
+  --color-background: var(--qx-color-surface-default);
+  --color-foreground: var(--qx-color-text-default);
+  --color-card: var(--qx-color-surface-raised);
+  --color-card-foreground: var(--qx-color-text-default);
+  --color-popover: var(--qx-color-surface-overlay);
+  --color-popover-foreground: var(--qx-color-text-default);
+  --color-primary: var(--qx-color-bg-brand-bold);
+  --color-primary-foreground: var(--qx-color-text-on-brand);
+  --color-secondary: var(--qx-color-bg-neutral-subtle);
+  --color-secondary-foreground: var(--qx-color-text-default);
+  --color-muted: var(--qx-color-bg-neutral-subtle);
+  --color-muted-foreground: var(--qx-color-text-subtle);
+  --color-accent: var(--qx-color-bg-neutral-subtle-hover);
+  --color-accent-foreground: var(--qx-color-text-default);
+  --color-destructive: var(--qx-color-text-danger);
+  --color-border: var(--qx-color-border-default);
+  --color-subtle: var(--qx-color-border-subtle);
+  --color-input: var(--qx-color-border-strong);
+  --color-ring: var(--qx-color-border-focus);
+  --color-brand: var(--qx-color-border-brand);
+  --color-brand-subtle: var(--qx-color-bg-brand-subtle);
+  --color-success: var(--qx-color-text-success);
+  --color-warning: var(--qx-color-text-warning);
+  --color-info: var(--qx-color-text-info);
+  --color-danger: var(--qx-color-text-danger);
+  --color-surface: var(--qx-color-surface-default);
+  --color-surface-canvas: var(--qx-color-surface-canvas);
+  --color-surface-sunken: var(--qx-color-surface-sunken);
+  --color-surface-raised: var(--qx-color-surface-raised);
+  --color-surface-overlay: var(--qx-color-surface-overlay);
+  --color-surface-interactive-hover: var(--qx-color-overlay-hover);
+  --font-sans: var(--qx-font-family-sans);
+  --font-heading: var(--qx-font-family-heading);
+  --font-mono: var(--qx-font-family-mono);
+  --radius-sm: var(--qx-radius-sm);
+  --radius-md: var(--qx-radius-control);
+  --radius-lg: var(--qx-radius-surface);
+  --radius-xl: var(--qx-radius-surface);
+  --radius-2xl: var(--qx-radius-surface);
+  --shadow-rest: var(--qx-shadow-raised);
+  --shadow-popover: var(--qx-shadow-overlay);
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
- * ENTERPRISE DOCS CANVAS
+ * DOCS CANVAS — design B · Ruled
  *
- * The Docs pages render inside the preview iframe where @qeetrix/ui/styles.css
- * has already loaded Cal Sans, tokens, and base styles. These rules dress the
- * generated DocBlocks to read like premium enterprise product documentation.
- * All rules are scoped under .sbdocs to prevent leakage into stories.
+ * The docs pages render inside the preview iframe, where @qeetrix/tokens has loaded
+ * Qeet Sans, Fira Code and every token. These rules dress Storybook's DocBlocks in
+ * the Qeetrix design language: sections divided by 1px rules rather than cards and
+ * shadows, square 4px corners, warm graphite text, Ember only for what's active,
+ * display headings on Qeet Sans's geometric axis. Everything reads a token, so the
+ * dark scheme follows by itself. All rules are scoped under .sbdocs.
+ *
+ * Storybook paints its blocks with emotion classes at high specificity; the few
+ * `!important`s below are where those win otherwise.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
-/* ── Page container ─────────────────────────────────────────────────────── */
+/* ── Page ───────────────────────────────────────────────────────────────── */
+
+.sbdocs.sbdocs-wrapper {
+  padding: 3rem 3rem 6rem;
+  background: var(--qx-color-surface-default);
+}
 
 .sbdocs.sbdocs-content {
-  max-width: 85rem;
-  padding-inline: 2rem;
-  font-family: var(--font-sans);
-  color: var(--foreground);
+  max-width: 64rem;
+  font-family: var(--qx-font-family-sans);
+  color: var(--qx-color-text-default);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Headings ───────────────────────────────────────────────────────────── */
+/* ── Headings: display type, ruled sections ─────────────────────────────── */
 
-.sbdocs.sbdocs-content :is(h1, h2, h3, h4, .sbdocs-title, .sbdocs-subtitle) {
-  font-family: var(--font-heading);
-  letter-spacing: -0.025em;
-  color: var(--foreground);
+.sbdocs.sbdocs-content :is(h1, h2, h3, h4, .sbdocs-title):not(.sb-unstyled *, .docs-story *) {
+  font-family: var(--qx-font-family-heading);
+  color: var(--qx-color-text-default);
+  letter-spacing: -0.015em;
 }
 
-.sbdocs.sbdocs-content .sbdocs-h1,
 .sbdocs.sbdocs-content .sbdocs-title {
-  font-size: 2.25rem;
+  margin: 0;
+  font-size: 2.5rem;
   font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.03em;
-  margin-bottom: 0.75rem;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+  font-variation-settings: "GEOM" var(--qx-font-geometry-display);
 }
 
-.sbdocs.sbdocs-content .sbdocs-h2 {
-  font-size: 1.375rem;
+/* A section heading opens a ruled section, the console's own rhythm. Whichever block
+ * renders it (markdown, Heading, Stories), and never inside a story or Unstyled. */
+.sbdocs.sbdocs-content :is(h2, .sbdocs-h2):not(.sb-unstyled *, .docs-story *, .toc-wrapper *) {
+  margin: 3rem 0 1rem !important;
+  padding: 1.5rem 0 0 !important;
+  border: 0 !important;
+  border-block-start: var(--qx-border-width-default) solid var(--qx-color-border-default) !important;
+  font-size: 1.5rem;
   font-weight: 600;
-  margin-top: 3rem;
-  padding-bottom: 0.625rem;
-  border-bottom: 1px solid var(--border);
+  line-height: 1.25;
+  font-variation-settings: "GEOM" var(--qx-font-geometry-display);
 }
 
-.sbdocs.sbdocs-content .sbdocs-h3 {
-  font-size: 1.05rem;
+.sbdocs.sbdocs-content :is(h3, .sbdocs-h3):not(.sb-unstyled *, .docs-story *, .toc-wrapper *) {
+  margin: 2.5rem 0 0.5rem !important;
+  border: 0 !important;
+  font-size: 1.0625rem;
   font-weight: 600;
-  margin-top: 2rem;
+  line-height: 1.4;
 }
 
 /* ── Body copy ──────────────────────────────────────────────────────────── */
 
-/* Storybook renders markdown prose as *class-less* <p>/<li>, then paints them with
- * its own light-base docs theme (a near-black colour) — which vanishes on the dark
- * canvas. Target the raw tags at higher specificity than Storybook's `.sbdocs-content
- * p` (0,1,1) so the text follows the DS foreground in BOTH themes. The custom
- * Introduction component (.qx-intro) styles its own prose, so exclude it. */
-.sbdocs.sbdocs-content :is(p, li, .sbdocs-p, .sbdocs-li):not(.qx-intro *) {
-  font-family: var(--font-sans);
-  color: var(--muted-foreground);
-  line-height: 1.75;
+/* Storybook paints class-less prose with its light docs theme, which vanishes on the
+ * dark canvas; match it at higher specificity so text follows the tokens in both
+ * schemes. Galleries that style their own prose (.qx-intro) are left alone. */
+.sbdocs.sbdocs-content
+:is(p, li, .sbdocs-p, .sbdocs-li):not(.qx-intro *, .sb-unstyled *, .docs-story *) {
+  font-family: var(--qx-font-family-sans);
   font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--qx-color-text-subtle);
 }
 
-.sbdocs.sbdocs-content :is(strong, b):not(.qx-intro *) {
-  color: var(--foreground);
+.sbdocs.sbdocs-content :is(strong, b):not(.qx-intro *, .sb-unstyled *, .docs-story *) {
+  color: var(--qx-color-text-default);
   font-weight: 600;
 }
 
-/* ── Links ──────────────────────────────────────────────────────────────── */
-
-.sbdocs.sbdocs-content a.sbdocs-a {
-  color: var(--qeet-brand, #f26d0e);
-  text-underline-offset: 3px;
+.sbdocs.sbdocs-content :is(a, .sbdocs-a):not(.qx-intro *, .sb-unstyled *, .docs-story *) {
+  color: var(--qx-color-text-link);
+  text-decoration: underline;
   text-decoration-thickness: 1px;
-  transition:
-    color 0.15s cubic-bezier(0.32, 0.72, 0, 1),
-    opacity 0.15s cubic-bezier(0.32, 0.72, 0, 1);
+  text-underline-offset: 3px;
 }
 
-.sbdocs.sbdocs-content a.sbdocs-a:hover {
-  opacity: 0.8;
+.sbdocs.sbdocs-content :is(a, .sbdocs-a):not(.qx-intro *, .sb-unstyled *, .docs-story *):hover {
+  color: var(--qx-color-text-link-hover);
 }
 
-/* ── Inline code ────────────────────────────────────────────────────────── */
-
-.sbdocs.sbdocs-content code,
-.sbdocs.sbdocs-content pre,
-.sbdocs.sbdocs-content .docblock-source,
-.sbdocs.sbdocs-content .docblock-source code,
-.sbdocs.sbdocs-content .docblock-source span {
-  font-family: "Fira Code", ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+.sbdocs.sbdocs-content hr {
+  border: 0;
+  border-block-start: var(--qx-border-width-default) solid var(--qx-color-border-default);
 }
 
-.sbdocs.sbdocs-content :not(pre) > code {
-  background: var(--muted);
-  /* Storybook's emotion paints inline code a near-black colour (from the light docs
-   * base), which is unreadable on the dark chip in dark mode. Force the DS foreground
-   * so it resolves correctly in BOTH themes. */
-  color: var(--foreground);
-  border: 1px solid var(--border);
-  border-radius: 0.375rem;
-  padding: 0.1em 0.45em;
-  font-size: 0.82em;
+/* ── Code ───────────────────────────────────────────────────────────────── */
+
+.sbdocs.sbdocs-content
+:is(code, pre, .docblock-source, .docblock-source *):not(.sb-unstyled *, .docs-story *) {
+  font-family: var(--qx-font-family-mono) !important;
+  font-variant-ligatures: none;
 }
 
-/* ── Code block (docblock-source) — dark surface for readability ─────────── */
+.sbdocs.sbdocs-content :not(pre) > code:not(.sb-unstyled *, .docs-story *) {
+  padding: 0.1em 0.4em;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-sm);
+  background: var(--qx-color-bg-neutral-subtle);
+  color: var(--qx-color-text-default);
+  font-size: 0.84em;
+}
 
+/* Source blocks: the sunken surface, ruled, highlighted with the library's own code
+ * tokens, the same colours as its CodeBlock component. */
 .sbdocs.sbdocs-content .docblock-source {
-  /* Outer shell (double-bezel) */
-  padding: 5px;
-  background: #1a1917;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 18px;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.12),
-    0 4px 16px rgba(0, 0, 0, 0.1),
-    0 12px 32px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  margin-block: 1.5rem;
+  margin-block: 1rem 1.5rem;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-default) !important;
+  border-radius: var(--qx-radius-surface) !important;
+  background: var(--qx-color-surface-sunken) !important;
+  box-shadow: none !important;
 }
 
 .sbdocs.sbdocs-content .docblock-source pre {
-  /* Inner core */
   margin: 0;
-  background: #111110 !important;
-  border-radius: 14px;
-  padding: 1.25rem 1.5rem !important;
+  padding: 1rem 1.25rem !important;
+  background: transparent !important;
   font-size: 0.8125rem !important;
-  line-height: 1.65 !important;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  line-height: 1.7 !important;
 }
 
-.sbdocs.sbdocs-content .docblock-source pre::-webkit-scrollbar {
-  height: 4px;
-}
-.sbdocs.sbdocs-content .docblock-source pre::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 2px;
-}
-
-/* ── Syntax highlighting ─────────────────────────────────────────────────────
- * Our code surface is dark in BOTH themes, but Storybook's Prism theme follows the
- * light docs base — so MDX fenced blocks come through with near-black keywords /
- * pure-blue strings that are unreadable on the dark card. Repaint the Prism tokens
- * with a light-on-dark palette so every code sample reads cleanly, light or dark. */
 .sbdocs.sbdocs-content .prismjs,
 .sbdocs.sbdocs-content .prismjs .token.plain-text {
-  color: #e7e4db !important;
+  color: var(--qx-color-text-default) !important;
 }
-.sbdocs.sbdocs-content .prismjs .token.comment,
-.sbdocs.sbdocs-content .prismjs .token.prolog,
-.sbdocs.sbdocs-content .prismjs .token.doctype,
-.sbdocs.sbdocs-content .prismjs .token.cdata {
-  color: #7c8595 !important;
+.sbdocs.sbdocs-content .prismjs .token:is(.comment, .prolog, .doctype, .cdata) {
+  color: var(--qx-color-code-comment) !important;
   font-style: italic;
 }
-.sbdocs.sbdocs-content .prismjs .token.punctuation,
-.sbdocs.sbdocs-content .prismjs .token.operator,
-.sbdocs.sbdocs-content .prismjs .token.entity,
-.sbdocs.sbdocs-content .prismjs .token.url {
-  color: #c9c6bd !important;
+.sbdocs.sbdocs-content .prismjs .token:is(.punctuation, .operator, .entity, .url) {
+  color: var(--qx-color-code-punctuation) !important;
 }
-.sbdocs.sbdocs-content .prismjs .token.keyword,
-.sbdocs.sbdocs-content .prismjs .token.atrule,
-.sbdocs.sbdocs-content .prismjs .token.rule {
-  color: #f7a76c !important;
+.sbdocs.sbdocs-content .prismjs .token:is(.keyword, .atrule, .rule, .tag, .selector) {
+  color: var(--qx-color-code-keyword) !important;
 }
-.sbdocs.sbdocs-content .prismjs .token.string,
-.sbdocs.sbdocs-content .prismjs .token.char,
-.sbdocs.sbdocs-content .prismjs .token.attr-value,
-.sbdocs.sbdocs-content .prismjs .token.builtin,
-.sbdocs.sbdocs-content .prismjs .token.inserted {
-  color: #9bd4a9 !important;
+.sbdocs.sbdocs-content .prismjs .token:is(.string, .char, .attr-value, .inserted, .regex) {
+  color: var(--qx-color-code-string) !important;
 }
-.sbdocs.sbdocs-content .prismjs .token.function,
-.sbdocs.sbdocs-content .prismjs .token.class-name {
-  color: #7cc7f5 !important;
+.sbdocs.sbdocs-content .prismjs .token:is(.number, .boolean, .constant) {
+  color: var(--qx-color-code-number) !important;
 }
-.sbdocs.sbdocs-content .prismjs .token.tag .token.class-name,
-.sbdocs.sbdocs-content .prismjs .token.number,
-.sbdocs.sbdocs-content .prismjs .token.boolean,
-.sbdocs.sbdocs-content .prismjs .token.constant,
-.sbdocs.sbdocs-content .prismjs .token.symbol {
-  color: #e5c07b !important;
-}
-.sbdocs.sbdocs-content .prismjs .token.tag,
-.sbdocs.sbdocs-content .prismjs .token.property,
-.sbdocs.sbdocs-content .prismjs .token.attr-name {
-  color: #e0a878 !important;
-}
-.sbdocs.sbdocs-content .prismjs .token.variable,
-.sbdocs.sbdocs-content .prismjs .token.regex,
-.sbdocs.sbdocs-content .prismjs .token.important {
-  color: #c4b0f5 !important;
+.sbdocs.sbdocs-content
+  .prismjs
+  .token:is(.attr-name, .property, .function, .class-name, .builtin, .symbol, .variable) {
+  color: var(--qx-color-code-literal) !important;
 }
 
-/* ── Story preview block — double-bezel treatment ───────────────────────── */
+/* ── Story frames ───────────────────────────────────────────────────────── */
 
-.sbdocs.sbdocs-content .docblock-preview {
-  /* Outer shell */
-  padding: 6px;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    0 4px 12px rgba(0, 0, 0, 0.04);
-  margin-block: 1.5rem;
+/* One ruled frame per example: the toolbar, the stage on the default surface, then
+ * Show code. No shadow, no nested bezel: it sits in the page, as components do. */
+.sbdocs.sbdocs-content .docblock-preview,
+.sbdocs.sbdocs-content .sbdocs-preview {
+  margin-block: 1rem 0.5rem;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-default) !important;
+  border-radius: var(--qx-radius-surface) !important;
+  background: var(--qx-color-surface-default) !important;
+  box-shadow: none !important;
   overflow: hidden;
 }
 
-/* The .docs-story inner element acts as the inner core */
-.sbdocs.sbdocs-content .docblock-preview .docs-story {
-  background: var(--background);
-  border-radius: 17px;
-  padding: 2rem 2.5rem;
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.7);
-  min-height: 4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+.sbdocs.sbdocs-content .sbdocs-preview > div:first-child:not(.docs-story) {
+  border-block-end: var(--qx-border-width-default) solid var(--qx-color-border-subtle) !important;
+  background: var(--qx-color-surface-canvas) !important;
+  box-shadow: none !important;
 }
 
-/* ── Args / controls table ──────────────────────────────────────────────── */
+.sbdocs.sbdocs-content .docs-story {
+  background: var(--qx-color-surface-default) !important;
+}
+
+/* Room around the example, and below it for the Show code bar. */
+.sbdocs.sbdocs-content .docs-story > div:first-child {
+  padding: 2.5rem 2rem 3.5rem;
+}
+
+.sbdocs.sbdocs-content .docblock-code-toggle {
+  border-radius: 0 !important;
+  border-block-start: var(--qx-border-width-default) solid var(--qx-color-border-subtle) !important;
+  background: var(--qx-color-surface-canvas) !important;
+  color: var(--qx-color-text-subtle) !important;
+  font-family: var(--qx-font-family-sans) !important;
+  font-size: 0.75rem !important;
+  font-weight: 500 !important;
+}
+
+/* ── Props table ────────────────────────────────────────────────────────── */
 
 .sbdocs.sbdocs-content .docblock-argstable {
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  margin-block: 1.5rem;
+  margin-block: 1rem 2rem;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-default);
+  border-radius: var(--qx-radius-surface);
   border-collapse: separate;
   border-spacing: 0;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.sbdocs.sbdocs-content .docblock-argstable :is(th, td) {
+  background: var(--qx-color-surface-default) !important;
+  color: var(--qx-color-text-default);
 }
 
 .sbdocs.sbdocs-content .docblock-argstable thead tr th {
-  font-family: var(--font-ui);
-  font-size: 0.7rem;
+  padding: 0.625rem 1rem !important;
+  border-block-end: var(--qx-border-width-default) solid var(--qx-color-border-default);
+  background: var(--qx-color-surface-canvas) !important;
+  color: var(--qx-color-text-subtle) !important;
+  font-family: var(--qx-font-family-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sbdocs.sbdocs-content .docblock-argstable tbody tr td {
+  padding: 0.875rem 1rem !important;
+  border-block-start: var(--qx-border-width-default) solid var(--qx-color-border-subtle) !important;
+  font-size: 0.875rem;
+  vertical-align: top;
+}
+
+.sbdocs.sbdocs-content .docblock-argstable tbody tr:hover td {
+  background: var(--qx-color-surface-canvas) !important;
+}
+
+/* The prop name: monospace, the one thing to scan for. */
+.sbdocs.sbdocs-content .docblock-argstable tbody tr td:first-child {
+  font-family: var(--qx-font-family-mono);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.sbdocs.sbdocs-content .docblock-argstable tbody tr td:first-child span[title="Required"] {
+  color: var(--qx-color-text-danger);
+}
+
+/* ── Foundations: specimens on the page ─────────────────────────────────── */
+
+/* As specific as the frame rules above, so these win: no frame, no source bar. */
+.sbdocs.sbdocs-content .qx-docs-specimens :is(.docblock-preview, .sbdocs-preview) {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.sbdocs.sbdocs-content .qx-docs-specimens :is(.docs-story, .docs-story > div:first-child) {
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.sbdocs.sbdocs-content .qx-docs-specimens .sbdocs-preview-actions {
+  display: none !important;
+}
+
+/* ── The component docs header (blocks/component-docs.tsx) ─────────────── */
+
+.qx-docs-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* The first section follows the header closely: the header is its own introduction. */
+.qx-docs-header + :is(h2, div) {
+  margin-block-start: 2rem !important;
+}
+
+.sbdocs.sbdocs-content .qx-docs-eyebrow {
+  margin: 0;
+  color: var(--qx-color-text-subtlest);
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.08em;
+  line-height: 1.4;
   text-transform: uppercase;
-  background: var(--muted);
-  color: var(--muted-foreground);
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border);
 }
 
-.sbdocs.sbdocs-content .docblock-argstable tbody tr {
-  border-bottom: 1px solid var(--border);
-  transition: background-color 0.1s ease;
+.qx-docs-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
 }
 
-.sbdocs.sbdocs-content .docblock-argstable tbody tr:last-child {
-  border-bottom: none;
+.qx-docs-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.sbdocs.sbdocs-content .docblock-argstable tbody tr:hover {
-  background: var(--muted);
-}
-
-.sbdocs.sbdocs-content .docblock-argstable td {
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-}
-
-/* ── Subtitle / autodocs meta line ──────────────────────────────────────── */
-
-.sbdocs.sbdocs-content .sbdocs-subtitle {
-  font-size: 1rem;
-  font-weight: 400;
-  color: var(--muted-foreground);
-  margin-top: 0.25rem;
-  margin-bottom: 2.5rem;
+.sbdocs.sbdocs-content
+  .qx-docs-header
+  > :is(p, div):not(.qx-docs-title-row, .sb-unstyled, .qx-docs-eyebrow, .qx-docs-status-note) {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--qx-color-text-subtle);
+  font-size: 1.0625rem;
   line-height: 1.6;
 }
 
-/* ── Eyebrow / badge elements inside docs MDX ───────────────────────────── */
+.qx-docs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-block-start: 0.25rem;
+}
 
-.sbdocs.sbdocs-content .sbdocs-wrapper {
-  padding-block: 2.5rem;
+.qx-docs-links {
+  display: flex;
+  gap: 1.25rem;
+  font-family: var(--qx-font-family-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.qx-docs-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--qx-color-text-subtle);
+  text-decoration: none;
+}
+
+.qx-docs-links a:hover {
+  color: var(--qx-color-text-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.qx-docs-import {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: 1 1 24rem;
+  max-width: 40rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.875rem;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-default);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-sunken);
+}
+
+.qx-docs-import code {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--qx-color-text-default);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+  overflow-x: auto;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
- * LIGHT / DARK CANVAS
+ * THE CANVAS
  *
- * `.dark` is toggled on the iframe <html> by preview.ts (channel + decorator),
- * and @qeetrix/ui/styles.css defines all the semantic vars for both themes — so
- * everything below resolves automatically.
+ * `data-qx-color-scheme` is set on the iframe <html> by preview.ts (channel +
+ * decorator), and @qeetrix/tokens defines every semantic token for both schemes,
+ * so everything below resolves by itself.
  * ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {
   color-scheme: light;
 }
-.dark {
+[data-qx-color-scheme="dark"] {
   color-scheme: dark;
 }
 
-/* Story canvas — components don't render on a white box in dark. */
+/* Stories sit on the default surface, as components do in a console page, in the page text
+ * style a Qeet product sets at its root (Qeet Sans, body-md). Without it, plain text inside a
+ * component that sets no font of its own falls back to the browser's serif. */
 html,
 body.sb-show-main,
-#storybook-root {
-  background-color: var(--background);
-  color: var(--foreground);
+#storybook-root,
+#storybook-docs {
+  background-color: var(--qx-color-surface-default);
+  color: var(--qx-color-text-default);
 }
 
-/* Autodocs page chrome — flip to DS semantics under .dark. */
-.dark .sbdocs-wrapper,
-.dark .docs-story,
-.dark .docblock-preview {
-  background-color: var(--background);
+body.sb-show-main {
+  font: var(--qx-typography-body-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
 }
 
-/* Args/controls table — Storybook renders it with the light docs theme, so in dark
- * the body cells stay cream with near-black text (a bright block on the dark page).
- * Flip the cell surfaces + text to DS semantics; keep the header on --muted. */
-.dark .sbdocs.sbdocs-content .docblock-argstable td,
-.dark .sbdocs.sbdocs-content .docblock-argstable th {
-  background-color: var(--card) !important;
-  color: var(--foreground);
-}
-.dark .sbdocs.sbdocs-content .docblock-argstable thead tr th {
-  background-color: var(--muted) !important;
-  color: var(--muted-foreground);
-}
-.dark .sbdocs.sbdocs-content .docblock-argstable tbody tr:hover td {
-  background-color: var(--muted) !important;
+body.sb-show-main.sb-main-padded {
+  padding: 2rem;
 }
 
-/* Primary autodocs preview (.sbdocs-preview) + its zoom toolbar sit on the light
- * docs-theme surface; give them the double-bezel treatment and flip in dark. */
-.sbdocs.sbdocs-content .sbdocs-preview {
-  border-radius: 18px;
-  border: 1px solid var(--border);
+/* ── Component pages: sections and live examples (blocks/component-docs.tsx) ── */
+
+.qx-docs-section {
+  display: grid;
+  gap: 1rem;
+  margin-block-start: 3rem;
+}
+
+.qx-docs-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-docs-examples {
+  display: grid;
+  gap: 2.5rem;
+  margin-block-start: 0.5rem;
+}
+
+/* The props table follows its heading closely. */
+.sbdocs.sbdocs-content .qx-docs-props .docblock-argstable {
+  margin-block: 0;
+}
+
+/* Types and defaults: quiet monospace tags rather than boxed chips. */
+.sbdocs.sbdocs-content .docblock-argstable tbody td:is(:nth-child(2), :nth-child(3)) span[class] {
+  padding: 0.0625rem 0.375rem !important;
+  border: 0 !important;
+  border-radius: var(--qx-radius-sm) !important;
+  background: var(--qx-color-surface-sunken) !important;
+  color: var(--qx-color-text-subtle) !important;
+  font-family: var(--qx-font-family-mono) !important;
+  font-size: 0.75rem !important;
+}
+
+.sbdocs.sbdocs-content .docblock-argstable tbody td:nth-child(2) > div:first-child {
+  color: var(--qx-color-text-subtle);
+}
+
+/* Controls look like the library's controls. */
+.sbdocs.sbdocs-content .docblock-argstable tbody td:nth-child(4) button {
+  border: 1px solid var(--qx-color-border-default) !important;
+  border-radius: var(--qx-radius-control) !important;
+  background: var(--qx-color-surface-raised) !important;
+  box-shadow: none !important;
+  color: var(--qx-color-text-default) !important;
+  font-family: var(--qx-font-family-sans) !important;
+  font-weight: 500 !important;
+}
+
+.sbdocs.sbdocs-content
+  .docblock-argstable
+  tbody
+  td:nth-child(4)
+  :is(input:not([type="radio"], [type="checkbox"]), textarea, select) {
+  border: 1px solid var(--qx-color-border-default) !important;
+  border-radius: var(--qx-radius-control) !important;
+  background: var(--qx-color-bg-input) !important;
+  box-shadow: none !important;
+  color: var(--qx-color-text-default) !important;
+  font-family: var(--qx-font-family-sans) !important;
+}
+
+.sbdocs.sbdocs-content
+  .docblock-argstable
+  tbody
+  td:nth-child(4)
+  input:is([type="radio"], [type="checkbox"]) {
+  accent-color: var(--qx-color-bg-brand-bold);
+}
+
+.qx-example {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.qx-example-head {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.qx-example-frame {
   overflow: hidden;
-  box-shadow:
-    0 1px 3px rgb(0 0 0 / 0.05),
-    0 4px 14px rgb(0 0 0 / 0.03);
-}
-.dark .sbdocs.sbdocs-content .sbdocs-preview {
-  background: var(--muted) !important;
-  border-color: var(--border) !important;
-}
-.dark .sbdocs.sbdocs-content .sbdocs-preview > div:first-child {
-  background: var(--card) !important;
-  border-bottom-color: var(--border) !important;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-default);
 }
 
-/* In dark, the docblock-source shell is already dark — soften its border. */
-.dark .sbdocs.sbdocs-content .docblock-source {
-  background: #0d0d0c;
-  border-color: rgba(255, 255, 255, 0.06);
+/* The stage: the console's ruled grid, half strength, so a component sits on a page, not a void. */
+.qx-example-stage {
+  --qx-docs-rule: color-mix(in oklab, var(--qx-color-border-subtle) 55%, transparent);
+  min-block-size: 8rem;
+  padding: 2.5rem 2rem;
+  background:
+    linear-gradient(var(--qx-docs-rule) 1px, transparent 1px) 0 0 / 1.5rem 1.5rem,
+    linear-gradient(90deg, var(--qx-docs-rule) 1px, transparent 1px) 0 0 / 1.5rem 1.5rem,
+    var(--qx-color-surface-default);
 }
 
-/* Flip the double-bezel preview shell to the dark muted surface. */
-.dark .sbdocs.sbdocs-content .docblock-preview {
-  background: var(--muted);
-  border-color: var(--border);
+.qx-example-stage[data-layout="centered"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.dark .sbdocs.sbdocs-content .docblock-preview .docs-story {
-  background: var(--background);
-  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.04);
+.qx-example-stage[data-layout="fullscreen"] {
+  padding: 0;
 }
 
-/* ── Font-smoothing and antialiasing for docs canvas ────────────────────── */
-
-.sbdocs-wrapper,
-.sb-show-main {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.qx-example-stage[data-primary] {
+  min-block-size: 12rem;
 }
+
+.qx-example-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.25rem 0.375rem;
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-default);
+}
+
+.qx-example-code {
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.sbdocs.sbdocs-content .qx-example-code .docblock-source {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+/* ── Foundations: sections of specimens on cards ───────────────────────────── */
+
+.qx-foundation-section {
+  display: grid;
+  gap: 1rem;
+  margin-block-start: 3rem;
+}
+
+.qx-foundation-head {
+  display: grid;
+  gap: 0.25rem;
+  padding-block-start: 1.5rem;
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-foundation-head > :last-child:not(:first-child) {
+  max-inline-size: 44rem;
+}
+
+.qx-foundation-card {
+  container-type: inline-size;
+  padding: 1.75rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-default);
+}
+
+/* Welcome: its styles sit beside it, in stories/_welcome.css. */

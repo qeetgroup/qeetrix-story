@@ -1,5 +1,7 @@
-import { Meter } from "@qeetrix/ui";
+import { Card, Meter, QeetrixProvider, Stack } from "@qeetrix/react";
+import { hi } from "@qeetrix/react/locales/hi";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Meter> = {
@@ -7,79 +9,83 @@ const meta: Meta<typeof Meter> = {
   component: Meter,
   parameters: {
     qeetrix: qx({ category: "data-display", status: "stable" }),
-    layout: "padded",
-    docs: {
-      description: {
-        component:
-          "A labelled progress-style bar that represents a scalar measurement within a known range — storage, seats, API quota, bandwidth. Supports `default`, `warning`, and `danger` intents and accepts any `Intl.NumberFormat` options via the `format` prop.",
-      },
-    },
+    layout: "centered",
   },
+  args: {
+    label: "Storage used",
+    value: 68,
+    showValue: true,
+    tone: "brand",
+  },
+  // value, min, max and format come from Base UI's Meter, which the props table doesn't list.
+  argTypes: {
+    value: { control: { type: "range", min: 0, max: 100, step: 1 } },
+    min: { control: "number" },
+    max: { control: "number" },
+    format: { control: "object" },
+  },
+  decorators: [
+    (Story) => (
+      <div style={{ inlineSize: 320 }}>
+        <Story />
+      </div>
+    ),
+  ],
   tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Meter>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story: "Basic usage with a percent-formatted value. The bar fills to 68 % of its track.",
-      },
-    },
-  },
-  render: () => (
-    <div className="w-72">
-      <Meter label="Storage used" value={0.68} max={1} format={{ style: "percent" }} />
-    </div>
+export const Playground: Story = {};
+
+export const Variants: Story = {
+  render: (args) => (
+    <Stack gap="lg">
+      <Meter {...args} label="Seats used" value={36} tone="brand" />
+      <Meter {...args} label="Audit log storage" value={52} tone="neutral" />
+      <Meter {...args} label="Emails sent" value={41} tone="info" />
+      <Meter {...args} label="Uptime" value={99.9} tone="success" />
+      <Meter {...args} label="SMS credits used" value={84} tone="warning" />
+      <Meter {...args} label="API quota used" value={97} tone="danger" />
+    </Stack>
   ),
 };
 
-export const Intents: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Three intent levels side by side: default (within limit), `warning` (approaching limit), and `danger` (critical). Use `warning` above ~80 % and `danger` above ~95 %.",
-      },
-    },
-  },
-  render: () => (
-    <div className="flex w-72 flex-col gap-5">
-      <Meter label="Seats used" value={18} max={50} />
-      <Meter
-        label="Bandwidth"
-        value={0.82}
-        max={1}
-        format={{ style: "percent" }}
-        intent="warning"
-      />
-      <Meter label="API quota" value={0.96} max={1} format={{ style: "percent" }} intent="danger" />
-    </div>
+export const InContext: Story = {
+  name: "In context",
+  render: (args) => (
+    <Card title="Plan usage" level={2}>
+      <Stack gap="lg">
+        <Meter {...args} label="Members" value={47} max={100} format={{ style: "decimal" }} />
+        <Meter {...args} label="Monthly active users" value={27_400} max={50_000} />
+        <Meter {...args} label="Log retention" value={73} tone="warning" />
+      </Stack>
+    </Card>
   ),
 };
 
-export const TenantUsage: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A billing/usage panel for a Qeet ID Enterprise tenant, combining decimal and percent formats across three resource dimensions. The log-retention meter is in `warning` state to prompt the user to adjust their retention policy before hitting the cap.",
-      },
-    },
+export const Hindi: Story = {
+  tags: ["!dev", "!autodocs"],
+  args: {
+    label: "उपयोग की गई स्टोरेज",
+    value: 1_28_400,
+    max: 2_00_000,
+    format: { style: "decimal" },
   },
-  render: () => (
-    <div className="flex w-80 flex-col gap-5 rounded-lg border p-5">
-      <p className="text-sm font-semibold">Plan usage — June 2026</p>
-      <Meter label="Members" value={47} max={100} />
-      <Meter label="Monthly API calls" value={840000} max={1000000} format={{ style: "decimal" }} />
-      <Meter
-        label="Log retention"
-        value={0.73}
-        max={1}
-        format={{ style: "percent" }}
-        intent="warning"
-      />
-    </div>
+  render: (args) => (
+    <QeetrixProvider locale="hi-IN" messages={hi}>
+      <Meter {...args} />
+    </QeetrixProvider>
   ),
+};
+
+export const NamedMeter: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a named meter with its value",
+  play: async ({ canvas }) => {
+    const meter = canvas.getByRole("meter", { name: "Storage used" });
+    await expect(meter).toHaveAttribute("aria-valuenow", "68");
+    await expect(canvas.getByText("68%")).toBeVisible();
+  },
 };

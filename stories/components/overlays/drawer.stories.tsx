@@ -1,65 +1,115 @@
 import {
   Button,
+  Checkbox,
+  CheckboxGroup,
   Drawer,
   DrawerBody,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
+  type DrawerProps,
   DrawerTrigger,
-} from "@qeetrix/ui";
+  Inline,
+  QeetrixProvider,
+  Stack,
+  Text,
+  TextField,
+} from "@qeetrix/react";
+import { hi } from "@qeetrix/react/locales/hi";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, screen, waitFor, within } from "storybook/test";
+import { expect, fn, screen, waitFor, within } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Drawer> = {
   title: "Components/Overlays/Drawer",
   component: Drawer,
+  subcomponents: { DrawerTrigger, DrawerContent, DrawerBody, DrawerFooter, DrawerClose },
   parameters: {
     qeetrix: qx({ category: "overlays", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          "The mobile bottom sheet: anchored to the bottom edge, rounded on top, with a grab handle — optimised for quick-action surfaces. It is built on Base UI's Drawer (Dialog plus gestures), so it is dismissed by swiping it down as well as by Escape, the close button or the backdrop, and focus containment and focus return are the Dialog's. The swipe always has a keyboard and screen-reader equivalent. Reach for `Drawer` for filter panels, quick settings, and contextual actions in qeet-logs or qeet-people mobile views; use `Sheet` for side panels and for anything that should not move under a finger.\n\nCompose it as `DrawerHeader` → `DrawerBody` → `DrawerFooter` (the same parts as Sheet). `DrawerBody` is the scrolling region: the drawer is capped at 85% of the viewport height, and long content scrolls inside the body while the header and footer stay pinned.",
-      },
-    },
+  },
+  args: {
+    onOpenChange: fn(),
   },
   tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Drawer>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Filter panel for a qeet-logs stream — select severity level and time window before applying.",
-      },
-    },
-  },
-  render: () => (
-    <Drawer>
-      <DrawerTrigger render={<Button variant="outline">Filter logs</Button>} />
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Filter stream</DrawerTitle>
-          <DrawerDescription>
-            Narrow the log stream by level, service, and time window.
-          </DrawerDescription>
-        </DrawerHeader>
-        <DrawerBody className="text-sm text-muted-foreground">
-          Level: ERROR · Service: auth-service · Last 24 h
+function EditMemberDrawer(props: Omit<DrawerProps, "children">) {
+  return (
+    <Drawer {...props}>
+      <DrawerTrigger render={<Button variant="soft">Edit member</Button>} />
+      <DrawerContent title="Edit member" description="Rahul Verma · Acme Pvt Ltd">
+        <DrawerBody>
+          <Stack gap="lg">
+            <TextField label="Display name" defaultValue="Rahul Verma" />
+            <TextField label="Work email" type="email" defaultValue="rahul.verma@acme.in" />
+            <TextField label="Employee ID" defaultValue="ACME-0042" />
+          </Stack>
         </DrawerBody>
         <DrawerFooter>
-          <Button>Apply filters</Button>
-          <DrawerClose render={<Button variant="outline">Cancel</Button>} />
+          <DrawerClose render={<Button variant="ghost">Cancel</Button>} />
+          <DrawerClose render={<Button>Save changes</Button>} />
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
+  );
+}
+
+export const Playground: Story = {
+  render: (args) => <EditMemberDrawer {...args} />,
+};
+
+export const Sides: Story = {
+  render: (args) => (
+    <Inline gap="md">
+      <Drawer {...args} side="start">
+        <DrawerTrigger render={<Button variant="soft">Filter members</Button>} />
+        <DrawerContent title="Filter members" size="sm">
+          <DrawerBody>
+            <CheckboxGroup label="Status" defaultValue={["active", "invited"]}>
+              <Checkbox value="active" label="Active" />
+              <Checkbox value="invited" label="Invited" />
+              <Checkbox value="suspended" label="Suspended" />
+            </CheckboxGroup>
+          </DrawerBody>
+          <DrawerFooter>
+            <DrawerClose render={<Button variant="ghost">Clear</Button>} />
+            <DrawerClose render={<Button>Apply</Button>} />
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+      <EditMemberDrawer {...args} side="end" />
+    </Inline>
+  ),
+};
+
+const SIZES = [
+  { size: "sm", label: "Small", title: "Filter audit log" },
+  { size: "md", label: "Medium", title: "Edit member" },
+  { size: "lg", label: "Large", title: "Event details" },
+] as const;
+
+export const Sizes: Story = {
+  render: (args) => (
+    <Inline gap="md">
+      {SIZES.map(({ size, label, title }) => (
+        <Drawer key={size} {...args}>
+          <DrawerTrigger render={<Button variant="soft">{label}</Button>} />
+          <DrawerContent size={size} title={title} description="Rahul Verma · Acme Pvt Ltd">
+            <DrawerBody>
+              <Text>rahul.verma@acme.in</Text>
+            </DrawerBody>
+            <DrawerFooter>
+              <DrawerClose render={<Button variant="ghost">Cancel</Button>} />
+              <DrawerClose render={<Button>Done</Button>} />
+            </DrawerFooter>
+          </DrawerContent>
+        </Drawer>
+      ))}
+    </Inline>
   ),
 };
 
@@ -88,76 +138,160 @@ const LOG_ENTRY_FIELDS: Array<[string, string]> = [
   ["ingested_at", "2026-10-07T02:14:09.902Z"],
 ];
 
-/** Taller than the drawer's 85dvh cap, so the body has to scroll. */
-function LogEntryDrawer() {
+/** More attributes than fit, so the body scrolls. */
+function LogEntryDrawer(props: Omit<DrawerProps, "children">) {
   return (
-    <Drawer>
-      <DrawerTrigger render={<Button variant="outline">Inspect log entry</Button>} />
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>JWKS fetch timed out</DrawerTitle>
-          <DrawerDescription>auth-service · production · 2 min ago</DrawerDescription>
-        </DrawerHeader>
+    <Drawer {...props}>
+      <DrawerTrigger render={<Button variant="soft">Inspect log entry</Button>} />
+      <DrawerContent
+        size="lg"
+        title="JWKS fetch timed out"
+        description="auth-service · production · 2 min ago"
+      >
         <DrawerBody>
-          <dl className="divide-y divide-border-subtle">
+          <Stack gap="md">
             {LOG_ENTRY_FIELDS.map(([key, value]) => (
-              <div key={key} className="flex flex-col gap-0.5 py-2">
-                <dt className="font-mono text-xs text-muted-foreground">{key}</dt>
-                <dd className="font-mono text-sm break-all text-foreground">{value}</dd>
-              </div>
+              <Stack key={key} gap="none">
+                <Text size="sm" tone="subtle" mono>
+                  {key}
+                </Text>
+                <Text mono>{value}</Text>
+              </Stack>
             ))}
-          </dl>
+          </Stack>
         </DrawerBody>
         <DrawerFooter>
+          <DrawerClose render={<Button variant="ghost">Done</Button>} />
           <Button>Open trace</Button>
-          <DrawerClose render={<Button variant="outline">Done</Button>} />
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );
 }
 
-export const WithBody: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A qeet-logs entry with 22 attributes is taller than the drawer's 85dvh cap. `DrawerBody` scrolls the attributes while the title and the Open trace / Done actions stay pinned at the top and bottom of the sheet — the action never disappears under a thumb.",
-      },
-    },
+export const ScrollingBody: Story = {
+  name: "Scrolling body",
+  render: (args) => <LogEntryDrawer {...args} />,
+};
+
+export const Hindi: Story = {
+  tags: ["!dev", "!autodocs"],
+  render: (args) => (
+    <QeetrixProvider locale="hi-IN" messages={hi}>
+      <Drawer {...args}>
+        <DrawerTrigger render={<Button variant="soft">सदस्य संपादित करें</Button>} />
+        <DrawerContent title="सदस्य संपादित करें" description="राहुल वर्मा · Acme Pvt Ltd">
+          <DrawerBody>
+            <TextField label="नाम" defaultValue="राहुल वर्मा" />
+          </DrawerBody>
+          <DrawerFooter>
+            <DrawerClose render={<Button variant="ghost">रद्द करें</Button>} />
+            <DrawerClose render={<Button>सहेजें</Button>} />
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </QeetrixProvider>
+  ),
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "सदस्य संपादित करें" }));
+    const drawer = await screen.findByRole("dialog", { name: "सदस्य संपादित करें" });
+    await expect(within(drawer).getByRole("button", { name: "बंद करें" })).toBeInTheDocument();
   },
-  render: () => <LogEntryDrawer />,
 };
 
 export const OpenCloseInteraction: Story = {
-  name: "Interaction: open, escape, close",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The swipe is a pointer-only gesture, so its keyboard equivalents are what this test pins: Escape closes the drawer, and so does the footer action. Both dismissals are asserted, because a drawer that can only be swiped away is unusable without a pointer.",
-      },
-    },
-  },
-  render: () => <LogEntryDrawer />,
-  play: async ({ canvas, userEvent }) => {
-    const trigger = canvas.getByRole("button", { name: "Inspect log entry" });
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: focus moves in, Escape returns it",
+  render: (args) => <EditMemberDrawer {...args} />,
+  play: async ({ args, canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button", { name: "Edit member" });
     await userEvent.click(trigger);
 
-    // Portalled to document.body, and slides up from translate-y-full, so poll for it.
-    const drawer = await screen.findByRole("dialog");
-    await waitFor(() => expect(drawer).toBeVisible());
-    await expect(within(drawer).getByText("JWKS fetch timed out")).toBeVisible();
+    // The drawer portals to the end of <body>, outside the canvas.
+    const drawer = await screen.findByRole("dialog", { name: "Edit member" });
+    await expect(drawer).toHaveAccessibleDescription("Rahul Verma · Acme Pvt Ltd");
+    await waitFor(() =>
+      expect(within(drawer).getByRole("textbox", { name: "Display name" })).toHaveFocus(),
+    );
 
     await userEvent.keyboard("{Escape}");
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await expect(trigger).toHaveFocus();
+    await expect(args.onOpenChange).toHaveBeenLastCalledWith(false, expect.anything());
+  },
+};
 
-    // Reopen and dismiss through the footer this time.
-    await userEvent.click(trigger);
-    const reopened = await screen.findByRole("dialog");
-    await waitFor(() => expect(reopened).toBeVisible());
-    await userEvent.click(within(reopened).getByRole("button", { name: "Done" }));
+/** Clicks the scrim, outside the panel. */
+const clickOutside = async (userEvent: { click: (element: Element) => Promise<void> }) => {
+  const backdrop = document.querySelector("[data-slot=drawer-backdrop]");
+  await expect(backdrop).not.toBeNull();
+  await userEvent.click(backdrop as Element);
+};
 
+export const OutsideClickInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: an outside click closes it",
+  render: (args) => <EditMemberDrawer {...args} />,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Edit member" }));
+    const drawer = await screen.findByRole("dialog", { name: "Edit member" });
+    await waitFor(() => expect(drawer).toBeVisible());
+    await clickOutside(userEvent);
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  },
+};
+
+export const NotDismissibleInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: not dismissible stays open until an action closes it",
+  args: { dismissible: false },
+  render: (args) => <EditMemberDrawer {...args} />,
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Edit member" }));
+    const drawer = await screen.findByRole("dialog", { name: "Edit member" });
+    await waitFor(() => expect(drawer).toBeVisible());
+    await expect(within(drawer).queryByRole("button", { name: "Close" })).not.toBeInTheDocument();
+
+    await clickOutside(userEvent);
+    await userEvent.keyboard("{Escape}");
+    await expect(args.onOpenChange).not.toHaveBeenCalledWith(false, expect.anything());
+    await expect(drawer).toBeVisible();
+    await expect(drawer).not.toHaveAttribute("data-ending-style");
+
+    await userEvent.click(within(drawer).getByRole("button", { name: "Cancel" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await expect(args.onOpenChange).toHaveBeenLastCalledWith(false, expect.anything());
+  },
+};
+
+export const StartSideInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: opens at the start edge",
+  args: { side: "start" },
+  render: (args) => <EditMemberDrawer {...args} />,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Edit member" }));
+    const drawer = await screen.findByRole("dialog", { name: "Edit member" });
+    await waitFor(() => expect(Math.round(drawer.getBoundingClientRect().left)).toBe(0));
+  },
+};
+
+export const BodyScrollInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: the body scrolls, the footer stays",
+  render: (args) => <LogEntryDrawer {...args} />,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Inspect log entry" }));
+    const drawer = await screen.findByRole("dialog", { name: "JWKS fetch timed out" });
+    await waitFor(() => expect(drawer).toBeVisible());
+    const body = drawer.querySelector<HTMLElement>("[data-slot=drawer-body]");
+    await expect(body).not.toBeNull();
+    await expect(body?.scrollHeight ?? 0).toBeGreaterThan(body?.clientHeight ?? 0);
+    const done = within(drawer).getByRole("button", { name: "Done" });
+    await waitFor(() =>
+      expect(done.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+        drawer.getBoundingClientRect().bottom,
+      ),
+    );
   },
 };

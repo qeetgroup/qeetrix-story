@@ -1,20 +1,13 @@
 name: CI
 
-# Gates every PR and every push to main — the same triggers as qeetrix-ui's,
+# Gates every PR and every push to main — the same triggers as qeetrix-react's,
 # qeetrix-icons' and qeetrix-docs' CI.
 #
-# THIS REPO DOES NOT BUILD FROM ITS node_modules COPY OF @qeetrix/ui.
-# `.storybook/main.ts` (and `vitest.config.ts`, which reuses it) aliases
-# `@qeetrix/ui` to a SIBLING SOURCE CHECKOUT at `../qeetrix-ui/src`; the published
-# tarball ships `dist/` only. So the job checks out both repos side by side under
-# $GITHUB_WORKSPACE, which reproduces the `../qeetrix-ui` path exactly.
-# `qeetgroup/qeetrix-ui` is public, so the default GITHUB_TOKEN can clone it.
-#
-# The qeetrix-ui checkout is the release tag of the @qeetrix/ui version bun.lock
-# installs. `bun run typecheck` reads the installed package's types while `test`
-# and `build` render the checkout, so the two must be the same release: tracking
-# qeetrix-ui@main let a removed export pass the type check and fail only at
-# import. Upgrading @qeetrix/ui is therefore a PR here like any other change.
+# The workshop renders the PUBLISHED @qeetrix/react and @qeetrix/tokens that bun.lock
+# installs, exactly as a Qeet product does: no sibling checkout, no source aliases.
+# Upgrading @qeetrix/react is therefore a PR here like any other change, and this job
+# is what proves every story still renders, passes its interactions and passes axe on
+# the new release.
 #
 # Every gate runs even after an earlier one fails (`if: !cancelled()`), so one
 # run reports the state of all of them. The job still fails overall.
@@ -43,32 +36,20 @@ jobs:
     # the images Playwright has been released against.
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-    defaults:
-      run:
-        working-directory: qeetrix-story
     steps:
       - uses: actions/checkout@v4
-        with:
-          path: qeetrix-story
 
-      - id: ui
-        name: which @qeetrix/ui release does bun.lock install?
+      - id: react
+        name: which @qeetrix/react release does bun.lock install?
         run: |
           set -euo pipefail
-          version=$(grep -oE '"@qeetrix/ui@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3)
+          version=$(grep -oE '"@qeetrix/react@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3)
           if [ -z "$version" ]; then
-            echo "::error::bun.lock does not resolve @qeetrix/ui."
+            echo "::error::bun.lock does not resolve @qeetrix/react."
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "Rendering qeetrix-ui v$version."
-
-      - name: Checkout qeetrix-ui at that release
-        uses: actions/checkout@v4
-        with:
-          repository: qeetgroup/qeetrix-ui
-          ref: v${{ steps.ui.outputs.version }}
-          path: qeetrix-ui
+          echo "Rendering @qeetrix/react $version."
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -77,7 +58,7 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: ~/.bun/install/cache
-          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('qeetrix-story/bun.lock', 'qeetrix-ui/bun.lock') }}
+          key: bun-${{ runner.os }}-${{ env.BUN_VERSION }}-${{ hashFiles('bun.lock') }}
           restore-keys: |
             bun-${{ runner.os }}-${{ env.BUN_VERSION }}-
 
@@ -86,17 +67,8 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ env.PLAYWRIGHT_VERSION }}
 
-      - run: bun install --frozen-lockfile
-
-      # The workshop resolves the sibling's own dependencies through its node_modules.
-      - working-directory: qeetrix-ui
-        run: bun install --frozen-lockfile
-
-      # tokens.css / tokens.raw.css / tokens.json / lib/token-values.ts are generated
-      # and gitignored in qeetrix-ui, so a fresh clone lacks them.
       - id: setup
-        working-directory: qeetrix-ui
-        run: bun run build:tokens
+        run: bun install --frozen-lockfile
 
       # `bun run test` is Vitest browser mode in headless Chromium.
       - if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
@@ -106,6 +78,7 @@ jobs:
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run lint
 
+      # Also writes .storybook/docgen.json, the props tables, from the package's types.
       - id: typecheck
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run typecheck
@@ -118,7 +91,6 @@ jobs:
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run test
 
-      # Also regenerates llms.txt / llms-full.txt from the sibling source.
       - id: build
         if: ${{ !cancelled() && steps.setup.outcome == 'success' }}
         run: bun run build
@@ -127,14 +99,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: storybook-static
-          path: qeetrix-story/storybook-static
+          path: storybook-static
           retention-days: 7
 
       - if: ${{ !cancelled() }}
         name: summarise
         run: |
           {
-            echo "Rendering \`qeetrix-ui\` v${{ steps.ui.outputs.version }}."
+            echo "Rendering \`@qeetrix/react\` ${{ steps.react.outputs.version }}."
             echo
             echo "| Gate | Result |"
             echo "| --- | --- |"
