@@ -69,6 +69,7 @@
 /* ── Tiles ─────────────────────────────────────────────────────────────────── */
 
 .qx-overview-tile {
+  position: relative;
   display: grid;
   grid-template-rows: auto 1fr;
   overflow: hidden;
@@ -83,15 +84,28 @@
     transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
 }
 
-a.qx-overview-tile:hover {
+.qx-overview-tile:has(.qx-overview-link:hover) {
   border-color: var(--qx-color-border-default);
   box-shadow: var(--qx-shadow-raised-hover);
   transform: translateY(-2px);
 }
 
-a.qx-overview-tile:focus-visible {
+.qx-overview-tile:has(.qx-overview-link:focus-visible) {
   outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
   outline-offset: var(--qx-focus-ring-offset);
+}
+
+/* The name's link covers the tile; the focus ring is drawn on the tile instead. */
+.qx-overview-link {
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+
+.qx-overview-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
 }
 
 .qx-overview-art {
@@ -140,7 +154,7 @@ a.qx-overview-tile:focus-visible {
     color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
 }
 
-a.qx-overview-tile:hover .qx-overview-arrow {
+.qx-overview-tile:has(.qx-overview-link:hover) .qx-overview-arrow {
   color: var(--qx-color-icon-brand);
   transform: translateX(3px);
 }
@@ -149,6 +163,6 @@ a.qx-overview-tile:hover .qx-overview-arrow {
   transform: scaleX(-1);
 }
 
-[dir="rtl"] a.qx-overview-tile:hover .qx-overview-arrow {
+[dir="rtl"] .qx-overview-tile:has(.qx-overview-link:hover) .qx-overview-arrow {
   transform: translateX(-3px) scaleX(-1);
 }

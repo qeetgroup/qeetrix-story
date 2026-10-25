@@ -305,23 +305,22 @@ const PRINCIPLES: [ComponentType<{ size?: number }>, string, string][] = [
 /** A card that's one link: a picture of where it goes, its name and a line about it. */
 function DestinationCard({ item, compact }: { item: Destination; compact?: boolean }) {
   return (
-    <a
-      className="qx-welcome-card"
-      data-compact={compact ? "" : undefined}
-      href={to(item.path)}
-      target="_top"
-    >
+    <div className="qx-welcome-card" data-compact={compact ? "" : undefined}>
       <Picture className="qx-welcome-card-art">{item.art}</Picture>
       <span className="qx-welcome-card-copy">
         <span className="qx-welcome-card-title">
-          <Text weight="semibold">{item.title}</Text>
+          {/* The title is the link; its ::after covers the card, so the preview's own controls
+              never sit inside a link. */}
+          <a className="qx-welcome-card-link" href={to(item.path)} target="_top">
+            <Text weight="semibold">{item.title}</Text>
+          </a>
           <ArrowRightIcon size={16} className="qx-welcome-card-arrow" aria-hidden />
         </span>
         <Text size="sm" tone="subtle">
           {item.text}
         </Text>
       </span>
-    </a>
+    </div>
   );
 }
 
