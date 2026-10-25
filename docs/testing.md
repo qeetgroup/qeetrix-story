@@ -32,16 +32,15 @@ list to keep in sync.
 | `bun run test` | the whole suite, headless (`vitest run`) |
 | `bun run test:storybook` | same, pinned to the `storybook` project |
 | `bun run test:watch` | watch mode; also boots the workshop so failures get a clickable link into it |
-| `bun run test:coverage` | v8 coverage over the `@qeetrix/ui` source the stories exercise |
+| `bun run test:coverage` | v8 coverage over the published `@qeetrix/react` the stories exercise |
 | `bunx vitest run stories/components/actions/button.stories.tsx` | a single file |
 
 ### Three things to know before editing `vitest.config.ts`
 
-**1. It reuses `.storybook/main.ts` wholesale.** The plugin applies our `viteFinal`, so
-`@qeetrix/ui` resolves to `../qeetrix-ui/src` in tests exactly as it does in the dev
-server — including the `react`/`react-dom` dedupe, without which every Base UI component
-throws on its first hook. Tests exercise the same source the workshop renders. See
-[architecture.md](./architecture.md#the-react--react-dom-dedupe-is-load-bearing).
+**1. It reuses `.storybook/main.ts` wholesale.** The plugin applies our `viteFinal`, so the
+tests render the published `@qeetrix/react` from `node_modules` exactly as the dev server
+and the static build do, with the same `react`/`react-dom` dedupe. See
+[architecture.md](./architecture.md#the-react--react-dom-dedupe).
 
 **2. There is deliberately no `.storybook/vitest.setup.ts`.** Most Storybook + Vitest
 tutorials tell you to create one that calls `setProjectAnnotations(...)`. **Do not.**
@@ -62,9 +61,9 @@ Headless **Chromium only**. Firefox and WebKit are not run.
 
 `bun run test:coverage` → v8, `text` + `html`, into `coverage/`.
 
-The interesting question is *which `@qeetrix/ui` components the stories actually exercise* —
-and that source lives outside this repo, so the config sets `allowExternal: true` and
-points `include` at `../qeetrix-ui/src/**/*.{ts,tsx}`.
+The interesting question is *which parts of `@qeetrix/react` the stories actually exercise*.
+That code lives in `node_modules`, outside this repo, so the config sets `allowExternal: true`
+and points `include` at the package's `dist/**/*.js`.
 
 Coverage is **deliberately un-thresholded**. It reports a number; it does not gate on one.
 
@@ -128,20 +127,19 @@ play: async ({ canvas, userEvent }) => {
   await userEvent.keyboard("{Escape}");
 
   // Poll for absence. `waitForElementToBeRemoved` throws if the dialog is already gone when
-  // it first checks, and @qeetrix/ui 2.1 overlays can close within the same frame.
+  // it first checks, and an overlay can close within the same frame.
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 },
 ```
 
 Note the shape: the **trigger** is in-canvas (`canvas.getByRole`), the **overlay** is
-portalled (`screen.findByRole`). One test, both queries. Eleven story files currently
-import `screen`, and every one of them is an overlay.
+portalled (`screen.findByRole`). One test, both queries.
 
 ---
 
 ## In CI
 
-The workflows are the same four as `qeetrix-ui`, `qeetrix-icons` and `qeetrix-docs`:
+The workflows are the same four as `qeetrix-react`, `qeetrix-icons` and `qeetrix-docs`:
 
 | Workflow | Runs on | Does |
 | --- | --- | --- |
@@ -150,14 +148,11 @@ The workflows are the same four as `qeetrix-ui`, `qeetrix-icons` and `qeetrix-do
 | `release.yml` | push to `main` | gates, builds and deploys Storybook to Vercel production, then tags `vX.Y.Z` |
 | `rollback.yml` | manual, with a tag | redeploys exactly the commit a release tag names |
 
-Each one checks out **two repos side by side** (`qeetrix-story/` and `qeetrix-ui/`) to
-reproduce the `../qeetrix-ui` relative path, for the reason described in
-[architecture.md](./architecture.md#qeetrixui-is-resolved-from-a-sibling-checkout). The
-`qeetrix-ui` checkout is the release tag of the `@qeetrix/ui` version `bun.lock` installs, so
-the type check (which reads `node_modules`) and the stories (which render the checkout) see
-the same API. Both repos are installed, and `bun run build:tokens` runs in `qeetrix-ui` — its
-`tokens.css` / `tokens.json` / `token-values.ts` are generated and gitignored, so a fresh
-clone does not contain them.
+They build from this repository alone: the workshop renders the published `@qeetrix/react`
+that `bun.lock` installs (see [architecture.md](./architecture.md#the-workshop-renders-the-published-packages)),
+so the type check and the stories always read the same API. `rollback.yml` is the exception:
+for tags up to v0.0.11, which rendered `@qeetrix/ui`, it still checks out `qeetrix-ui` at that
+release.
 
 | Gate | Command |
 | --- | --- |
@@ -172,22 +167,21 @@ the state of all of them instead of one fix-and-rerun cycle per gate. The job st
 overall — no gate is `continue-on-error`, because a green tick on a broken tree is worse than
 no CI. `release.yml` runs the same gates before it deploys.
 
-Upgrading `@qeetrix/ui` is a PR here like any other change: bump it in `package.json`, and
-CI renders the matching `qeetrix-ui` release.
+Upgrading `@qeetrix/react` is a PR here like any other change: bump it in `package.json`, and
+CI renders every story against the new release.
 
 ## What the tests do *not* cover
 
 Stated so nobody assumes coverage that isn't there:
 
-- **RTL** — there is a Direction toolbar global and a `DirectionProvider` decorator, so a
-  human can flip a story to RTL. There is **no RTL test matrix** — nothing runs the suite
-  in RTL.
-- **Visual appearance** — nothing diffs screenshots, so a change in how a story *looks*
-  is caught by a reviewer, not by CI.
-- **Dark mode** — the component/a11y run only exercises the default (light) theme. `A11Y_THEME=dark bun run verify:a11y` is the
-  only dark-mode check that exists today, and it reports rather than gates.
-- **Responsive / viewport matrices** — four canonical viewport presets exist in the
-  toolbar (390 / 768 / 1440 / 1920). Nothing runs stories at them automatically. The only
-  automated responsive assertion anywhere is a single mobile `Container` check in
-  `scripts/verify-foundations.mjs`.
-- **Component internals** — unit tests for `@qeetrix/ui` live in `qeetrix-ui`, not here.
+- **RTL and Hindi:** the Direction and Language toolbar globals let a human flip any story to
+  RTL or Hindi. There's **no RTL or Hindi test matrix** here; nothing runs the whole suite that
+  way. Stories with built-in strings have their own `Hindi` example, which the suite does run.
+- **Visual appearance:** nothing diffs the stories' screenshots here, so a change in how a story
+  *looks* is caught by a reviewer. qeetrix-react's own tests screenshot every component in
+  both colour schemes, and every density where it applies.
+- **Dark mode:** the suite runs the default (light) scheme. qeetrix-react's tests cover dark.
+- **Responsive / viewport matrices:** five viewport presets exist in the toolbar
+  (390 / 768 / 1024 / 1440 / 1920). Nothing runs stories at them automatically.
+- **Component internals:** unit, accessibility and visual tests for `@qeetrix/react` live in
+  qeetrix-react, not here.

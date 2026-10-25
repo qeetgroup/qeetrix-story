@@ -1,0 +1,215 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Foundations / Typography: the family cards, the GEOM stage and the type-scale samples.
+ * Token values only; every `font:` shorthand is followed by the GEOM it resets.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Families: one card per stack ──────────────────────────────────────────── */
+
+.qx-typo-families {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 1.5rem 1.25rem;
+  inline-size: 100%;
+}
+
+.qx-typo-family {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  row-gap: 1rem;
+  min-inline-size: 0;
+}
+
+/* The glyph tile: the face at specimen size, on the same tile the colour swatches use. */
+.qx-typo-family-glyph {
+  display: flex;
+  align-items: center;
+  block-size: 9rem;
+  padding: 1rem 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-sunken);
+  font: var(--qx-typography-display-lg);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-display);
+  font-family: var(--qx-typo-family);
+  font-size: calc(var(--qx-typography-display-lg-font-size) * 1.5);
+  color: var(--qx-color-text-default);
+}
+
+/* Trimmed to cap height and baseline, so Latin and Devanagari both sit optically centred. */
+.qx-typo-family-glyph > span {
+  text-box: trim-both cap alphabetic;
+}
+
+.qx-typo-family-head {
+  display: grid;
+  gap: 0.125rem;
+}
+
+.qx-typo-family-name {
+  font: var(--qx-typography-title-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-heading);
+  color: var(--qx-color-text-default);
+}
+
+.qx-typo-family-use {
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-typo-family-sample {
+  margin: 0;
+  font: var(--qx-typography-body-lg);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  font-family: var(--qx-typo-family);
+  color: var(--qx-color-text-default);
+}
+
+/* The card's four parts share the row's tracks (subgrid), so the cards' rules line up. */
+.qx-typo-family-foot {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding-block-start: 0.875rem;
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-typo-family-stack {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+  overflow-wrap: anywhere;
+}
+
+.qx-typo-family-files {
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtlest);
+}
+
+/* ── Geometry: the live sample, the slider and the token stops ──────────────── */
+
+.qx-typo-geom-stage {
+  display: flex;
+  align-items: center;
+  min-block-size: 10rem;
+  padding: 2rem 1.75rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-sunken);
+}
+
+.qx-typo-geom-sample {
+  margin: 0;
+  font: var(--qx-typography-display-md);
+  font-variation-settings: "GEOM" var(--qx-typo-geom);
+  color: var(--qx-color-text-default);
+  text-wrap: balance;
+}
+
+.qx-typo-geom-control {
+  display: grid;
+  gap: 0.25rem;
+}
+
+/*
+ * Three columns: the first stop at the start, the middle one centred, the last at the end. The
+ * inline padding matches the slider control's, so each tick sits under its value on the track.
+ */
+.qx-typo-geom-stops {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding-inline: 0.5rem;
+}
+
+.qx-typo-geom-stop {
+  display: grid;
+  justify-items: start;
+  align-content: start;
+  gap: 0.375rem;
+  min-inline-size: 0;
+  text-align: start;
+}
+
+.qx-typo-geom-stop[data-align="center"] {
+  justify-items: center;
+  text-align: center;
+}
+
+.qx-typo-geom-stop[data-align="end"] {
+  justify-items: end;
+  text-align: end;
+}
+
+.qx-typo-geom-stop::before {
+  content: "";
+  inline-size: 2px;
+  block-size: 0.625rem;
+  border-radius: var(--qx-radius-sm);
+  background: var(--qx-color-border-strong);
+  transition: background-color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
+}
+
+.qx-typo-geom-stop[data-active]::before {
+  background: var(--qx-color-bg-brand-bold);
+}
+
+.qx-typo-geom-stop-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+  transition: color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
+}
+
+.qx-typo-geom-stop[data-active] .qx-typo-geom-stop-name {
+  color: var(--qx-color-text-default);
+}
+
+.qx-typo-geom-stop-roles {
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtlest);
+}
+
+/* ── Type scale: each role's own font, tracking and GEOM ────────────────────── */
+
+.qx-typo-sample {
+  display: block;
+  font: var(--qx-typo-role);
+  font-variation-settings: "GEOM" var(--qx-typo-geom);
+  letter-spacing: var(--qx-typo-tracking);
+  color: var(--qx-color-text-default);
+}
+
+.qx-typo-sample[data-caps] {
+  text-transform: uppercase;
+}
+
+@container (max-width: 40rem) {
+  .qx-typo-geom-sample {
+    font: var(--qx-typography-heading-lg);
+    font-variation-settings: "GEOM" var(--qx-typo-geom);
+  }
+
+  /* Too narrow for three columns of tokens: one stop per line, without the ticks. */
+  .qx-typo-geom-stops {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-inline: 0;
+  }
+
+  .qx-typo-geom-stop,
+  .qx-typo-geom-stop[data-align] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.75rem;
+    text-align: start;
+  }
+
+  .qx-typo-geom-stop::before {
+    display: none;
+  }
+}

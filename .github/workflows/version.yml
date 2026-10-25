@@ -2,7 +2,7 @@ name: Version
 
 # Bumps the patch version on the PR branch, so the version you are releasing is
 # visible in the PR diff and reviewable like any other change — the same workflow
-# as qeetrix-ui's and qeetrix-icons'.
+# as qeetrix-react's and qeetrix-icons'.
 #
 # Only PRs into main: that is where a release happens, so a feature PR into
 # develop does not bump on its own and the develop → main PR bumps once.

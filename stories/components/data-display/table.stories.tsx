@@ -1,330 +1,455 @@
-import { KeyRoundIcon, PlusIcon } from "@qeetrix/icons";
+import { DownloadIcon } from "@qeetrix/icons/icons/download";
+import { PlusIcon } from "@qeetrix/icons/icons/plus";
+import { UsersIcon } from "@qeetrix/icons/icons/users";
 import {
+  Badge,
   Button,
-  Checkbox,
-  EmptyState,
-  Link,
-  StatusPill,
+  Card,
+  formatRelativeTime,
+  IconButton,
+  Inline,
+  MenuItem,
+  MenuSeparator,
+  QeetrixProvider,
+  Stack,
   Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableEmpty,
-  TableFooter,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@qeetrix/ui";
+  type TableColumn,
+  type TableSort,
+  Text,
+} from "@qeetrix/react";
+import {
+  AvatarItem,
+  DataState,
+  EmptyState,
+  Pagination,
+  SearchField,
+} from "@qeetrix/react/experimental";
+import { hi } from "@qeetrix/react/locales/hi";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import * as React from "react";
+import { type ComponentProps, useState } from "react";
+import { expect, fn, waitFor, within } from "storybook/test";
 import { qx } from "../../_contract";
 
-const meta: Meta<typeof Table> = {
+/** A fixed "now", so relative times read the same in every run. */
+const NOW = Date.UTC(2026, 9, 25, 9, 30);
+const minutes = (n: number) => NOW - n * 60_000;
+
+type Status = "Active" | "Invited" | "Blocked";
+
+interface User {
+  name: string;
+  email: string;
+  status: Status;
+  mfa: string;
+  department: string;
+  lastSignIn: number;
+}
+
+const user = (
+  name: string,
+  email: string,
+  status: Status,
+  mfa: string,
+  department: string,
+  lastSignIn: number,
+): User => ({ name, email, status, mfa, department, lastSignIn });
+
+/** The Qeet ID console's Users page (qeetrix-react tests/fixtures/qeet-id-console.tsx). */
+const USERS: User[] = [
+  user("Priya Sharma", "priya@acme.in", "Active", "Passkey", "Engineering", minutes(2)),
+  user("Rahul Verma", "rahul.verma@acme.in", "Active", "Passkey", "Finance", minutes(18)),
+  user("Ananya Iyer", "ananya@acme.in", "Active", "Authenticator", "Engineering", minutes(64)),
+  user("Karthik Reddy", "karthik.r@acme.in", "Invited", "—", "Sales", minutes(180)),
+  user("Meera Nair", "meera.nair@acme.in", "Active", "Passkey", "People", minutes(26 * 60)),
+  user("Arjun Mehta", "arjun@acme.in", "Blocked", "Authenticator", "Support", minutes(3 * 1440)),
+  user("Sneha Kulkarni", "sneha.k@acme.in", "Active", "Passkey", "Design", minutes(5 * 1440)),
+  user("Vikram Singh", "vikram.singh@acme.in", "Active", "SMS", "Operations", minutes(8 * 1440)),
+  user("Fatima Shaikh", "fatima@acme.in", "Invited", "—", "Legal", minutes(9 * 1440)),
+  user("Rohan Das", "rohan.das@acme.in", "Active", "Passkey", "Engineering", minutes(12 * 1440)),
+  user("Divya Pillai", "divya@acme.in", "Active", "Authenticator", "Finance", minutes(20 * 1440)),
+  user("Aditya Joshi", "aditya.j@acme.in", "Active", "Passkey", "Sales", minutes(31 * 1440)),
+];
+
+const TONE = { Active: "success", Invited: "info", Blocked: "danger" } as const;
+
+const COLUMNS: TableColumn<User>[] = [
+  {
+    id: "name",
+    header: "Name",
+    sortable: true,
+    cell: (row) => <AvatarItem name={row.name} description={row.email} />,
+  },
+  {
+    id: "status",
+    header: "Status",
+    cell: (row) => <Badge tone={TONE[row.status]}>{row.status}</Badge>,
+  },
+  { id: "mfa", header: "MFA", cell: (row) => row.mfa },
+  { id: "department", header: "Department", cell: (row) => row.department },
+  {
+    id: "lastSignIn",
+    header: "Last sign-in",
+    align: "end",
+    sortable: true,
+    sortFirst: "descending",
+    cell: (row) => formatRelativeTime(row.lastSignIn, "en-IN", NOW),
+  },
+];
+
+/** The rows in a sort's order: what the server would send back. */
+function sorted(rows: readonly User[], sort: TableSort | null): User[] {
+  if (!sort) return [...rows];
+  const sign = sort.direction === "ascending" ? 1 : -1;
+  return [...rows].sort((a, b) =>
+    sort.column === "name"
+      ? sign * a.name.localeCompare(b.name, "en-IN")
+      : sign * (a.lastSignIn - b.lastSignIn),
+  );
+}
+
+const userActions = () => (
+  <>
+    <MenuItem>View profile</MenuItem>
+    <MenuItem>Reset MFA</MenuItem>
+    <MenuSeparator />
+    <MenuItem tone="danger">Suspend</MenuItem>
+  </>
+);
+
+/** Toolbar controls are the field height, so the icon button is `size="lg"`. */
+const toolbar = (
+  <Inline gap="md" justify="between" style={{ flex: 1 }}>
+    <SearchField
+      aria-label="Search users"
+      placeholder="Search by name or email"
+      style={{ inlineSize: 280 }}
+    />
+    <IconButton icon={DownloadIcon} aria-label="Download CSV" tone="neutral" size="lg" />
+  </Inline>
+);
+
+const bulkActions = () => (
+  <>
+    <Button size="sm" variant="soft" tone="neutral">
+      Reset MFA
+    </Button>
+    <Button size="sm" variant="soft" tone="danger">
+      Suspend
+    </Button>
+  </>
+);
+
+const meta: Meta<typeof Table<User>> = {
   title: "Components/Data Display/Table",
   component: Table,
   parameters: {
     qeetrix: qx({ category: "data-display", status: "stable" }),
-    layout: "centered",
-    docs: {
-      description: {
-        component:
-          'Semantic HTML table with Qeetrix styling. Compose `TableHeader`, `TableBody`, `TableFooter`, `TableRow`, `TableHead`, `TableCell`, and `TableCaption` to build data-dense views such as member lists, audit logs, and API-key management screens.\n\nThe header and footer are a quiet filled band; body rows get hairline separators, a hover wash, and — for `data-state="selected"` — the brand-subtle tint plus a 2px inline-start bar, so selection is carried by shape as well as colour. `TableEmpty` is the full-width “nothing to show” row (pass the visible column count as `colSpan`); it never takes the hover wash. For long lists, cap the scroll container with `containerClassName` and set `sticky` on `TableHeader` to keep the column names in view.',
-      },
-    },
+    layout: "padded",
+  },
+  args: {
+    label: "Users",
+    rows: USERS.slice(0, 5),
+    rowId: (row) => row.email,
+    rowLabel: (row) => row.name,
+    columns: COLUMNS,
+    selectable: false,
+    loading: false,
+    onSortChange: fn(),
+    onSelectedChange: fn(),
   },
   tags: ["autodocs"],
 };
+
 export default meta;
-type Story = StoryObj<typeof Table>;
+type Story = StoryObj<typeof Table<User>>;
 
-const members = [
-  {
-    name: "Ada Lovelace",
-    email: "ada@acme.com",
-    role: "Owner",
-    status: "active",
-  },
-  {
-    name: "Alan Turing",
-    email: "alan@acme.com",
-    role: "Admin",
-    status: "active",
-  },
-  {
-    name: "Grace Hopper",
-    email: "grace@acme.com",
-    role: "Member",
-    status: "pending",
-  },
-  {
-    name: "Katherine Johnson",
-    email: "katherine@acme.com",
-    role: "Member",
-    status: "revoked",
-  },
-];
+export const Playground: Story = {};
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A four-column member list showing Name, Email, Role, and Status. `StatusPill` is used to render the status badge inside each row.",
-      },
-    },
-  },
-  render: () => (
-    <Table className="w-[640px]">
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {members.map(({ name, email, role, status }) => (
-          <TableRow key={email}>
-            <TableCell className="font-medium">{name}</TableCell>
-            <TableCell>{email}</TableCell>
-            <TableCell>{role}</TableCell>
-            <TableCell>
-              <StatusPill status={status} />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  ),
-};
-
-export const WithFooter: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Demonstrates `TableCaption` (rendered below the table by default) and `TableFooter` for summary rows such as seat totals. Useful on billing or usage screens.",
-      },
-    },
-  },
-  render: () => (
-    <Table className="w-[640px]">
-      <TableCaption>Organisation members — Acme Corp · acme.qeet.in</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {members.map(({ name, email, role, status }) => (
-          <TableRow key={email}>
-            <TableCell className="font-medium">{name}</TableCell>
-            <TableCell>{email}</TableCell>
-            <TableCell>{role}</TableCell>
-            <TableCell>
-              <StatusPill status={status} />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-      <TableFooter>
-        <TableRow>
-          <TableCell colSpan={3} className="font-medium">
-            Total seats used
-          </TableCell>
-          <TableCell>4 / 10</TableCell>
-        </TableRow>
-      </TableFooter>
-    </Table>
-  ),
-};
-
-export const WithEmptyState: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`TableEmpty` in place of the rows when a filter matches nothing. Keep the header, so the reader still sees what the table would hold, and say why it is empty in one sentence. `colSpan` is the table's visible column count.",
-      },
-    },
-  },
-  render: () => (
-    <Table className="w-[640px]">
-      <TableCaption>Members matching “contractor” · Acme Corp</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableEmpty colSpan={4}>
-          No members match “contractor”. Clear the filter to see all 4 members.
-        </TableEmpty>
-      </TableBody>
-    </Table>
-  ),
-};
-
-export const EmptyWithAction: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A first-use Qeet ID API-key list. When there is a next step to offer, put a small `EmptyState` with its action inside `TableEmpty` rather than a sentence.",
-      },
-    },
-  },
-  render: () => (
-    <Table className="w-[640px]">
-      <TableHeader>
-        <TableRow>
-          <TableHead>Key name</TableHead>
-          <TableHead>Key ID</TableHead>
-          <TableHead>Last used</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableEmpty colSpan={4} className="p-0">
-          <EmptyState
-            size="sm"
-            variant="first-use"
-            icon={KeyRoundIcon}
-            title="No API keys yet"
-            description="Create a key to call the Qeet ID Management API from your backend."
-            action={
-              <Button size="sm">
-                <PlusIcon aria-hidden />
-                Create API key
-              </Button>
-            }
-          />
-        </TableEmpty>
-      </TableBody>
-    </Table>
-  ),
-};
-
-const ingestionSources = [
-  { source: "payments-api", region: "ap-south-1", events: 1_284_310, status: "live" },
-  { source: "checkout-web", region: "ap-south-1", events: 942_118, status: "live" },
-  { source: "payouts-worker", region: "ap-south-1", events: 311_402, status: "live" },
-  { source: "gst-invoicer", region: "ap-south-2", events: 208_977, status: "degraded" },
-  { source: "id-hosted-login", region: "ap-south-1", events: 187_645, status: "live" },
-  { source: "id-token-service", region: "ap-south-1", events: 176_090, status: "live" },
-  { source: "notify-email", region: "eu-west-1", events: 98_221, status: "live" },
-  { source: "notify-sms", region: "ap-south-1", events: 87_506, status: "live" },
-  { source: "people-payroll", region: "ap-south-1", events: 41_380, status: "scheduled" },
-  { source: "people-attendance", region: "ap-south-1", events: 36_914, status: "live" },
-  { source: "legacy-cron", region: "us-east-1", events: 0, status: "down" },
-  { source: "staging-mirror", region: "ap-south-1", events: 0, status: "archived" },
-];
-
-export const StickyHeader: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "qeet-logs ingestion sources in a height-capped container. `containerClassName` sets the cap on the scrolling wrapper and `sticky` keeps the header band — opaque, with its rule drawn inside the cells — in view while the rows scroll under it. A capped container is a scroll region, and a keyboard user can only scroll it by tabbing to something inside it: here each source links to its log stream. `Table` does not forward `tabIndex` or a name to its container, so a capped table with no focusable cells is not keyboard-scrollable.",
-      },
-    },
-  },
-  render: () => (
-    <Table
-      className="w-[640px]"
-      containerClassName="max-h-72 rounded-(--qx-corner-surface) border border-border"
-    >
-      <TableCaption>Ingestion sources · last 24 hours</TableCaption>
-      <TableHeader sticky>
-        <TableRow>
-          <TableHead>Source</TableHead>
-          <TableHead>Region</TableHead>
-          <TableHead className="text-end">Events</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {ingestionSources.map(({ source, region, events, status }) => (
-          <TableRow key={source}>
-            <TableCell className="font-mono text-xs">
-              <Link href={`#source-${source}`}>{source}</Link>
-            </TableCell>
-            <TableCell>{region}</TableCell>
-            <TableCell className="text-end">{events.toLocaleString("en-IN")}</TableCell>
-            <TableCell>
-              <StatusPill status={status} />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  ),
-};
-
-function SelectableMembers() {
-  const [selected, setSelected] = React.useState<Set<string>>(
-    () => new Set(["alan@acme.com", "grace@acme.com"]),
-  );
-  const toggle = (email: string, checked: boolean) =>
-    setSelected((current) => {
-      const next = new Set(current);
-      if (checked) next.add(email);
-      else next.delete(email);
-      return next;
-    });
-
+/** Sorts the rows in place of the server, so the headers have something to do. */
+function SortedUsers(props: { onSortChange?: (sort: TableSort | null) => void }) {
+  const [sort, setSort] = useState<TableSort | null>({
+    column: "lastSignIn",
+    direction: "descending",
+  });
   return (
-    <Table className="w-[640px]">
-      <TableCaption>{selected.size} of 4 members selected</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-10">
-            <span className="sr-only">Select</span>
-          </TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead>Status</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {members.map(({ name, email, role, status }) => (
-          <TableRow key={email} data-state={selected.has(email) ? "selected" : undefined}>
-            <TableCell>
-              <Checkbox
-                aria-label={`Select ${name}`}
-                checked={selected.has(email)}
-                onCheckedChange={(checked) => toggle(email, checked)}
-              />
-            </TableCell>
-            <TableCell className="font-medium">{name}</TableCell>
-            <TableCell>{email}</TableCell>
-            <TableCell>{role}</TableCell>
-            <TableCell>
-              <StatusPill status={status} />
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <Table
+      label="Users"
+      rows={sorted(USERS.slice(0, 5), sort)}
+      rowId={(row) => row.email}
+      rowLabel={(row) => row.name}
+      columns={COLUMNS}
+      sort={sort}
+      onSortChange={(next) => {
+        setSort(next);
+        props.onSortChange?.(next);
+      }}
+    />
   );
 }
 
-export const SelectedRows: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Rows with `data-state="selected"` take the brand-subtle tint and a 2px inline-start bar on their first cell; under forced colours the bar becomes the system Highlight. The checkbox is still the control and the source of truth — the row styling only mirrors it.',
-      },
-    },
+export const Sorting: Story = {
+  render: (args) => <SortedUsers onSortChange={args.onSortChange} />,
+};
+
+export const Selection: Story = {
+  args: {
+    selectable: true,
+    defaultSelected: ["rahul.verma@acme.in", "karthik.r@acme.in"],
+    bulkActions,
   },
-  render: () => <SelectableMembers />,
+};
+
+/**
+ * The console's router link, in miniature: like a router's `Link`, it handles the click itself.
+ * Storybook sends a plain link to the parent frame, which would leave Storybook.
+ */
+function RouterLink({ to, onClick, ...props }: ComponentProps<"a"> & { to: string }) {
+  return (
+    <a
+      {...props}
+      href={to}
+      onClick={(event) => {
+        onClick?.(event);
+        event.preventDefault();
+      }}
+    />
+  );
+}
+
+const userLink = (row: User) => <RouterLink to={`/users/${row.email}`} />;
+
+export const ClickableRows: Story = {
+  name: "Clickable rows",
+  args: { renderRowLink: userLink, onRowClick: fn(), rowActions: userActions },
+};
+
+const STATE_COLUMNS = COLUMNS.filter((column) => column.id !== "mfa");
+
+export const States: Story = {
+  render: (args) => (
+    <Stack gap="lg">
+      <Stack gap="xs">
+        <Text size="sm" tone="subtle">
+          Loading
+        </Text>
+        <Table
+          {...args}
+          label="Users, loading"
+          columns={STATE_COLUMNS}
+          rows={[]}
+          loading
+          loadingRows={3}
+        />
+      </Stack>
+      <Stack gap="xs">
+        <Text size="sm" tone="subtle">
+          Refreshing
+        </Text>
+        <Table
+          {...args}
+          label="Users, refreshing"
+          columns={STATE_COLUMNS}
+          rows={USERS.slice(0, 3)}
+          loading
+        />
+      </Stack>
+      <Stack gap="xs">
+        <Text size="sm" tone="subtle">
+          Empty
+        </Text>
+        <Table
+          {...args}
+          label="Users, empty"
+          columns={STATE_COLUMNS}
+          rows={[]}
+          empty={
+            <EmptyState
+              size="section"
+              icon={UsersIcon}
+              title="No users yet"
+              description="Invite your team, or connect a directory."
+              actions={<Button icon={PlusIcon}>Invite users</Button>}
+            />
+          }
+        />
+      </Stack>
+      <Stack gap="xs">
+        <Text size="sm" tone="subtle">
+          Error
+        </Text>
+        <Table
+          {...args}
+          label="Users, failed"
+          columns={STATE_COLUMNS}
+          error={<DataState error="failed" onRetry={fn()} />}
+        />
+      </Stack>
+    </Stack>
+  ),
+};
+
+function UsersCard() {
+  const [offset, setOffset] = useState(0);
+  return (
+    <Card
+      footer={<Pagination offset={offset} pageSize={5} total={1284} onOffsetChange={setOffset} />}
+    >
+      <Table
+        label="Users"
+        rows={USERS.slice(0, 5)}
+        rowId={(row) => row.email}
+        rowLabel={(row) => row.name}
+        columns={COLUMNS}
+        selectable
+        toolbar={toolbar}
+        bulkActions={bulkActions}
+        rowActions={userActions}
+        renderRowLink={userLink}
+      />
+    </Card>
+  );
+}
+
+export const InContext: Story = {
+  name: "In context",
+  render: () => <UsersCard />,
+};
+
+export const Refreshing: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: stale rows stay readable while loading",
+  args: { loading: true },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("table", { name: "Users" })).toHaveAttribute("aria-busy", "true");
+    await expect(canvas.getByText("Priya Sharma")).toBeVisible();
+    // The rows don't dim (that failed contrast); the busy line under the header shows instead.
+    const row = canvas.getByRole("row", { name: /^Priya Sharma/ });
+    await expect(getComputedStyle(row).opacity).toBe("1");
+    await expect(canvas.getByText("Loading")).toBeInTheDocument();
+  },
+};
+
+/** Where the clickable rows led, for the interaction below. */
+const openUser = fn();
+
+export const RowClickInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a click anywhere on a row opens it",
+  args: { renderRowLink: userLink, onRowClick: openUser, rowActions: userActions },
+  play: async ({ canvas, canvasElement, userEvent }) => {
+    openUser.mockClear();
+    const row = canvas.getByRole("row", { name: /^Rahul Verma/ });
+    // The primary cell holds the row's one link.
+    const links = within(row).getAllByRole("link");
+    await expect(links).toHaveLength(1);
+    await expect(links[0]).toHaveAccessibleName(/^Rahul Verma/);
+    await expect(links[0]).toHaveAttribute("href", "/users/rahul.verma@acme.in");
+    // The row's own controls don't open it.
+    await userEvent.click(canvas.getByRole("button", { name: "Actions for Rahul Verma" }));
+    const page = within(canvasElement.ownerDocument.body);
+    await page.findByRole("menu");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(page.queryByRole("menu")).toBeNull());
+    await expect(openUser).not.toHaveBeenCalled();
+    // A click anywhere else on the row follows its link.
+    await userEvent.click(within(row).getByRole("cell", { name: "Finance" }));
+    await expect(openUser).toHaveBeenCalledTimes(1);
+    await expect(openUser).toHaveBeenCalledWith(USERS[1]);
+  },
+};
+
+export const Hindi: Story = {
+  tags: ["!dev", "!autodocs"],
+  args: {
+    selectable: true,
+    defaultSelected: ["priya@acme.in"],
+    rowActions: userActions,
+    bulkActions,
+  },
+  render: (args) => (
+    <QeetrixProvider locale="hi-IN" messages={hi}>
+      <Table {...args} />
+    </QeetrixProvider>
+  ),
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("checkbox", { name: "सभी पंक्तियाँ चुनें" })).toBeVisible();
+    await expect(canvas.getByRole("checkbox", { name: "Priya Sharma चुनें" })).toBeChecked();
+    await expect(
+      canvas.getByRole("button", { name: "Priya Sharma के लिए कार्रवाइयाँ" }),
+    ).toBeVisible();
+    await expect(canvas.getByRole("button", { name: "चयन हटाएँ" })).toBeVisible();
+  },
+};
+
+export const SortInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a header sorts one way, the other, then back",
+  render: (args) => <SortedUsers onSortChange={args.onSortChange} />,
+  play: async ({ args, canvas, userEvent }) => {
+    const header = () => canvas.getByRole("columnheader", { name: "Name" });
+    // Only sortable headers are buttons.
+    await expect(canvas.queryByRole("button", { name: "Department" })).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Name" }));
+    await expect(args.onSortChange).toHaveBeenLastCalledWith({
+      column: "name",
+      direction: "ascending",
+    });
+    await expect(header()).toHaveAttribute("aria-sort", "ascending");
+    await expect(canvas.getAllByRole("row")[1]).toHaveTextContent("Ananya Iyer");
+    await userEvent.click(canvas.getByRole("button", { name: "Name" }));
+    await expect(header()).toHaveAttribute("aria-sort", "descending");
+    await userEvent.click(canvas.getByRole("button", { name: "Name" }));
+    await expect(args.onSortChange).toHaveBeenLastCalledWith(null);
+    await expect(header()).not.toHaveAttribute("aria-sort");
+  },
+};
+
+export const SelectInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: selecting rows swaps the toolbar for the bulk bar",
+  args: { selectable: true, toolbar, bulkActions },
+  play: async ({ args, canvas, userEvent }) => {
+    await expect(canvas.getByRole("searchbox", { name: "Search users" })).toBeVisible();
+    await userEvent.click(canvas.getByRole("checkbox", { name: "Select Priya Sharma" }));
+    await userEvent.click(canvas.getByRole("checkbox", { name: "Select Rahul Verma" }));
+    await expect(args.onSelectedChange).toHaveBeenLastCalledWith([
+      "priya@acme.in",
+      "rahul.verma@acme.in",
+    ]);
+    await expect(canvas.getByRole("checkbox", { name: "Select all rows" })).toHaveAttribute(
+      "aria-checked",
+      "mixed",
+    );
+    await waitFor(() => expect(canvas.getAllByText("2 selected")[0]).toBeVisible());
+    await expect(canvas.queryByRole("searchbox", { name: "Search users" })).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Clear selection" }));
+    await expect(canvas.getByRole("searchbox", { name: "Search users" })).toBeVisible();
+    // Clear hands focus back to the header checkbox.
+    await expect(canvas.getByRole("checkbox", { name: "Select all rows" })).toHaveFocus();
+  },
+};
+
+/** What the row menu's View profile did, for the interaction below. */
+const viewProfile = fn();
+
+export const RowActionsInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a row's menu is named for the row",
+  args: {
+    rowActions: (row) => (
+      <>
+        <MenuItem onClick={() => viewProfile(row.email)}>View profile</MenuItem>
+        <MenuItem tone="danger">Suspend</MenuItem>
+      </>
+    ),
+  },
+  play: async ({ canvas, canvasElement, userEvent }) => {
+    viewProfile.mockClear();
+    await userEvent.click(canvas.getByRole("button", { name: "Actions for Ananya Iyer" }));
+    // The menu opens in a portal, outside the story's canvas.
+    const page = within(canvasElement.ownerDocument.body);
+    await userEvent.click(await page.findByRole("menuitem", { name: "View profile" }));
+    await expect(viewProfile).toHaveBeenCalledWith("ananya@acme.in");
+    await waitFor(() => expect(page.queryByRole("menu")).toBeNull());
+  },
 };

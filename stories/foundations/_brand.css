@@ -1,0 +1,558 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Foundations/Brand (brand.stories.tsx): logo tiles, the two oranges, the role list, the tenant
+ * playground and the identity icon tiles. Token values only; the only painted literals are the
+ * colours a story computes or reads from the DTCG, set inline where they are data.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Logo tiles ────────────────────────────────────────────────────────────── */
+
+.qx-brand-logos {
+  display: grid;
+  grid-template-columns: repeat(var(--qx-brand-columns, 2), minmax(0, 1fr));
+  gap: var(--qx-space-gap-xl) var(--qx-space-gap-lg);
+}
+
+.qx-brand-logos[data-columns="4"] {
+  --qx-brand-columns: 4;
+}
+
+.qx-brand-logo {
+  display: grid;
+  gap: var(--qx-space-gap-md);
+  min-inline-size: 0;
+}
+
+/* The stage carries its own scheme, so a logo always sits on the background it was drawn for. */
+.qx-brand-stage {
+  display: grid;
+  place-items: center;
+  block-size: 11rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-default);
+}
+
+.qx-brand-logos[data-columns="4"] .qx-brand-stage {
+  block-size: 8.5rem;
+}
+
+/* Clear space: a hatched band a quarter of the logo's height deep, inside a dashed edge. */
+.qx-brand-clear {
+  display: grid;
+  padding: var(--qx-brand-clear);
+  outline: 1px dashed var(--qx-color-border-default);
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--qx-color-border-subtle) 0 1px,
+    transparent 1px 6px
+  );
+}
+
+.qx-brand-clear > img {
+  display: block;
+  background: var(--qx-color-surface-default);
+}
+
+.qx-brand-caption {
+  display: grid;
+  justify-items: start;
+  gap: var(--qx-space-gap-xs);
+  min-inline-size: 0;
+}
+
+.qx-brand-caption-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+/* Minimum size: the logo at each size, bottoms aligned, the size under it. */
+.qx-brand-ladder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--qx-space-gap-xl) var(--qx-space-layout-sm);
+}
+
+.qx-brand-rung {
+  display: grid;
+  justify-items: center;
+  gap: var(--qx-space-gap-sm);
+}
+
+.qx-brand-rung-size {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-brand-rung[data-min] .qx-brand-rung-size {
+  color: var(--qx-color-text-brand);
+}
+
+/* One drawing per scheme: the page's own scheme picks it. */
+.qx-brand-on-dark {
+  display: none;
+}
+
+:root[data-qx-color-scheme="dark"] .qx-brand-on-light {
+  display: none;
+}
+
+:root[data-qx-color-scheme="dark"] .qx-brand-on-dark {
+  display: block;
+}
+
+/* ── The two oranges ───────────────────────────────────────────────────────── */
+
+.qx-brand-heroes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qx-space-gap-xl) var(--qx-space-gap-lg);
+}
+
+.qx-brand-hero {
+  display: grid;
+  gap: var(--qx-space-gap-md);
+  min-inline-size: 0;
+  margin: 0;
+}
+
+.qx-brand-hero-tile {
+  display: flex;
+  align-items: flex-end;
+  block-size: 8.5rem;
+  padding: var(--qx-space-inset-xl);
+  border-radius: var(--qx-radius-surface);
+  color: var(--qx-color-text-on-brand);
+}
+
+.qx-brand-hero-aa {
+  font: var(--qx-typography-display-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-display);
+}
+
+.qx-brand-hero-meta {
+  display: grid;
+  justify-items: start;
+  gap: var(--qx-space-gap-xs);
+  min-inline-size: 0;
+}
+
+.qx-brand-hero-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--qx-space-gap-sm);
+  font: var(--qx-typography-title-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-heading);
+}
+
+.qx-brand-hero-note {
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+/* ── Role list: preview, token, use, light and dark ────────────────────────── */
+
+.qx-brand-tokens-wrap {
+  inline-size: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+}
+
+.qx-brand-tokens {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-default);
+}
+
+.qx-brand-tokens :is(th, td) {
+  padding: 0.625rem var(--qx-space-inset-lg);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.qx-brand-tokens thead th {
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-canvas);
+  font: var(--qx-typography-label-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+  white-space: nowrap;
+}
+
+.qx-brand-tokens :is(th, td):first-child {
+  inline-size: 1%;
+  padding-inline-end: var(--qx-space-inset-xs);
+}
+
+.qx-brand-tokens :is(th, td):nth-last-child(-n + 2) {
+  inline-size: 1%;
+  white-space: nowrap;
+}
+
+.qx-brand-tokens tbody tr:not(.qx-brand-tokens-group) + tr :is(th, td) {
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-brand-tokens tbody tr:not(.qx-brand-tokens-group):hover :is(th, td) {
+  background: var(--qx-color-surface-canvas);
+}
+
+.qx-brand-tokens .qx-brand-tokens-group th {
+  padding-block: var(--qx-space-inset-sm);
+  border-block: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-sunken);
+  font: var(--qx-typography-label-caps);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  text-transform: uppercase;
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-brand-tokens tbody:first-of-type .qx-brand-tokens-group th {
+  border-block-start: 0;
+}
+
+.qx-brand-tokens tbody th[scope="row"] {
+  font-weight: inherit;
+}
+
+/* The column is as wide as its longest token, so no token is cut short. */
+.qx-brand-tokens-token {
+  display: grid;
+  justify-items: start;
+  gap: var(--qx-space-gap-xs);
+  min-inline-size: max-content;
+}
+
+.qx-brand-tokens-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-brand-tokens-usage {
+  color: var(--qx-color-text-subtle);
+}
+
+/* A value: its chip, then the ramp step or the hex. */
+.qx-brand-value {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--qx-space-gap-sm);
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-default);
+  white-space: nowrap;
+}
+
+.qx-brand-value > i {
+  flex: none;
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-sm);
+}
+
+/* ── Previews: the role as it's used, light half then dark half ────────────── */
+
+.qx-brand-tone {
+  display: flex;
+  inline-size: 4.5rem;
+  block-size: 2.5rem;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-control);
+}
+
+.qx-brand-tone-half {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  background: var(--qx-color-surface-default);
+  font: var(--qx-typography-title-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-heading);
+}
+
+.qx-brand-tone-edge {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  border: 2px solid;
+  border-radius: var(--qx-radius-sm);
+}
+
+/* ── Tenant playground ─────────────────────────────────────────────────────── */
+
+.qx-brand-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--qx-space-gap-lg) var(--qx-space-gap-xl);
+}
+
+.qx-brand-field {
+  inline-size: min(100%, 18rem);
+}
+
+/* The presets line up with the field: a label like its label, then a row as tall as its box. */
+.qx-brand-presets {
+  display: grid;
+  gap: var(--qx-space-gap-xs);
+}
+
+.qx-brand-presets-label {
+  font: var(--qx-typography-label-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-brand-presets-row {
+  display: flex;
+  align-items: center;
+  min-block-size: var(--qx-size-control-lg);
+}
+
+/* The native colour picker, drawn as a round swatch inside the field. */
+.qx-brand-picker {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: var(--qx-radius-full);
+  background: none;
+  cursor: pointer;
+}
+
+.qx-brand-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.qx-brand-picker::-webkit-color-swatch {
+  border: 1px solid var(--qx-color-border-default);
+  border-radius: var(--qx-radius-full);
+}
+
+.qx-brand-picker::-moz-color-swatch {
+  border: 1px solid var(--qx-color-border-default);
+  border-radius: var(--qx-radius-full);
+}
+
+.qx-brand-picker:focus-visible {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: var(--qx-focus-ring-offset);
+}
+
+.qx-brand-dot {
+  flex: none;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  margin-inline-end: var(--qx-space-gap-xs);
+  border-radius: var(--qx-radius-full);
+  box-shadow: inset 0 0 0 1px var(--qx-color-overlay-pressed);
+}
+
+.qx-brand-panes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--qx-space-gap-lg);
+}
+
+/* A pane carries its scheme and the tenant's variables, as a hosted page would. */
+.qx-brand-pane {
+  display: grid;
+  align-content: start;
+  gap: var(--qx-space-gap-lg);
+  padding: var(--qx-space-inset-xl);
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+  color: var(--qx-color-text-default);
+}
+
+.qx-brand-pane-head {
+  display: flex;
+  align-items: center;
+  gap: var(--qx-space-gap-md);
+  padding-block-end: var(--qx-space-inset-lg);
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-brand-monogram {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-bg-brand-bold);
+  color: var(--qx-color-text-on-brand);
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-brand-pane-org {
+  flex: 1;
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-brand-pane-scheme {
+  font: var(--qx-typography-label-caps);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  text-transform: uppercase;
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-brand-pane-title {
+  display: flex;
+  align-items: center;
+  gap: var(--qx-space-gap-sm);
+}
+
+/* Contrast checks: the pair itself, in light and dark, with its ratio. */
+.qx-brand-checks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--qx-space-gap-xl) var(--qx-space-gap-lg);
+}
+
+.qx-brand-check {
+  display: grid;
+  gap: var(--qx-space-gap-md);
+  min-inline-size: 0;
+}
+
+.qx-brand-check-tile {
+  display: flex;
+  block-size: 4.5rem;
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+}
+
+.qx-brand-check-half {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: var(--qx-space-gap-sm);
+  color: var(--qx-color-text-default);
+}
+
+.qx-brand-check-aa {
+  font: var(--qx-typography-title-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-heading);
+}
+
+.qx-brand-check-ratio {
+  font: var(--qx-typography-code-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.qx-brand-check-half[data-fail] .qx-brand-check-ratio {
+  font-weight: 600;
+}
+
+/* A control edge with the focus ring drawn around it. */
+.qx-brand-check-ring {
+  inline-size: 1.75rem;
+  block-size: 1.125rem;
+  border: 1px solid var(--qx-color-border-default);
+  border-radius: var(--qx-radius-control);
+  outline: var(--qx-focus-ring-width) solid;
+  outline-offset: var(--qx-focus-ring-offset);
+}
+
+.qx-brand-check-meta {
+  display: grid;
+  gap: 0.125rem;
+  min-inline-size: 0;
+}
+
+.qx-brand-check-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qx-space-gap-sm);
+}
+
+.qx-brand-check-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-brand-check-min {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+  white-space: nowrap;
+}
+
+.qx-brand-check-pair {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtlest);
+  overflow-wrap: anywhere;
+}
+
+/* ── Identity icons ────────────────────────────────────────────────────────── */
+
+/* Each tile is wide enough for the longest file name: five across on a wide card. */
+.qx-brand-icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11.25rem, 1fr));
+  gap: var(--qx-space-gap-sm);
+}
+
+.qx-brand-icon {
+  display: grid;
+  justify-items: start;
+  gap: var(--qx-space-gap-md);
+  min-inline-size: 0;
+  padding: var(--qx-space-inset-md);
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+}
+
+.qx-brand-icon-well {
+  display: grid;
+  place-items: center;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-bg-brand-subtle);
+  color: var(--qx-color-icon-brand);
+}
+
+.qx-brand-icon-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+/* ── Narrow cards ──────────────────────────────────────────────────────────── */
+
+@container (max-width: 52rem) {
+  .qx-brand-tokens-usage {
+    display: none;
+  }
+
+  .qx-brand-checks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .qx-brand-logos[data-columns="4"] {
+    --qx-brand-columns: 2;
+  }
+}
+
+@container (max-width: 36rem) {
+  .qx-brand-logos,
+  .qx-brand-logos[data-columns="4"] {
+    --qx-brand-columns: 1;
+  }
+
+  .qx-brand-heroes,
+  .qx-brand-panes,
+  .qx-brand-checks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,5 +1,6 @@
-import { Skeleton } from "@qeetrix/ui";
+import { Avatar, Card, Inline, Skeleton, Stack, Text, VisuallyHidden } from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Skeleton> = {
@@ -8,56 +9,130 @@ const meta: Meta<typeof Skeleton> = {
   parameters: {
     qeetrix: qx({ category: "feedback", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          "Animated loading placeholder that mirrors the shape of incoming content — user cards, audit-event rows, or invoice tables. Compose multiple `<Skeleton>` elements with `className` to match your layout exactly; the pulse animation signals data is on its way.",
-      },
-    },
   },
   tags: ["autodocs"],
+  args: { variant: "text" },
+  render: (args) => (
+    <div style={{ inlineSize: 280 }}>
+      <Skeleton {...args} />
+    </div>
+  ),
 };
+
 export default meta;
 type Story = StoryObj<typeof Skeleton>;
 
-export const Card: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "User card skeleton — avatar circle plus two text lines, mimicking a member row in qeet-people.",
-      },
-    },
-  },
+export const Playground: Story = {};
+
+const VARIANTS = [
+  { label: "text", props: { variant: "text" } },
+  { label: "paragraph", props: { lines: 3 } },
+  { label: "block", props: { variant: "block" } },
+  { label: "circle", props: { variant: "circle" } },
+] as const;
+
+export const Variants: Story = {
   render: () => (
-    <div className="flex w-72 items-center gap-3">
-      <Skeleton className="size-12 rounded-full" />
-      <div className="flex flex-1 flex-col gap-2">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </div>
-    </div>
+    <Stack gap="lg" style={{ inlineSize: 280 }}>
+      {VARIANTS.map(({ label, props }) => (
+        <Stack key={label} gap="sm">
+          <Text size="sm" tone="subtle">
+            {label}
+          </Text>
+          <Skeleton {...props} />
+        </Stack>
+      ))}
+    </Stack>
   ),
 };
 
-export const TableRow: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Table row skeleton for audit-event or invoice lists while data loads from the server.",
-      },
-    },
-  },
+const SIZES = [
+  { size: "sm", label: "Small" },
+  { size: "md", label: "Medium" },
+  { size: "lg", label: "Large" },
+  { size: "xl", label: "Extra large" },
+] as const;
+
+export const Sizes: Story = {
   render: () => (
-    <div className="flex w-xl flex-col gap-3">
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center gap-4">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-4 flex-1" />
-          <Skeleton className="h-4 w-20" />
-        </div>
+    <Inline gap="lg" align="end">
+      {SIZES.map(({ size, label }) => (
+        <Stack key={size} gap="sm" align="center">
+          <Skeleton variant="circle" size={size} />
+          <Text size="sm" tone="subtle">
+            {label}
+          </Text>
+        </Stack>
       ))}
-    </div>
+    </Inline>
   ),
+};
+
+export const InContext: Story = {
+  name: "In context",
+  render: () => (
+    <Card title="Profile" level={2} style={{ inlineSize: 360 }}>
+      <Stack gap="md" aria-busy="true">
+        <VisuallyHidden>
+          <Text role="status">Loading Priya Sharma's profile</Text>
+        </VisuallyHidden>
+        <Inline gap="sm" wrap={false}>
+          <Skeleton variant="circle" size="lg" />
+          <Stack gap="xs" style={{ flex: 1 }}>
+            <Skeleton style={{ inlineSize: "55%" }} />
+            <Skeleton style={{ inlineSize: "35%" }} />
+          </Stack>
+        </Inline>
+        <Skeleton variant="block" />
+      </Stack>
+    </Card>
+  ),
+};
+
+export const HiddenInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: hidden from assistive technology",
+  play: async ({ canvasElement }) => {
+    const skeleton = canvasElement.querySelector("[data-slot=skeleton]");
+    await expect(skeleton).toHaveAttribute("aria-hidden", "true");
+  },
+};
+
+export const LinesInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: lines draws a paragraph, the last line shorter",
+  args: { lines: 3 },
+  play: async ({ canvasElement }) => {
+    const paragraph = canvasElement.querySelector("[data-slot=skeleton-lines]");
+    await expect(paragraph).toHaveAttribute("aria-hidden", "true");
+    const lines = [...(paragraph?.querySelectorAll<HTMLElement>("[data-slot=skeleton]") ?? [])];
+    await expect(lines).toHaveLength(3);
+    const width = (line: HTMLElement) => line.getBoundingClientRect().width;
+    await expect(width(lines[2])).toBeLessThan(width(lines[0]));
+  },
+};
+
+export const AvatarSizeInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: circles match Avatar's sizes",
+  render: () => (
+    <Stack gap="sm">
+      {SIZES.map(({ size }) => (
+        <Inline key={size} gap="sm" data-row={size}>
+          <Avatar name="Priya Sharma" size={size} />
+          <Skeleton variant="circle" size={size} />
+        </Inline>
+      ))}
+    </Stack>
+  ),
+  play: async ({ canvasElement }) => {
+    for (const { size } of SIZES) {
+      const row = canvasElement.querySelector(`[data-row=${size}]`);
+      const avatar = row?.querySelector("[data-slot=avatar]")?.getBoundingClientRect();
+      const circle = row?.querySelector("[data-slot=skeleton]")?.getBoundingClientRect();
+      await expect(avatar?.width).toBeGreaterThan(0);
+      await expect(circle?.width).toBe(avatar?.width);
+      await expect(circle?.height).toBe(avatar?.height);
+    }
+  },
 };

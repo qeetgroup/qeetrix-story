@@ -1,104 +1,130 @@
-import { Button, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@qeetrix/ui";
+import { CopyIcon } from "@qeetrix/icons/icons/copy";
+import { DownloadIcon } from "@qeetrix/icons/icons/download";
+import { ListFilterIcon } from "@qeetrix/icons/icons/list-filter";
+import { RefreshCwIcon } from "@qeetrix/icons/icons/refresh-cw";
+import { SettingsIcon } from "@qeetrix/icons/icons/settings";
+import { Button, IconButton, Inline, Tooltip, TooltipProvider } from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, screen, waitFor } from "storybook/test";
+import { expect, waitFor } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Tooltip> = {
   title: "Components/Overlays/Tooltip",
   component: Tooltip,
+  subcomponents: { TooltipProvider },
   parameters: {
     qeetrix: qx({ category: "overlays", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          "A short informational label that appears on hover or focus. Use it to clarify icon-only controls, expose keyboard shortcuts, and surface contextual hints — for example explaining what a passkey rotation policy does or why a setting is locked for Viewer-role users.",
-      },
-    },
+  },
+  args: {
+    content: "Rotates every 90 days.",
+  },
+  argTypes: {
+    // The trigger element comes from each story's render.
+    children: { control: false },
   },
   tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Tooltip>;
 
-export const Default: Story = {
+/** The popup portals to the end of <body>, outside the canvas. */
+const tooltipPopup = () => document.querySelector<HTMLElement>("[data-slot=tooltip-popup]");
+
+export const Playground: Story = {
+  render: (args) => (
+    <Tooltip {...args}>
+      <Button variant="soft">Rotate key</Button>
+    </Tooltip>
+  ),
+};
+
+export const Sides: Story = {
+  render: () => (
+    <Inline gap="2xl">
+      <Tooltip content="Download invoice" side="top">
+        <IconButton icon={DownloadIcon} aria-label="Download invoice" tooltip={false} />
+      </Tooltip>
+      <Tooltip content="Copy user ID" side="bottom">
+        <IconButton icon={CopyIcon} aria-label="Copy user ID" tooltip={false} />
+      </Tooltip>
+      <Tooltip content="Refresh sessions" side="left">
+        <IconButton icon={RefreshCwIcon} aria-label="Refresh sessions" tooltip={false} />
+      </Tooltip>
+      <Tooltip content="Workspace settings" side="right">
+        <IconButton icon={SettingsIcon} aria-label="Workspace settings" tooltip={false} />
+      </Tooltip>
+    </Inline>
+  ),
+};
+
+export const WithProvider: Story = {
+  name: "With provider",
   parameters: {
-    docs: {
-      description: {
-        story: "Tooltip on an action button explaining the auto-rotation policy for API keys.",
-      },
-    },
+    docs: { description: { story: "Once one tooltip is open, its neighbours open at once." } },
   },
   render: () => (
     <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger render={<Button variant="outline">Rotate key</Button>} />
-        <TooltipContent>Rotates every 90 days — current key expires 2026-09-15</TooltipContent>
-      </Tooltip>
+      <Inline gap="xs">
+        <IconButton icon={RefreshCwIcon} aria-label="Refresh log stream" tone="neutral" />
+        <IconButton icon={ListFilterIcon} aria-label="Filter by level" tone="neutral" />
+        <IconButton icon={DownloadIcon} aria-label="Export as CSV" tone="neutral" />
+        <IconButton icon={SettingsIcon} aria-label="Stream settings" tone="neutral" />
+      </Inline>
     </TooltipProvider>
   ),
 };
 
-export const BottomSide: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          'Tooltip anchored below the trigger via `side="bottom"` — useful beneath icon-only toolbar buttons.',
-      },
-    },
+export const FocusInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: focus opens it, Escape closes it",
+  render: Playground.render,
+  play: async ({ canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button", { name: "Rotate key" });
+    await userEvent.tab();
+    await expect(trigger).toHaveFocus();
+    await waitFor(() => expect(tooltipPopup()).toHaveTextContent("Rotates every 90 days."));
+    await expect(trigger).toHaveFocus();
+    await expect(tooltipPopup()).toHaveAttribute("role", "tooltip");
+    await expect(trigger).toHaveAccessibleDescription("Rotates every 90 days.");
+
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(tooltipPopup()).toBeNull());
+    await expect(trigger).toHaveFocus();
   },
-  render: () => (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button variant="ghost" size="icon">
-              ⌘K
-            </Button>
-          }
-        />
-        <TooltipContent side="bottom">Open command palette</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  ),
 };
 
 export const HoverInteraction: Story = {
-  name: "Interaction: hover reveals the tooltip",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Tooltips open on a delay, so the assertion polls for the content rather than checking immediately — a first-frame check would pass or fail depending on machine speed.",
-      },
-    },
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: hover opens it after the delay",
+  render: Playground.render,
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.hover(canvas.getByRole("button", { name: "Rotate key" }));
+    await expect(tooltipPopup()).toBeNull();
+    await waitFor(() => expect(tooltipPopup()).toBeVisible(), { timeout: 2000 });
   },
-  render: () => (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger render={<Button variant="outline">Rotate key</Button>} />
-        <TooltipContent>Rotates every 90 days</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  ),
+};
+
+export const SideOffsetInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: sideOffset sets the gap",
+  args: { sideOffset: 12 },
+  render: Playground.render,
   play: async ({ canvas, userEvent }) => {
     const trigger = canvas.getByRole("button", { name: "Rotate key" });
-
-    await userEvent.hover(trigger);
-
-    const tip = await screen.findByText("Rotates every 90 days");
-    await waitFor(() => expect(tip).toBeVisible());
-
-    // Only the visual reveal is asserted, because that is all that currently works.
-    //
-    // KNOWN GAP: the tooltip is not associated with its trigger in the accessibility
-    // tree. The popup renders no `role="tooltip"` and the trigger carries no
-    // `aria-describedby`, so a screen-reader user hears "Rotate key" and never the
-    // tooltip text — which is where the actual information lives. Fixing that belongs
-    // in @qeetrix/ui's Tooltip, not here; when it lands, add:
-    //     await expect(trigger).toHaveAccessibleDescription("Rotates every 90 days");
-    // Note axe does not flag this, and the library's own jsdom test only checks that
-    // the text exists in the DOM.
+    await userEvent.tab();
+    await waitFor(() => expect(tooltipPopup()).toBeVisible());
+    // Measured on the side it opened on: it flips when the canvas has no room above.
+    const gap = () => {
+      const popup = tooltipPopup();
+      const from = trigger.getBoundingClientRect();
+      const to = popup?.getBoundingClientRect();
+      if (!popup || !to) return Number.NaN;
+      return Math.round(
+        popup.dataset.side === "bottom" ? to.top - from.bottom : from.top - to.bottom,
+      );
+    };
+    await waitFor(() => expect(gap()).toBe(12));
   },
 };

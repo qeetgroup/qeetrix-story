@@ -1,288 +1,320 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@qeetrix/ui";
+import { KeyRoundIcon } from "@qeetrix/icons/icons/key-round";
+import { LayoutGridIcon } from "@qeetrix/icons/icons/layout-grid";
+import { ShieldCheckIcon } from "@qeetrix/icons/icons/shield-check";
+import { UsersIcon } from "@qeetrix/icons/icons/users";
+import {
+  Badge,
+  Box,
+  QeetrixProvider,
+  Stack,
+  Tab,
+  Tabs,
+  TabsList,
+  TabsPanel,
+  Text,
+} from "@qeetrix/react";
+import { PageContent, PageHeader } from "@qeetrix/react/experimental";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, waitFor } from "storybook/test";
+import type { ReactNode } from "react";
+import { expect, fn, waitFor, within } from "storybook/test";
 import { qx } from "../../_contract";
+
+/** A panel's content, padded from the list. */
+function Panel({ value, children }: { value: string; children: ReactNode }) {
+  return (
+    <TabsPanel value={value}>
+      <Box paddingBlock="md">
+        <Text tone="subtle">{children}</Text>
+      </Box>
+    </TabsPanel>
+  );
+}
+
+/** Priya Sharma's user page. */
+function UserPanels() {
+  return (
+    <>
+      <Panel value="profile">priya@acme.in · Engineering</Panel>
+      <Panel value="security">2 passkeys · Two-step sign-in on</Panel>
+      <Panel value="sessions">3 active sessions</Panel>
+      <Panel value="groups">Engineering, Payroll approvers</Panel>
+      <Panel value="activity">Signed in from Bengaluru 2 minutes ago</Panel>
+    </>
+  );
+}
 
 const meta: Meta<typeof Tabs> = {
   title: "Components/Navigation/Tabs",
   component: Tabs,
+  subcomponents: { TabsList, Tab, TabsPanel },
   parameters: {
     qeetrix: qx({ category: "navigation", status: "stable" }),
-    layout: "centered",
-    docs: {
-      description: {
-        component:
-          "A tabbed navigation panel for switching between views within a single page context. Use it to organise related settings, reports, or resource details — for example the Account / Security / Sessions tabs on a Qeet ID profile page, or Overview / Members / API keys on an organisation detail page.\n\n`variant` is set on `TabsList` and read by its triggers. `default` is contained: a sunken well with the selected tab as the raised surface inside it — a segmented view switch for a card, a toolbar or a panel. `line` is the underline treatment: tabs sit on a 1px track and the selected tab carries a 2px Qeet indicator — page- and section-level navigation. Vertical `line` tabs put the indicator on the inline-start track. Horizontal lists scroll rather than overflow; arrow keys move focus between tabs and Enter or Space activates the focused one.",
-      },
-    },
+    layout: "padded",
   },
+  args: {
+    defaultValue: "profile",
+    onValueChange: fn(),
+  },
+  render: (args) => (
+    <div style={{ inlineSize: 560 }}>
+      <Tabs {...args}>
+        <TabsList aria-label="Priya Sharma">
+          <Tab value="profile">Profile</Tab>
+          <Tab value="security">Security</Tab>
+          <Tab value="sessions">Sessions</Tab>
+          <Tab value="groups">Groups</Tab>
+          <Tab value="activity">Activity</Tab>
+        </TabsList>
+        <UserPanels />
+      </Tabs>
+    </div>
+  ),
   tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Tabs>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Qeet ID profile page tabs — Account, Security, and Sessions in a standard 3-tab layout.",
-      },
-    },
-  },
-  render: () => (
-    <Tabs defaultValue="account" className="w-80">
-      <TabsList>
-        <TabsTrigger value="account">Account</TabsTrigger>
-        <TabsTrigger value="security">Security</TabsTrigger>
-        <TabsTrigger value="sessions">Sessions</TabsTrigger>
-      </TabsList>
-      <TabsContent value="account" className="p-3 text-sm text-muted-foreground">
-        Manage your name, email, and avatar.
-      </TabsContent>
-      <TabsContent value="security" className="p-3 text-sm text-muted-foreground">
-        Configure passkeys, MFA, and recovery codes.
-      </TabsContent>
-      <TabsContent value="sessions" className="p-3 text-sm text-muted-foreground">
-        Review and revoke active sessions.
-      </TabsContent>
-    </Tabs>
-  ),
-};
-
-export const OrgDetail: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Organisation detail page tabs — five sections covering the full lifecycle of a Qeet ID tenant.",
-      },
-    },
-  },
-  render: () => (
-    <Tabs defaultValue="overview" className="w-120">
-      <TabsList>
-        <TabsTrigger value="overview">Overview</TabsTrigger>
-        <TabsTrigger value="members">Members</TabsTrigger>
-        <TabsTrigger value="api-keys">API keys</TabsTrigger>
-        <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-        <TabsTrigger value="billing">Billing</TabsTrigger>
-      </TabsList>
-      <TabsContent value="overview" className="p-3 text-sm text-muted-foreground">
-        Acme Inc. · Pro plan · 24 members · Created 2025-01-14
-      </TabsContent>
-      <TabsContent value="members" className="p-3 text-sm text-muted-foreground">
-        Manage roles: Admin, Member, Viewer.
-      </TabsContent>
-      <TabsContent value="api-keys" className="p-3 text-sm text-muted-foreground">
-        2 live keys · last rotated 2026-03-01
-      </TabsContent>
-      <TabsContent value="webhooks" className="p-3 text-sm text-muted-foreground">
-        3 active endpoints · 99.8% delivery rate
-      </TabsContent>
-      <TabsContent value="billing" className="p-3 text-sm text-muted-foreground">
-        Next invoice: ₹12,400 on 2026-07-01
-      </TabsContent>
-    </Tabs>
-  ),
-};
+export const Playground: Story = {};
 
 export const Variants: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '`variant="default"` (contained) and `variant="line"` (underline) on the same three tabs. Reach for `default` to switch views inside a card or panel, and `line` for page-level navigation, where a row of contained tabs would read as a control rather than a section header.',
-      },
-    },
-  },
-  render: () => (
-    <div className="flex w-96 flex-col gap-8">
-      {(["default", "line"] as const).map((variant) => (
-        <Tabs key={variant} defaultValue="account">
-          <TabsList variant={variant} aria-label={`Profile sections (${variant})`}>
-            <TabsTrigger value="account">Account</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="sessions">Sessions</TabsTrigger>
-          </TabsList>
-          <TabsContent value="account" className="p-3 text-sm text-muted-foreground">
-            {`variant="${variant}"`} — manage your name, email, and avatar.
-          </TabsContent>
-          <TabsContent value="security" className="p-3 text-sm text-muted-foreground">
-            Configure passkeys, MFA, and recovery codes.
-          </TabsContent>
-          <TabsContent value="sessions" className="p-3 text-sm text-muted-foreground">
-            Review and revoke active sessions.
-          </TabsContent>
-        </Tabs>
+  args: { defaultValue: "all" },
+  render: (args) => (
+    <Stack gap="xl" style={{ inlineSize: 560 }}>
+      {(["line", "contained"] as const).map((variant) => (
+        <Stack key={variant} gap="sm">
+          <Text size="sm" tone="subtle">
+            {variant === "line" ? "Line" : "Contained"}
+          </Text>
+          <Tabs {...args}>
+            <TabsList variant={variant} aria-label="Users">
+              <Tab value="all">All users</Tab>
+              <Tab value="invitations">Invitations</Tab>
+              <Tab value="blocked">Blocked</Tab>
+            </TabsList>
+          </Tabs>
+        </Stack>
       ))}
+    </Stack>
+  ),
+};
+
+export const Vertical: Story = {
+  args: { defaultValue: "general", orientation: "vertical" },
+  render: (args) => (
+    <div style={{ inlineSize: 560 }}>
+      <Tabs {...args}>
+        <TabsList aria-label="Organisation settings">
+          <Tab value="general">General</Tab>
+          <Tab value="domains">Domains</Tab>
+          <Tab value="branding">Branding</Tab>
+          <Tab value="billing">Billing</Tab>
+        </TabsList>
+        <Box paddingInline="xl">
+          <Panel value="general">Acme Pvt Ltd · Bengaluru</Panel>
+          <Panel value="domains">acme.in · acme.co.in</Panel>
+          <Panel value="branding">Logo and colours</Panel>
+          <Panel value="billing">Business plan · ₹1,24,500 a year</Panel>
+        </Box>
+      </Tabs>
     </div>
   ),
 };
 
-export const Line: Story = {
+export const Overflow: Story = {
   parameters: {
-    docs: {
-      description: {
-        story:
-          '`variant="line"` as page navigation in qeet-logs. The list spans the full width on a 1px track, the selected tab carries the 2px Qeet indicator, and hovering a tab previews a neutral one.',
-      },
-    },
+    docs: { description: { story: "More tabs than fit: the list scrolls sideways." } },
   },
-  render: () => (
-    <Tabs defaultValue="streams" className="w-120">
-      <TabsList variant="line" aria-label="qeet-logs">
-        <TabsTrigger value="streams">Streams</TabsTrigger>
-        <TabsTrigger value="saved">Saved searches</TabsTrigger>
-        <TabsTrigger value="alerts">Alerts</TabsTrigger>
-        <TabsTrigger value="retention">Retention</TabsTrigger>
-      </TabsList>
-      <TabsContent value="streams" className="p-3 text-sm text-muted-foreground">
-        12 streams · 4.2 GB ingested today
-      </TabsContent>
-      <TabsContent value="saved" className="p-3 text-sm text-muted-foreground">
-        7 saved searches shared with the Platform team
-      </TabsContent>
-      <TabsContent value="alerts" className="p-3 text-sm text-muted-foreground">
-        3 alert rules · 1 firing on auth-service
-      </TabsContent>
-      <TabsContent value="retention" className="p-3 text-sm text-muted-foreground">
-        Hot storage 14 days · archive 1 year
-      </TabsContent>
+  args: { defaultValue: "overview" },
+  render: (args) => (
+    <div style={{ inlineSize: 360 }}>
+      <Tabs {...args}>
+        <TabsList aria-label="Payroll portal">
+          {["Overview", "Users", "Groups", "Sign-in", "Credentials", "Branding", "Logs"].map(
+            (label) => (
+              <Tab key={label} value={label.toLowerCase()}>
+                {label}
+              </Tab>
+            ),
+          )}
+        </TabsList>
+        <Panel value="overview">642 sign-ins this month</Panel>
+      </Tabs>
+    </div>
+  ),
+};
+
+export const InContext: Story = {
+  name: "In context",
+  parameters: { layout: "fullscreen" },
+  args: { defaultValue: "users" },
+  render: (args) => (
+    <Tabs {...args}>
+      <PageHeader
+        title="Payroll portal"
+        status={<Badge tone="success">Active</Badge>}
+        tabs={
+          <TabsList aria-label="Payroll portal">
+            <Tab value="overview" icon={LayoutGridIcon} filledWhenSelected>
+              Overview
+            </Tab>
+            <Tab value="users" icon={UsersIcon} filledWhenSelected badge={642}>
+              Users
+            </Tab>
+            <Tab value="sign-in" icon={ShieldCheckIcon} filledWhenSelected>
+              Sign-in
+            </Tab>
+            <Tab value="credentials" icon={KeyRoundIcon} filledWhenSelected>
+              Credentials
+            </Tab>
+          </TabsList>
+        }
+      />
+      <PageContent>
+        <TabsPanel value="overview">
+          <Text tone="subtle">OIDC · created 14 March 2024</Text>
+        </TabsPanel>
+        <TabsPanel value="users">
+          <Text tone="subtle">Engineering, Finance and People</Text>
+        </TabsPanel>
+        <TabsPanel value="sign-in">
+          <Text tone="subtle">Passkeys required</Text>
+        </TabsPanel>
+        <TabsPanel value="credentials">
+          <Text tone="subtle">Secret rotated 1 September 2026</Text>
+        </TabsPanel>
+      </PageContent>
     </Tabs>
   ),
 };
 
-export const LineVertical: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Vertical `line` tabs for a qeet-pay settings page. The track and the 2px indicator move to the inline-start edge, matching the sidebar, and the panel sits beside the list.",
-      },
-    },
-  },
-  render: () => (
-    <Tabs defaultValue="general" orientation="vertical" className="w-120">
-      <TabsList variant="line" aria-label="qeet-pay settings">
-        <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="payouts">Payouts</TabsTrigger>
-        <TabsTrigger value="gst">GST &amp; invoicing</TabsTrigger>
-        <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-      </TabsList>
-      <TabsContent value="general" className="px-3 text-sm text-muted-foreground">
-        Business name, support email and statement descriptor.
-      </TabsContent>
-      <TabsContent value="payouts" className="px-3 text-sm text-muted-foreground">
-        Daily payouts to HDFC Bank ••••4821, T+1 settlement.
-      </TabsContent>
-      <TabsContent value="gst" className="px-3 text-sm text-muted-foreground">
-        GSTIN 29ABCDE1234F1Z5 · invoice prefix INV-2026-
-      </TabsContent>
-      <TabsContent value="webhooks" className="px-3 text-sm text-muted-foreground">
-        2 endpoints · signing secret rotated 1 Sep 2026
-      </TabsContent>
-    </Tabs>
-  ),
-};
+export const KeyboardInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: one Tab stop, arrows select",
+  play: async ({ args, canvas, userEvent }) => {
+    const tab = (name: string) => canvas.getByRole("tab", { name });
 
-export const SwitchInteraction: Story = {
-  name: "Interaction: switching tabs",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Switching a tab must swap the visible panel and move `aria-selected` with it. Asserting the outgoing panel is gone catches the case where panels stack up instead of replacing one another.",
-      },
-    },
-  },
-  render: () => (
-    <Tabs defaultValue="account" className="w-80">
-      <TabsList>
-        <TabsTrigger value="account">Account</TabsTrigger>
-        <TabsTrigger value="security">Security</TabsTrigger>
-      </TabsList>
-      <TabsContent value="account" className="p-3 text-sm">
-        Manage your name, email, and avatar.
-      </TabsContent>
-      <TabsContent value="security" className="p-3 text-sm">
-        Configure passkeys, MFA, and recovery codes.
-      </TabsContent>
-    </Tabs>
-  ),
-  play: async ({ canvas, userEvent }) => {
-    const security = canvas.getByRole("tab", { name: "Security" });
-    await expect(canvas.getByRole("tab", { name: "Account" })).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-
-    await userEvent.click(security);
-
-    await expect(security).toHaveAttribute("aria-selected", "true");
-    await expect(canvas.getByText("Configure passkeys, MFA, and recovery codes.")).toBeVisible();
-    // The outgoing panel stays mounted while it animates out, so this has to wait for
-    // the unmount rather than checking on the next frame — asserting immediately here
-    // passed roughly one run in four.
-    await waitFor(() =>
-      expect(canvas.queryByText("Manage your name, email, and avatar.")).not.toBeInTheDocument(),
-    );
-  },
-};
-
-export const LineKeyboardInteraction: Story = {
-  name: "Interaction: line tabs keyboard switching",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Line tabs use manual activation: the arrow keys move focus along the list without changing the panel, and Enter commits. The test pins both halves — a focused tab is not yet selected, and the selected tab and its panel move only on Enter — plus End and Home jumping to the ends of the list.",
-      },
-    },
-  },
-  render: () => (
-    <Tabs defaultValue="streams" className="w-120">
-      <TabsList variant="line" aria-label="qeet-logs">
-        <TabsTrigger value="streams">Streams</TabsTrigger>
-        <TabsTrigger value="saved">Saved searches</TabsTrigger>
-        <TabsTrigger value="alerts">Alerts</TabsTrigger>
-      </TabsList>
-      <TabsContent value="streams" className="p-3 text-sm">
-        12 streams · 4.2 GB ingested today
-      </TabsContent>
-      <TabsContent value="saved" className="p-3 text-sm">
-        7 saved searches shared with the Platform team
-      </TabsContent>
-      <TabsContent value="alerts" className="p-3 text-sm">
-        3 alert rules · 1 firing on auth-service
-      </TabsContent>
-    </Tabs>
-  ),
-  play: async ({ canvas, userEvent }) => {
-    const streams = canvas.getByRole("tab", { name: "Streams" });
-    const saved = canvas.getByRole("tab", { name: "Saved searches" });
-    const alerts = canvas.getByRole("tab", { name: "Alerts" });
-
-    // One tab stop: Tab lands on the selected tab.
     await userEvent.tab();
-    await expect(streams).toHaveFocus();
+    await expect(tab("Profile")).toHaveFocus();
 
-    // Arrow keys move focus only — the selection stays put until the user commits.
+    // activateOnFocus is on by default: moving selects.
     await userEvent.keyboard("{ArrowRight}");
-    await expect(saved).toHaveFocus();
-    await expect(saved).toHaveAttribute("aria-selected", "false");
-    await expect(streams).toHaveAttribute("aria-selected", "true");
-
-    await userEvent.keyboard("{Enter}");
-    await expect(saved).toHaveAttribute("aria-selected", "true");
-    await expect(canvas.getByText("7 saved searches shared with the Platform team")).toBeVisible();
-    await waitFor(() =>
-      expect(canvas.queryByText("12 streams · 4.2 GB ingested today")).not.toBeInTheDocument(),
+    await expect(tab("Security")).toHaveFocus();
+    await expect(tab("Security")).toHaveAttribute("aria-selected", "true");
+    await expect(args.onValueChange).toHaveBeenLastCalledWith("security", expect.anything());
+    await expect(canvas.getByRole("tabpanel", { name: "Security" })).toHaveTextContent(
+      "2 passkeys",
     );
 
     await userEvent.keyboard("{End}");
-    await expect(alerts).toHaveFocus();
+    await expect(tab("Activity")).toHaveFocus();
     await userEvent.keyboard("{Home}");
-    await expect(streams).toHaveFocus();
+    await expect(tab("Profile")).toHaveFocus();
+
+    // The panel follows the list in the Tab order.
+    await userEvent.tab();
+    await expect(canvas.getByRole("tabpanel", { name: "Profile" })).toHaveFocus();
+  },
+};
+
+export const ManualActivationInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: manual activation for slow panels",
+  render: (args) => (
+    <div style={{ inlineSize: 560 }}>
+      <Tabs {...args}>
+        <TabsList aria-label="Priya Sharma" activateOnFocus={false}>
+          <Tab value="profile">Profile</Tab>
+          <Tab value="security">Security</Tab>
+          <Tab value="sessions">Sessions</Tab>
+          <Tab value="groups">Groups</Tab>
+          <Tab value="activity">Activity</Tab>
+        </TabsList>
+        <UserPanels />
+      </Tabs>
+    </div>
+  ),
+  play: async ({ canvas, userEvent }) => {
+    const tab = (name: string) => canvas.getByRole("tab", { name });
+
+    await userEvent.tab();
+    await userEvent.keyboard("{ArrowRight}{ArrowRight}");
+    await expect(tab("Sessions")).toHaveFocus();
+    await expect(tab("Sessions")).toHaveAttribute("aria-selected", "false");
+    await expect(tab("Profile")).toHaveAttribute("aria-selected", "true");
+
+    await userEvent.keyboard("{Enter}");
+    await expect(tab("Sessions")).toHaveAttribute("aria-selected", "true");
+    await waitFor(() =>
+      expect(canvas.getByRole("tabpanel", { name: "Sessions" })).toHaveTextContent(
+        "3 active sessions",
+      ),
+    );
+  },
+};
+
+export const RightToLeftInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: arrow keys follow right-to-left",
+  render: (args) => (
+    <QeetrixProvider direction="rtl">
+      <div dir="rtl" style={{ inlineSize: 560 }}>
+        <Tabs {...args}>
+          <TabsList aria-label="Priya Sharma">
+            <Tab value="profile">Profile</Tab>
+            <Tab value="security">Security</Tab>
+            <Tab value="sessions">Sessions</Tab>
+          </TabsList>
+          <UserPanels />
+        </Tabs>
+      </div>
+    </QeetrixProvider>
+  ),
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.tab();
+    await expect(canvas.getByRole("tab", { name: "Profile" })).toHaveFocus();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(canvas.getByRole("tab", { name: "Security" })).toHaveFocus();
+  },
+};
+
+export const CountInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a count follows the locale",
+  render: (args) => (
+    <Stack gap="md" style={{ inlineSize: 560 }}>
+      <Tabs {...args} defaultValue="payments">
+        <TabsList aria-label="Payments, en-IN">
+          <Tab value="payments" badge={128400}>
+            Payments
+          </Tab>
+          <Tab value="refunds" badge={<Badge tone="danger">3</Badge>}>
+            Refunds
+          </Tab>
+        </TabsList>
+      </Tabs>
+      <QeetrixProvider locale="en-US">
+        <Tabs {...args} defaultValue="payments">
+          <TabsList aria-label="Payments, en-US">
+            <Tab value="payments" badge={128400}>
+              Payments
+            </Tab>
+          </TabsList>
+        </Tabs>
+      </QeetrixProvider>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    const [india, us] = canvas.getAllByRole("tablist");
+    // A number is formatted for the provider's locale; a Badge passes through as it is.
+    await expect(
+      within(india as HTMLElement).getByRole("tab", { name: "Payments 1,28,400" }),
+    ).toBeVisible();
+    await expect(
+      within(india as HTMLElement).getByRole("tab", { name: "Refunds 3" }),
+    ).toBeVisible();
+    await expect(
+      within(us as HTMLElement).getByRole("tab", { name: "Payments 128,400" }),
+    ).toBeVisible();
   },
 };

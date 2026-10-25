@@ -2,7 +2,7 @@ name: Release
 
 # Deploys the Storybook workshop on merge to main, then tags the commit — the
 # same shape as qeetrix-docs' release, which deploys ui.qeet.in to Vercel, and
-# as qeetrix-ui's and qeetrix-icons', which publish to npm. The tag is created
+# as qeetrix-react's and qeetrix-icons', which publish to npm. The tag is created
 # *after* a successful deploy, so every `v*` tag is a version that is really live.
 #
 # The flow end to end:
@@ -23,10 +23,10 @@ name: Release
 # deploy leaves no tag behind. Re-running is safe: if package.json's version is
 # already tagged, it is already live and everything below is skipped.
 #
-# The build needs the sibling qeetrix-ui checkout (see ci.yml). Here it is checked
-# out below; on Vercel's own builders `bun run setup:ui`, part of vercel.json's
-# build command, clones it — so a dashboard redeploy, and a preview of any other
-# branch, builds there too. vercel.json turns off Vercel's Git deployments of
+# The build renders the published @qeetrix/react that bun.lock installs (see ci.yml),
+# so it needs nothing but this repository, here and on Vercel's own builders alike —
+# a dashboard redeploy, and a preview of any other branch, build the same way.
+# vercel.json turns off Vercel's Git deployments of
 # main: production ships only from this workflow, so a tag always names what is
 # live, and the CLI builds here and uploads the output, pinning each deployment
 # to this commit.
@@ -101,23 +101,15 @@ jobs:
 
       - id: ui
         if: steps.version.outputs.release == 'true'
-        name: which @qeetrix/ui release does bun.lock install?
+        name: which @qeetrix/react release does bun.lock install?
         run: |
           set -euo pipefail
-          version=$(grep -oE '"@qeetrix/ui@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3)
+          version=$(grep -oE '"@qeetrix/react@[0-9]+\.[0-9]+\.[0-9]+"' bun.lock | head -1 | tr -d '"' | cut -d@ -f3)
           if [ -z "$version" ]; then
-            echo "::error::bun.lock does not resolve @qeetrix/ui."
+            echo "::error::bun.lock does not resolve @qeetrix/react."
             exit 1
           fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
-
-      - if: steps.version.outputs.release == 'true'
-        name: Checkout qeetrix-ui at that release
-        uses: actions/checkout@v4
-        with:
-          repository: qeetgroup/qeetrix-ui
-          ref: v${{ steps.ui.outputs.version }}
-          path: qeetrix-ui
 
       - if: steps.version.outputs.release == 'true'
         uses: oven-sh/setup-bun@v2
@@ -138,16 +130,6 @@ jobs:
       - if: steps.version.outputs.release == 'true'
         run: bun install --frozen-lockfile
 
-      - if: steps.version.outputs.release == 'true'
-        working-directory: qeetrix-ui
-        run: bun install --frozen-lockfile
-
-      - if: steps.version.outputs.release == 'true'
-        working-directory: qeetrix-ui
-        run: bun run build:tokens
-
-      # Gate before shipping — the same checks as CI. The build itself runs in
-      # `vercel build` below (vercel.json: `bun run build`).
       - if: steps.version.outputs.release == 'true'
         run: bunx playwright install --with-deps chromium
       - if: steps.version.outputs.release == 'true'
@@ -214,7 +196,7 @@ jobs:
           {
             echo "## Released ${{ steps.version.outputs.tag }}"
             echo
-            echo "Live at ${{ steps.deploy.outputs.url }}, rendering \`qeetrix-ui\` v${{ steps.ui.outputs.version }}."
+            echo "Live at ${{ steps.deploy.outputs.url }}, rendering \`@qeetrix/react\` ${{ steps.ui.outputs.version }}."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - if: steps.version.outputs.release == 'false'

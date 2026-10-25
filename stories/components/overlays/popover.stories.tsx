@@ -1,91 +1,213 @@
+import { InfoIcon } from "@qeetrix/icons/icons/info";
+import { ListFilterIcon } from "@qeetrix/icons/icons/list-filter";
 import {
   Button,
-  Input,
-  Label,
+  Checkbox,
+  IconButton,
+  Inline,
   Popover,
+  PopoverClose,
   PopoverContent,
-  PopoverDescription,
-  PopoverTitle,
+  type PopoverProps,
   PopoverTrigger,
-} from "@qeetrix/ui";
+  Stack,
+  Text,
+  TextField,
+} from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, screen, waitFor } from "storybook/test";
+import { expect, fn, screen, waitFor, within } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Popover> = {
   title: "Components/Overlays/Popover",
   component: Popover,
+  subcomponents: { PopoverTrigger, PopoverContent, PopoverClose },
   parameters: {
     qeetrix: qx({ category: "overlays", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          "A non-modal floating panel anchored to a trigger element. Use it for quick inline edits, filter pickers, and contextual forms that don't need the full focus-trap of a `Dialog` — for example editing a webhook endpoint, adjusting a notification preference in qeet-notify, or picking date ranges in qeet-logs.",
-      },
-    },
+  },
+  args: {
+    onOpenChange: fn(),
   },
   tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Popover>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Inline webhook endpoint editor — surfaces a small form anchored to the trigger without navigating away.",
-      },
-    },
-  },
-  render: () => (
-    <Popover>
-      <PopoverTrigger render={<Button variant="outline">Edit webhook</Button>} />
-      <PopoverContent>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1">
-            <PopoverTitle>Endpoint</PopoverTitle>
-            <PopoverDescription>Where Qeet ID delivers event payloads.</PopoverDescription>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="hook-url">URL</Label>
-            <Input id="hook-url" defaultValue="https://api.acmeinc.io/qeet/hooks" />
-          </div>
-        </div>
+/** A filter panel over the members table. */
+function FilterPopover(props: Omit<PopoverProps, "children">) {
+  return (
+    <Popover {...props}>
+      <PopoverTrigger
+        render={
+          <Button variant="soft" icon={ListFilterIcon}>
+            Filter
+          </Button>
+        }
+      />
+      <PopoverContent title="Filter members" description="Show members who are:">
+        <Stack gap="xs">
+          <Checkbox label="Active" defaultChecked />
+          <Checkbox label="Invited" defaultChecked />
+          <Checkbox label="Suspended" />
+        </Stack>
+        <Inline justify="end" gap="sm">
+          <PopoverClose
+            render={
+              <Button variant="ghost" size="sm">
+                Clear
+              </Button>
+            }
+          />
+          <PopoverClose render={<Button size="sm">Apply</Button>} />
+        </Inline>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+/** An info button's popover: no title, so `aria-label` names it. */
+function EnforcementPopover(props: Omit<PopoverProps, "children">) {
+  return (
+    <Popover {...props}>
+      <PopoverTrigger
+        render={<IconButton icon={InfoIcon} aria-label="About passkey enforcement" />}
+      />
+      <PopoverContent aria-label="About passkey enforcement" style={{ inlineSize: 320 }}>
+        <Text>Members of Acme Pvt Ltd must sign in with a passkey.</Text>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+export const Playground: Story = {
+  render: (args) => <FilterPopover {...args} />,
+};
+
+export const Sides: Story = {
+  render: (args) => (
+    <Inline gap="md">
+      {(["top", "bottom", "left", "right"] as const).map((side) => (
+        <Popover key={side} {...args}>
+          <PopoverTrigger
+            render={<Button variant="soft">{side[0].toUpperCase() + side.slice(1)}</Button>}
+          />
+          <PopoverContent title="Billing contact" side={side}>
+            <Text>Ananya Iyer · billing@acme.in</Text>
+          </PopoverContent>
+        </Popover>
+      ))}
+    </Inline>
+  ),
+};
+
+export const InlineEdit: Story = {
+  name: "Inline edit",
+  render: (args) => (
+    <Popover {...args}>
+      <PopoverTrigger render={<Button variant="soft">Edit endpoint</Button>} />
+      <PopoverContent
+        title="Webhook endpoint"
+        description="Where Qeet ID delivers events."
+        style={{ inlineSize: 360 }}
+      >
+        <TextField label="URL" type="url" defaultValue="https://api.acme.in/qeet/hooks" />
+        <Inline justify="end" gap="sm">
+          <PopoverClose
+            render={
+              <Button variant="ghost" size="sm">
+                Cancel
+              </Button>
+            }
+          />
+          <PopoverClose render={<Button size="sm">Save</Button>} />
+        </Inline>
       </PopoverContent>
     </Popover>
   ),
 };
 
-export const OpenCloseInteraction: Story = {
-  name: "Interaction: open and dismiss",
+export const WithoutTitle: Story = {
+  name: "Without title",
   parameters: {
     docs: {
-      description: {
-        story:
-          "A popover holds focusable content, so it must be dismissable from the keyboard once opened — otherwise a keyboard user can enter it but not leave.",
-      },
+      description: { story: "Without a `title`, name it with `aria-label` or `aria-labelledby`." },
     },
   },
-  render: () => (
-    <Popover>
-      <PopoverTrigger render={<Button variant="outline">Edit webhook</Button>} />
-      <PopoverContent>
-        <PopoverTitle>Endpoint</PopoverTitle>
-        <Label htmlFor="interaction-hook-url">URL</Label>
-        <Input id="interaction-hook-url" defaultValue="https://api.acmeinc.io/qeet/hooks" />
-      </PopoverContent>
-    </Popover>
-  ),
-  play: async ({ canvas, userEvent }) => {
-    await userEvent.click(canvas.getByRole("button", { name: "Edit webhook" }));
+  render: (args) => <EnforcementPopover {...args} />,
+};
 
-    const url = await screen.findByLabelText("URL");
-    await waitFor(() => expect(url).toBeVisible());
+export const OpenCloseInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: focus moves in, Escape returns it",
+  render: (args) => <FilterPopover {...args} />,
+  play: async ({ args, canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button", { name: "Filter" });
+    await userEvent.click(trigger);
+
+    // The popover portals to the end of <body>, outside the canvas.
+    const popover = await screen.findByRole("dialog", { name: "Filter members" });
+    await waitFor(() => expect(popover.contains(document.activeElement)).toBe(true));
 
     await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await expect(trigger).toHaveFocus();
+    await expect(args.onOpenChange).toHaveBeenLastCalledWith(false, expect.anything());
+  },
+};
 
-    await waitFor(() => expect(screen.queryByLabelText("URL")).not.toBeInTheDocument());
+export const LabelledInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: labelled by its title, closed by an action",
+  render: (args) => <FilterPopover {...args} />,
+  play: async ({ canvas, userEvent }) => {
+    const trigger = canvas.getByRole("button", { name: "Filter" });
+    await userEvent.click(trigger);
+    let popover = await screen.findByRole("dialog", { name: "Filter members" });
+    await expect(popover).toHaveAccessibleDescription("Show members who are:");
+
+    await userEvent.click(within(popover).getByRole("checkbox", { name: "Suspended" }));
+    await userEvent.click(within(popover).getByRole("button", { name: "Apply" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    await userEvent.click(trigger);
+    popover = await screen.findByRole("dialog", { name: "Filter members" });
+    await waitFor(() => expect(popover).toBeVisible());
+  },
+};
+
+export const NameInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: named without a title",
+  render: (args) => (
+    <Inline gap="md">
+      <EnforcementPopover {...args} />
+      <Popover {...args}>
+        <PopoverTrigger render={<Button variant="soft">Session details</Button>} />
+        <PopoverContent aria-labelledby="session-device" style={{ inlineSize: 320 }}>
+          <Stack gap="xs">
+            <Text id="session-device" weight="semibold">
+              Chrome on macOS
+            </Text>
+            <Text size="sm" tone="subtle">
+              Bengaluru · signed in 2 minutes ago
+            </Text>
+          </Stack>
+        </PopoverContent>
+      </Popover>
+    </Inline>
+  ),
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "About passkey enforcement" }));
+    await expect(
+      await screen.findByRole("dialog", { name: "About passkey enforcement" }),
+    ).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+
+    await userEvent.click(canvas.getByRole("button", { name: "Session details" }));
+    const popover = await screen.findByRole("dialog", { name: "Chrome on macOS" });
+    await waitFor(() => expect(popover).toBeVisible());
   },
 };

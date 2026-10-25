@@ -1,4 +1,3 @@
-import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vitest/config";
@@ -13,8 +12,8 @@ import { defineConfig } from "vitest/config";
  * Three things are worth knowing about this file:
  *
  * 1. It reuses `.storybook/main.ts` wholesale — the plugin applies our `viteFinal`,
- *    so `@qeetrix/ui` resolves to the sibling `../qeetrix-ui/src` here exactly as it
- *    does in the dev server. Tests exercise the same source the workshop renders.
+ *    so the tests render the published @qeetrix/react from node_modules, exactly as
+ *    the dev server and the static build do.
  * 2. There is deliberately no `.storybook/vitest.setup.ts`. Since Storybook 10.3 the
  *    addon applies preview annotations automatically; adding a setup file that calls
  *    `setProjectAnnotations` now double-applies them and logs a warning.
@@ -24,9 +23,6 @@ import { defineConfig } from "vitest/config";
  *
  * Runs headless Chromium only.
  */
-/** The @qeetrix/ui source this workshop renders — a sibling checkout, not a dependency. */
-const uiSrc = fileURLToPath(new URL("../qeetrix-ui/src", import.meta.url));
-
 export default defineConfig({
   test: {
     projects: [
@@ -54,12 +50,10 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html"],
       reportsDirectory: "coverage",
-      // The interesting question is which @qeetrix/ui components the stories
-      // actually exercise, and that source lives outside this repo (see the alias
-      // block in .storybook/main.ts), so v8 needs `allowExternal` to report on it.
+      // Which parts of the published @qeetrix/react the stories exercise. It lives in
+      // node_modules, outside this repo, so v8 needs `allowExternal` to report on it.
       allowExternal: true,
-      include: [`${uiSrc}/**/*.{ts,tsx}`],
-      exclude: ["**/*.stories.tsx", "**/__tests__/**", "**/*.d.ts"],
+      include: ["**/node_modules/@qeetrix/react/dist/**/*.js"],
       // Deliberately un-thresholded: this reports a number, it does not yet gate on
       // one. Targets belong to the component coverage-metrics work, not this file.
     },

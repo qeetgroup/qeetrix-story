@@ -1,6 +1,17 @@
-import { BellIcon, DownloadIcon, SettingsIcon, TrashIcon } from "@qeetrix/icons";
-import { Button, Icon, VisuallyHidden } from "@qeetrix/ui";
+import {
+  Badge,
+  Button,
+  Inline,
+  Link,
+  Stack,
+  Table,
+  type TableColumn,
+  Text,
+  VisuallyHidden,
+} from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
+import { expect } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof VisuallyHidden> = {
@@ -9,88 +20,142 @@ const meta: Meta<typeof VisuallyHidden> = {
   parameters: {
     qeetrix: qx({ category: "utilities", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          "Renders content that is visually invisible but remains fully accessible to screen readers and assistive technology. The canonical use-case is labelling an icon-only button — the visible affordance is the icon; the accessible name is the hidden text. Applies `sr-only` under the hood, which satisfies WCAG 2.4.6 (headings and labels) and WCAG 4.1.2 (name, role, value). See the WAI-ARIA [button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/button/).",
-      },
-    },
   },
+  args: {
+    children: "for Priya Sharma",
+  },
+  // On its own it shows nothing: here it finishes a link that reads "Edit" on screen.
+  render: (args) => (
+    <Link href="#users/priya">
+      Edit <VisuallyHidden {...args} />
+    </Link>
+  ),
   tags: ["autodocs"],
 };
 
 export default meta;
 type Story = StoryObj<typeof VisuallyHidden>;
 
-export const IconButtonLabel: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The most common usage: an icon-only button gets a hidden text label so screen readers announce it correctly. Tab to the button — the visual appearance is icon-only, but the accessible name is 'Notifications'.",
-      },
-    },
-  },
-  render: () => (
-    <Button variant="ghost" size="icon" aria-label="Notifications">
-      <Icon icon={BellIcon} />
-      <VisuallyHidden>Notifications</VisuallyHidden>
-    </Button>
-  ),
-};
+/** Shows "Edit"; read as "Edit for Priya Sharma". */
+export const Playground: Story = {};
 
-export const IconButtonGallery: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Several icon-only toolbar actions each wrapped with a `VisuallyHidden` label. In a real Qeet ID console these sit in the top-right header strip — sighted users read the icon, screen-reader users hear the label.",
-      },
-    },
+interface Member {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+}
+
+const MEMBERS: Member[] = [
+  { id: "usr_1", name: "Priya Sharma", email: "priya@acme.in", role: "Owner" },
+  { id: "usr_2", name: "Rahul Verma", email: "rahul.verma@acme.in", role: "Admin" },
+  { id: "usr_3", name: "Ananya Iyer", email: "ananya.iyer@acme.in", role: "Member" },
+];
+
+const COLUMNS: TableColumn<Member>[] = [
+  { id: "name", header: "Name", cell: (member) => member.name },
+  { id: "email", header: "Email", cell: (member) => member.email },
+  { id: "role", header: "Role", cell: (member) => <Badge>{member.role}</Badge> },
+  {
+    id: "edit",
+    header: <VisuallyHidden>Edit</VisuallyHidden>,
+    align: "end",
+    cell: (member) => (
+      <Link href={`#users/${member.id}`}>
+        Edit<VisuallyHidden> {member.name}</VisuallyHidden>
+      </Link>
+    ),
   },
-  render: () => (
-    <div className="flex items-center gap-2">
-      <Button variant="ghost" size="icon">
-        <Icon icon={BellIcon} />
-        <VisuallyHidden>Notifications</VisuallyHidden>
-      </Button>
-      <Button variant="ghost" size="icon">
-        <Icon icon={SettingsIcon} />
-        <VisuallyHidden>Settings</VisuallyHidden>
-      </Button>
-      <Button variant="ghost" size="icon">
-        <Icon icon={DownloadIcon} />
-        <VisuallyHidden>DocumentDownload report</VisuallyHidden>
-      </Button>
-      <Button variant="ghost" size="icon" className="text-destructive">
-        <Icon icon={TrashIcon} />
-        <VisuallyHidden>Delete record</VisuallyHidden>
-      </Button>
+];
+
+function Members() {
+  return (
+    <div style={{ inlineSize: 640 }}>
+      <Table
+        label="Members"
+        rows={MEMBERS}
+        rowId={(member) => member.id}
+        rowLabel={(member) => member.name}
+        columns={COLUMNS}
+      />
     </div>
-  ),
+  );
+}
+
+export const InContext: Story = {
+  name: "In context",
+  parameters: {
+    docs: { description: { story: 'Each "Edit" is read with its row\'s name.' } },
+  },
+  render: () => <Members />,
 };
 
-export const AriaDescribedBy: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Use `VisuallyHidden` paired with `aria-describedby` when you want to attach a supplementary description to a control without surfacing that description visually — e.g. password complexity rules or API key usage warnings.",
-      },
-    },
-  },
-  render: () => (
-    <div className="flex flex-col gap-3 w-64">
-      <VisuallyHidden id="passkey-hint">
-        This passkey is device-bound and cannot be exported. Removing it may lock you out if it is
-        your only credential.
+/** Selecting rows updates a hidden live region, so the count is announced as it changes. */
+function SelectionAnnouncer() {
+  const [count, setCount] = useState(0);
+  return (
+    <Stack gap="sm" align="start">
+      <Inline gap="sm">
+        <Button variant="soft" onClick={() => setCount((n) => n + 1)}>
+          Select a user
+        </Button>
+        <Button variant="ghost" onClick={() => setCount(0)}>
+          Clear
+        </Button>
+      </Inline>
+      <Text tone="subtle">{count === 0 ? "No users selected" : `${count} selected`}</Text>
+      <VisuallyHidden role="status">
+        {count === 0 ? "" : `${count} ${count === 1 ? "user" : "users"} selected`}
       </VisuallyHidden>
-      <Button variant="destructive" aria-describedby="passkey-hint">
+    </Stack>
+  );
+}
+
+export const NameInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: hidden text names the control, and takes no space",
+  render: () => <Members />,
+  play: async ({ canvas, canvasElement }) => {
+    await expect(canvas.getByRole("link", { name: "Edit Rahul Verma" })).toHaveAttribute(
+      "href",
+      "#users/usr_2",
+    );
+    const hidden = canvasElement.querySelector("[data-slot=visually-hidden]") as HTMLElement;
+    await expect(hidden.getBoundingClientRect().width).toBeLessThanOrEqual(1);
+    // Clipped, never display: none, so it stays in the accessibility tree.
+    await expect(getComputedStyle(hidden).display).not.toBe("none");
+  },
+};
+
+export const AnnounceInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: the status announces the count",
+  render: () => <SelectionAnnouncer />,
+  play: async ({ canvas, userEvent }) => {
+    const status = canvas.getByRole("status");
+    await expect(status).toHaveTextContent("");
+    await userEvent.click(canvas.getByRole("button", { name: "Select a user" }));
+    await userEvent.click(canvas.getByRole("button", { name: "Select a user" }));
+    await expect(status).toHaveTextContent("2 users selected");
+  },
+};
+
+export const DescriptionInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a hidden description reaches the button",
+  render: () => (
+    <Stack gap="xs" align="start">
+      <Button variant="soft" tone="danger" aria-describedby="passkey-warning">
         Remove passkey
       </Button>
-      <p className="text-xs text-muted-foreground">
-        Inspect the DOM — the hidden hint is present and wired via <code>aria-describedby</code>.
-      </p>
-    </div>
+      <VisuallyHidden id="passkey-warning">
+        This is Priya Sharma's only passkey. Removing it signs her out on every device.
+      </VisuallyHidden>
+    </Stack>
   ),
+  play: async ({ canvas }) => {
+    await expect(
+      canvas.getByRole("button", { name: "Remove passkey" }),
+    ).toHaveAccessibleDescription(/only passkey/);
+  },
 };

@@ -2,154 +2,53 @@
 
 ## Unreleased
 
-### Major Changes
+The workshop moves from `@qeetrix/ui` to **`@qeetrix/react` 0.1.0** and **`@qeetrix/tokens`
+0.0.8**, and every page is rebuilt to a premium, enterprise standard.
 
-- **`@qeetrix/ui` 2.1.4.** The workshop follows 2.1.4, which took eight modules out of the
-  package and `@qeetrix/ui/brand` with them; CI renders `qeetrix-ui@main`, so every gate but the
-  type check had gone red.
-  - Stories for the eight are removed — `AccessReview`, `AuditEvent`, `CommentThread`,
-    `LogoUploader`, `NotificationCenter`, `NotificationPreferenceMatrix`, `SecurityItem` and
-    `MasterDetail`, now copy-paste source in `qeetrix-ui`. 147 → 139 component stories.
-  - Patterns that used them compose library parts instead: Account Settings builds its security
-    rows from `StatusPill` and `DescriptionList`, and the NotificationCenter bell menu is a
-    `Popover` around the same inbox. Its popup is now named by a `PopoverTitle`, so the story no
-    longer switches off axe's `aria-dialog-name` rule.
-  - The logo and brand icons come from `@qeetrix/icons` (`QeetLogo`, `FingerprintPatternIcon`,
-    `MonitorSmartphoneIcon`, …), following the theme with a light and a dark `QeetLogo`.
-  - The Elevation, Opacity, Z-Index and Token Layers foundations read `@qeetrix/ui/tokens.json`
-    and the `--chart-*` variables instead of the removed `SHADOW`, `STATE_OPACITY`, `Z_INDEX`
-    and `CHART_COLOR`. Elevation now shows the dark shadow primitives beside the light ones.
-- **Release workflows.** The repo has the same four workflows as `qeetrix-ui`, `qeetrix-icons`
-  and `qeetrix-docs`: `ci.yml`, `version.yml` (patch bump on the PR into `main`), `release.yml`
-  (gates, deploys Storybook to Vercel production, then tags `vX.Y.Z`) and `rollback.yml`. Each
-  checks out the `qeetrix-ui` release tag that `bun.lock` installs instead of `main`, so the
-  type check and the stories always see the same API. CI runs on every PR and on push to
-  `main`, like the other repos.
-- **Visual regression removed.** `vrt.yml`, `playwright.config.ts`, `tests/` and the
-  `vrt` / `vrt:update` scripts are gone, with `@playwright/test`. No baselines were ever
-  committed, so nothing was compared. The component tests, axe gate included, are the testing
-  layer.
-- **Fixes.** `lint` passes: Biome parses Tailwind's `@source` directive and its schema matches
-  the installed 2.5.10. Every CI gate is green.
-- **Builds on Vercel.** `bun run setup:ui` clones `../qeetrix-ui` at the release `bun.lock`
-  installs when it is missing, then installs it and builds its tokens; `vercel.json` runs it
-  before `bun run build`. Vercel's own builders have no sibling checkout, so a dashboard deploy
-  failed at `gen-llms`; now a redeploy, and a preview of any branch but `main`, builds there.
-  Production still ships from `release.yml`.
+### Major changes
 
-### Minor Changes
+- **Renders the published packages.** `@qeetrix/react` and `@qeetrix/tokens` install from npm.
+  There's no sibling checkout, so CI, the release workflow and Vercel all build from the registry.
+- **Only what `@qeetrix/react` ships.** 75 component families (42 stable, 33 experimental), one
+  page each. Stories for `@qeetrix/ui` components with no successor are deleted.
+- **Props tables from the type declarations.** `scripts/docgen.mjs` reads the package's `.d.ts`
+  into `.storybook/docgen.json`, so a page can't drift from the API.
 
-- **`@qeetrix/ui` 2.1.0.** Stories cover the 2.1.0 API: new parts (`DialogBody`, `DrawerBody`,
-  `SheetBody`, `AlertAction`, `TableEmpty`, `TimelineHeader`, `ToolbarSpacer`, `FieldSuccess`,
-  `FieldWarning`, `InputGroupButton`, `CarouselControls`, `CarouselIndicators`, `CommentMention`,
-  `DescriptionItem`, `FeedItem`, `AuditEventMetadata`) and new variants and sizes (Alert
-  `emphasis`, Badge `brand`/`info`, Callout `muted`, Card variants and `interactive`, Dialog,
-  EmptyState, Notification, Progress and Stat sizes, Tabs `line`, Toolbar `ghost`, and more).
-  425 → 511 stories, 519 → 615 tests. Foundations document the Ember + Graphite colour roles,
-  the `focus-ring*` utilities, motion duration utilities and the new elevation roles.
-- **Icons.** Upgraded `@qeetrix/icons` 1.0.3 → 1.0.10 and moved every demo to its `…Icon` names
-  with root imports (`import { TrashIcon } from "@qeetrix/icons"`). The white-icon workarounds
-  are gone, since 1.0.10 paints with `currentColor`. The icon catalogue page
-  (`stories/icons.stories.tsx`) is removed — this workshop documents the component library; the
-  icon catalogue lives in `qeetrix-icons`. Storybook resolves the root import to the package's
-  icons-only index so the ~7,400 brand logos are never pre-bundled.
-- **Fixes.** `typecheck` and `verify:foundations` pass. `@qeetrix/ui/styles.css` now resolves to
-  the full entry, base layer included. Overlay dismissal tests poll for absence instead of
-  racing `waitForElementToBeRemoved`. Docs record the 2.1.0 contrast baseline (13 violations
-  across 10 stories, down from 162 across 85).
+### Pages
 
-## 0.0.9
+- **Welcome:** a hero with a live Qeet ID console built from the components, the install command,
+  counts read from the packages, Explore cards with previews, New in 0.1.0, and principles.
+- **Components › Overview:** a docs page with search (a part's name finds its family), a status
+  filter, category groups and a live preview on every tile.
+- **Component pages:** one template.
+  - A header with the status, import line and links.
+  - A Playground whose controls drive the live example.
+  - The props table.
+  - The examples, each on a ruled stage with a Code toggle that shows the story's source.
+- **Patterns:** Sign in, Dashboard header, Users table, User detail (new), Account settings and
+  Search. Users table rows open User detail.
+- **Foundations** (7) and **Guides** (2).
 
-### Patch Changes
+### Stories
 
-- Updated dependencies
-  - @qeetrix/ui@1.0.3
+- **Every 0.1.0 variant on its component's page:**
+  - Avatar `shape`; Badge `solid` and `sm`; Card `subdued` and `danger`; GridItem.
+  - Contained Tabs with counts; clickable Table rows.
+  - Date-range presets; Combobox server search; Dialog `xl` and `fullscreen`.
+  - Skeleton `lines`; Meter, Progress and Timeline tones; Stat `loading`; and more.
+- **Lean pages:** a Playground and at most four examples (five for complex components).
+- **Tests out of sight:** test stories are tagged `!dev` and `!autodocs`. All 644 tests run in
+  Vitest with axe and colour contrast on.
+- **In-page `#` links don't leave the workshop.** They go through a link that calls
+  `preventDefault()`, because the preview's `<base target="_parent">` would otherwise navigate the
+  whole workshop.
 
-## 0.0.8
+### Removed
 
-### Patch Changes
+- `@qeetrix/ui`, `setup:ui`, `gen-llms`, `verify-a11y` and `verify-foundations`.
+- `stories/recipes/`, which repeated component states.
+- The Introduction page, which the Welcome page replaces.
 
-- Updated dependencies
-  - @qeetrix/ui@1.0.1
+## 0.0.11 and earlier
 
-## 0.0.7
-
-### Patch Changes
-
-- Updated dependencies [a5f5479]
-- Updated dependencies
-- Updated dependencies [c171669]
-- Updated dependencies [c171669]
-- Updated dependencies [c171669]
-  - @qeetrix/ui@1.0.0
-
-## 0.0.6
-
-### Patch Changes
-
-- Updated dependencies [42e3b8c]
-- Updated dependencies [a4bd2da]
-- Updated dependencies [4ec7f1f]
-- Updated dependencies [7006c91]
-- Updated dependencies [42e3b8c]
-  - @qeetrix/ui@0.5.0
-
-## 0.0.5
-
-### Patch Changes
-
-- Updated dependencies [db64ae7]
-  - @qeetrix/ui@0.4.0
-
-## 0.0.4
-
-### Patch Changes
-
-- 969f7f3: Updated
-- Updated dependencies [969f7f3]
-  - @qeetrix/tokens@0.1.1
-  - @qeetrix/ui@0.3.1
-
-## 0.0.3
-
-### Patch Changes
-
-- Updated dependencies [c565778]
-- Updated dependencies [5882cdb]
-- Updated dependencies [c565778]
-- Updated dependencies [5882cdb]
-- Updated dependencies [5882cdb]
-- Updated dependencies [c565778]
-- Updated dependencies [5882cdb]
-  - @qeetrix/ui@0.3.0
-  - @qeetrix/tokens@0.1.0
-
-## 0.0.2
-
-### Patch Changes
-
-- Updated dependencies [62ef506]
-- Updated dependencies [fc3bf47]
-- Updated dependencies [fc3bf47]
-- Updated dependencies [fc3bf47]
-- Updated dependencies [fc3bf47]
-- Updated dependencies [fc3bf47]
-- Updated dependencies [fc3bf47]
-- Updated dependencies [62ef506]
-- Updated dependencies [62ef506]
-- Updated dependencies [62ef506]
-- Updated dependencies [62ef506]
-- Updated dependencies [62ef506]
-- Updated dependencies [62ef506]
-- Updated dependencies [62ef506]
-- Updated dependencies [62ef506]
-- Updated dependencies [62ef506]
-  - @qeetrix/ui@0.2.0
-
-## 0.0.1
-
-### Patch Changes
-
-- Updated dependencies
-- Updated dependencies
-  - @qeetrix/ui@0.1.0
+The workshop for `@qeetrix/ui`, now retired. Its entries are in this file's git history.
