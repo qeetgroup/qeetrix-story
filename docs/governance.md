@@ -1,6 +1,6 @@
 # Governance — the story contract
 
-139 component story files is past the point where a human can answer "which components
+74 component story files is past the point where a human can answer "which components
 are still experimental?" by reading them. The **story contract** makes that question
 answerable by tooling.
 
@@ -66,11 +66,17 @@ labelled `data-display` and that label stops telling you anything.
 experimental → beta → stable → deprecated → (removed)
 ```
 
+In `@qeetrix/react` terms: **`stable`** is the root export (`@qeetrix/react`) and
+**`experimental`** is `@qeetrix/react/experimental`. An experimental story also carries the
+`experimental` tag in `meta.tags`, which puts an Experimental pill next to it in the sidebar
+and lets the sidebar's tag filter hide or show experimental components. `verify:stories`
+fails a story whose tag and status disagree.
+
 `internal` sits outside that flow: shipped and supported, but not part of the public API
 contract — consumers should not reach for it directly.
 
-**All 139 components are currently `stable`.** That is a fact about the declaration, not
-an independent judgement; the vocabulary exists so it can stop being true.
+`bun run verify:stories` prints the live count per status. With `@qeetrix/react` 0.1.0,
+the root families are `stable` and the `experimental` channel's are `experimental`.
 
 ## What `verify:stories` enforces vs reports
 
@@ -102,11 +108,10 @@ with no single component, so **only a title is required**.
 > declare `qx({ … })` voluntarily; nothing checks that they do. Extend the directory list
 > in `verify-stories.mjs` when deciding which tier those trees belong to.
 
-The either/or on documentation matters: composite stories legitimately have no single
-`component` (Chart documents ChartContainer/ChartTooltip; Sidebar documents
-SidebarProvider/SidebarGroup/…), so there is no props table to generate. Those carry a
-written description instead, and that is what makes them documented. 136 of 139 have a
-props table; 3 are composite.
+The either/or on documentation matters: a composite story legitimately has no single
+`component` (Format documents three formatters), so there is no props table to generate. Those carry a
+written description instead, and that is what makes them documented. 73 of 74 have a
+props table; 1 is composite (the formatters).
 
 ### WARNINGS — printed, never fail
 
@@ -114,8 +119,8 @@ props table; 3 are composite.
 | --- | --- |
 | title segment contains a space (`Components/Radio Group`) | fixing it changes the story id, which breaks bookmarks and links — a call to make deliberately, not a side effect of a metadata check |
 
-Currently 59: every `Components/Data Entry/*` and `Components/Data Display/*` title, whose folder
-segment has a space, plus `Components/Layout/Scroll Area`.
+They're the `Components/Data Entry/*` and `Components/Data Display/*` titles, whose folder
+segment has a space.
 
 ### REPORT — measured coverage, never fails
 
@@ -129,14 +134,13 @@ reach 100% and therefore never means anything.
 Snapshot at time of writing (run the command for live figures):
 
 ```
-139 components, 26 doc pages, 495 stories
-interaction tests   25/68 interactive components (37%)
-
-  actions       6/10   60%
-  overlays      7/13   54%
-  navigation    5/10   50%
-  data-entry    7/35   20%
+74 components, 13 doc pages
+interaction tests   36/36 interactive components (100%)
 ```
+
+Interaction tests are hidden from the sidebar and the docs pages (`tags: ["!dev", "!autodocs"]`)
+and still run in `bun run test`. So do the Hindi checks: the Language toolbar shows Hindi to a
+person, and the hidden `Hindi` stories assert it.
 
 The report also names the *uncovered* components per category, so "what should I write
 next?" has a printed answer.
@@ -177,19 +181,16 @@ contract rather than two competing conventions.
 
 | Script | Command | Gate? | State |
 | --- | --- | --- | --- |
-| `verify-stories.mjs` | `bun run verify:stories` | **yes** (exit 1 on contract violation) | passing; runs in CI |
-| `verify-a11y.mjs` | `bun run verify:a11y` | no — reports only, by design | reports violations, see [accessibility.md](./accessibility.md) |
-| `verify-foundations.mjs` | `bun run verify:foundations` | **yes** (Node `assert`, throws) | passing; not in CI — it needs `storybook-static` |
+| `verify-stories.mjs` | `bun run verify:stories` | **yes** (exit 1 on contract violation) | runs in CI |
+| `docgen.mjs` | `bun run docgen` | fails only if the package's types can't be read | runs before `dev`, `build`, `test` and `typecheck` |
 
-`verify-foundations.mjs` is a different kind of check from the other two: it boots
-`storybook-static` in Playwright and asserts *computed* foundation invariants — density
-variables and real geometry, mobile `Container` gutters and reflow, the dark surface
-hierarchy in OKLCH, the 8 distinct chart series colours, `--qx-z-*` stacking values, and
-forced-colors semantics with keyboard focus. It is the only place those cross-cutting
-guarantees are tested at all.
+The old `verify-a11y.mjs` (a colour-contrast report) and `verify-foundations.mjs` (computed
+invariants of `@qeetrix/ui`'s foundations) were retired with the move to `@qeetrix/react`:
+contrast is now part of the axe gate (see [accessibility.md](./accessibility.md)), and the
+token and foundation invariants are tested in qeetrix-tokens and qeetrix-react themselves.
 
 ## Story ids are an interface
 
-Story ids are derived from `title` + export name, and two things consume them: the
-`A11Y_GREP` scoping filter and any bookmarked or linked docs URL. Renaming
+Story ids are derived from `title` + export name, and bookmarked or linked docs URLs consume
+them (the Welcome page links into the workshop by id). Renaming
 a title or an export is an interface change, not a cosmetic one.

@@ -1,122 +1,187 @@
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@qeetrix/ui";
+import { Field, Grid, Input, Select, Stack } from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect, screen, waitFor } from "storybook/test";
+import { expect, fn, screen, waitFor } from "storybook/test";
 import { qx } from "../../_contract";
 
-const meta: Meta<typeof Select> = {
+const ROLES = [
+  { value: "admin", label: "Administrator" },
+  { value: "member", label: "Member" },
+  { value: "viewer", label: "Viewer" },
+];
+
+const REGIONS = [
+  {
+    label: "India",
+    items: [
+      { value: "ap-south-1", label: "Mumbai (ap-south-1)" },
+      { value: "ap-south-2", label: "Hyderabad (ap-south-2)" },
+    ],
+  },
+  {
+    label: "Asia Pacific",
+    items: [{ value: "ap-southeast-1", label: "Singapore (ap-southeast-1)" }],
+  },
+  {
+    label: "Europe",
+    items: [{ value: "eu-central-1", label: "Frankfurt (eu-central-1)", disabled: true }],
+  },
+];
+
+const meta: Meta<typeof Select<string>> = {
   title: "Components/Data Entry/Select",
   component: Select,
   parameters: {
     qeetrix: qx({ category: "data-entry", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          'A dropdown that lets users pick one option from a list. Supports grouped options via `SelectGroup` + `SelectLabel`, and a `size` prop (`"sm"` | `"default"`). Used in Qeet ID for region and MFA-method selection, and in qeet-logs for log retention tier and data-center routing.',
-      },
-    },
   },
+  args: {
+    items: ROLES,
+    placeholder: "e.g. Member",
+    onValueChange: fn(),
+  },
+  // A Select lives in a Field, which labels its trigger.
+  render: (args) => (
+    <Field label="Default role" style={{ inlineSize: 360 }}>
+      <Select {...args} />
+    </Field>
+  ),
   tags: ["autodocs"],
 };
+
 export default meta;
-type Story = StoryObj<typeof Select>;
+type Story = StoryObj<typeof Select<string>>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Data-residency region picker for a Qeet ID tenant — options are grouped by continent.",
-      },
-    },
-  },
+export const Playground: Story = {};
+
+export const Multiple: Story = {
   render: () => (
-    <Select>
-      <SelectTrigger className="w-56" aria-label="Data region">
-        <SelectValue placeholder="Select a region" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          <SelectLabel>Asia Pacific</SelectLabel>
-          <SelectItem value="ap-south-1">Mumbai (ap-south-1)</SelectItem>
-          <SelectItem value="ap-southeast-1">Singapore (ap-southeast-1)</SelectItem>
-        </SelectGroup>
-        <SelectGroup>
-          <SelectLabel>Europe</SelectLabel>
-          <SelectItem value="eu-west-1">Ireland (eu-west-1)</SelectItem>
-          <SelectItem value="eu-central-1">Frankfurt (eu-central-1)</SelectItem>
-        </SelectGroup>
-        <SelectGroup>
-          <SelectLabel>Americas</SelectLabel>
-          <SelectItem value="us-east-1">N. Virginia (us-east-1)</SelectItem>
-        </SelectGroup>
-      </SelectContent>
-    </Select>
+    <Field label="Alert channels" style={{ inlineSize: 360 }}>
+      <Select<string, true>
+        multiple
+        items={[
+          { value: "email", label: "Email" },
+          { value: "sms", label: "SMS" },
+          { value: "whatsapp", label: "WhatsApp" },
+        ]}
+        defaultValue={["email", "sms"]}
+      />
+    </Field>
   ),
 };
 
-export const Small: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Compact `sm` trigger for dense table-row controls, e.g. changing a member's role in the Qeet ID org panel.",
-      },
-    },
-  },
+export const States: Story = {
   render: () => (
-    <Select defaultValue="member">
-      <SelectTrigger size="sm" className="w-36" aria-label="Member role">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="admin">Admin</SelectItem>
-        <SelectItem value="member">Member</SelectItem>
-        <SelectItem value="viewer">Viewer</SelectItem>
-      </SelectContent>
-    </Select>
+    <Stack gap="lg" style={{ inlineSize: 360 }}>
+      <Field label="Data region" error="Choose a data region.">
+        <Select items={REGIONS} placeholder="e.g. Mumbai (ap-south-1)" />
+      </Field>
+      <Field label="Default role" disabled>
+        <Select items={ROLES} defaultValue="member" />
+      </Field>
+    </Stack>
   ),
 };
 
-export const SelectInteraction: Story = {
-  name: "Interaction: choosing an option",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The listbox is portalled and the trigger displays the chosen label, so this asserts the full round trip: open, pick, close, and the trigger reflecting the selection.",
-      },
-    },
-  },
+export const InContext: Story = {
+  name: "In context",
   render: () => (
-    <Select>
-      <SelectTrigger className="w-56" aria-label="Data region">
-        <SelectValue placeholder="Select a region" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="ap-south-1">Mumbai (ap-south-1)</SelectItem>
-        <SelectItem value="eu-west-1">Ireland (eu-west-1)</SelectItem>
-      </SelectContent>
-    </Select>
+    <Grid columns={2} gap="lg" style={{ inlineSize: 480 }}>
+      <Field label="Data region">
+        <Select items={REGIONS} defaultValue="ap-south-1" />
+      </Field>
+      <Field label="Session timeout">
+        <Input defaultValue="30" endAdornment="minutes" />
+      </Field>
+    </Grid>
   ),
-  play: async ({ canvas, userEvent }) => {
-    const trigger = canvas.getByRole("combobox", { name: "Data region" });
+};
 
+export const KeyboardChoose: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: choose with the keyboard",
+  args: { defaultValue: "member" },
+  play: async ({ args, canvas, userEvent }) => {
+    const trigger = canvas.getByRole("combobox", { name: "Default role" });
+    await expect(trigger).toHaveTextContent("Member");
+    await userEvent.tab();
+    await expect(trigger).toHaveFocus();
+    // Down opens the list on the chosen option; Down again moves, Enter chooses.
+    await userEvent.keyboard("{ArrowDown}");
+    const listbox = await screen.findByRole("listbox");
+    await waitFor(() => expect(listbox).toBeVisible());
+    await expect(screen.getByRole("option", { name: "Member" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    await userEvent.keyboard("{ArrowDown}{Enter}");
+    await waitFor(() => expect(trigger).toHaveTextContent("Viewer"));
+    await expect(args.onValueChange).toHaveBeenLastCalledWith("viewer", expect.anything());
+    await waitFor(() => expect(trigger).toHaveFocus());
+  },
+};
+
+export const EscapeCloses: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: disabled options are skipped; Escape closes",
+  render: (args) => (
+    <Field label="Plan" style={{ inlineSize: 360 }}>
+      <Select
+        {...args}
+        items={[
+          { value: "starter", label: "Starter" },
+          { value: "growth", label: "Growth" },
+          { value: "enterprise", label: "Enterprise: contact sales", disabled: true },
+        ]}
+        defaultValue="growth"
+      />
+    </Field>
+  ),
+  play: async ({ args, canvas, userEvent }) => {
+    const trigger = canvas.getByRole("combobox", { name: "Plan" });
     await userEvent.click(trigger);
+    await screen.findByRole("listbox");
+    await expect(screen.getByRole("option", { name: "Enterprise: contact sales" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    // From Growth, Down has nowhere to go: Enterprise is disabled.
+    await userEvent.keyboard("{ArrowDown}");
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("listbox")).not.toBeInTheDocument());
+    await expect(trigger).toHaveTextContent("Growth");
+    await expect(trigger).toHaveFocus();
+    await expect(args.onValueChange).not.toHaveBeenCalled();
+  },
+};
 
-    const option = await screen.findByRole("option", { name: "Mumbai (ap-south-1)" });
-    await waitFor(() => expect(option).toBeVisible());
+export const GroupsOpen: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: groups list their options under a label",
+  args: { items: REGIONS, placeholder: "e.g. Mumbai (ap-south-1)" },
+  play: async ({ canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("combobox", { name: "Default role" }));
+    await screen.findByRole("listbox");
+    await waitFor(() => expect(screen.getByText("Asia Pacific")).toBeVisible());
+    await expect(screen.getByRole("option", { name: "Frankfurt (eu-central-1)" })).toHaveAttribute(
+      "aria-disabled",
+      "true",
+    );
+    await userEvent.click(screen.getByRole("option", { name: "Hyderabad (ap-south-2)" }));
+    await waitFor(() =>
+      expect(canvas.getByRole("combobox", { name: "Default role" })).toHaveTextContent(
+        "Hyderabad (ap-south-2)",
+      ),
+    );
+  },
+};
 
-    await userEvent.click(option);
-
-    await waitFor(() => expect(trigger).toHaveTextContent("Mumbai (ap-south-1)"));
+export const NamedWithoutField: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: aria-label names a Select without a Field",
+  render: (args) => <Select {...args} aria-label="Role for Priya Sharma" defaultValue="admin" />,
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("combobox", { name: "Role for Priya Sharma" })).toHaveTextContent(
+      "Administrator",
+    );
   },
 };

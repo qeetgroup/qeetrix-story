@@ -1,6 +1,11 @@
+import { createElement } from "react";
 import { addons } from "storybook/manager-api";
 
-import { qeetrixTheme } from "./theme";
+import { qeetrixThemeDark, qeetrixThemeLight } from "./theme";
+
+/** The Theme global, from the URL Storybook keeps in sync with it (`…&globals=theme:dark`). */
+const isDark = () =>
+  typeof window !== "undefined" && /theme(?:%3A|:)dark/.test(window.location.href);
 
 /**
  * Brands the Storybook workshop chrome with the shared Qeetrix theme (see theme.ts)
@@ -22,13 +27,44 @@ import { qeetrixTheme } from "./theme";
  * preview iframe and can't mount a React component); brand fonts load via
  * manager-head.html.
  */
-addons.setConfig({ theme: qeetrixTheme });
+type Entry = { type: string; name: string; tags?: string[]; children?: string[] };
+type Api = { getData?: (id: string) => Entry | undefined };
+
+/** A component's tags, or its first story's when the index doesn't roll them up to it. */
+const tagsOf = (item: Entry, api?: Api) =>
+  item.tags?.length
+    ? item.tags
+    : (item.children?.[0] && api?.getData?.(item.children[0])?.tags) || [];
+
+addons.setConfig({
+  // Boot in the scheme the page opens in; live toggles restyle through `.qx-chrome-dark`.
+  theme: isDark() ? qeetrixThemeDark : qeetrixThemeLight,
+  sidebar: {
+    // Experimental components (`@qeetrix/react/experimental`, tagged `experimental`) carry a
+    // pill in the sidebar, the way enterprise systems flag a component's status where you
+    // pick it, not only on its page.
+    renderLabel: (item: Entry, api?: Api) => {
+      if (item.type !== "component" || !tagsOf(item, api).includes("experimental"))
+        return item.name;
+      return createElement(
+        "span",
+        { className: "qx-sidebar-label" },
+        item.name,
+        createElement(
+          "span",
+          {
+            className: "qx-sidebar-badge",
+            title: "Experimental: from @qeetrix/react/experimental",
+          },
+          "Exp",
+        ),
+      );
+    },
+  },
+});
 
 if (typeof window !== "undefined") {
-  const syncChromeTheme = () => {
-    const isDark = /theme(?:%3A|:)dark/.test(window.location.href);
-    document.body.classList.toggle("qx-chrome-dark", isDark);
-  };
+  const syncChromeTheme = () => document.body.classList.toggle("qx-chrome-dark", isDark());
   syncChromeTheme();
   window.setInterval(syncChromeTheme, 200);
 }

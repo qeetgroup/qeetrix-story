@@ -9,122 +9,100 @@ How `qeetrix-story` fits into the Qeetrix stack, and where the boundary is.
 This repo (`@qeetrix/stories`, `private: true`, never published) contains documentation,
 tests and governance for a component library that is developed and released somewhere
 else. Nothing in `stories/**` defines a component; every story imports from
-`@qeetrix/ui` and renders it the way a product app would.
+`@qeetrix/react` and renders it the way a product app would.
 
 | Concern | Lives in | Not in |
 | --- | --- | --- |
-| Component source, tokens, brand assets | `qeetrix-ui` | here |
+| Component source, styles, strings | `qeetrix-react` (`@qeetrix/react`) | here |
+| Design tokens, fonts | `qeetrix-tokens` (`@qeetrix/tokens`) | here |
+| Icons, the Qeet logo | `qeetrix-icons` (`@qeetrix/icons`) | here |
 | Stories, docs pages, guides | here | — |
-| Component tests (Vitest browser) | here | — |
-| Visual regression baselines | here (`tests/`) | — |
+| Component tests (Vitest browser, every story) | here | — |
 | Story contract + verification scripts | here (`stories/_contract.ts`, `scripts/`) | — |
-| Unit tests for component internals | `qeetrix-ui` | here |
+| Unit, accessibility and visual tests for component internals | `qeetrix-react` | here |
 
-The practical rule: if a story reveals a bug, the fix goes in `qeetrix-ui`. This repo
-only ever changes how the bug is demonstrated. `scripts/verify-a11y.mjs` says the same
-thing in its output — *"These are @qeetrix/ui token values — do not patch them from this
-repo."*
+The practical rule: if a story reveals a bug, the fix goes in `qeetrix-react` (or
+`qeetrix-tokens`). This repo only ever changes how the bug is demonstrated.
 
 ## The layers
 
 ```
-  design tokens          W3C DTCG JSON  ──Style Dictionary──▶  --qx-* CSS custom properties
-  (inside qeetrix-ui)                                          + tokens.json + typed constants
+  @qeetrix/tokens        W3C DTCG source ──▶ --qx-* CSS custom properties (tokens.css),
+                         the Qeet Sans and Fira Code faces, JS values, DTCG JSON
           │
           ▼
-  @qeetrix/ui            React components (Base UI + Tailwind v4), brand, hooks
-          │              published to npm as @qeetrix/ui (v2.x)
+  @qeetrix/react         React 19 components on Base UI, styled by a precompiled
+                         stylesheet (styles.css) that reads only the tokens;
+                         stable at the root, newer parts at @qeetrix/react/experimental
+          │
           ▼
   qeetrix-story          stories, docs, a11y gate, contract verification
 ```
 
-There is **no separate `@qeetrix/tokens` package**. Tokens are a layer *inside*
-`@qeetrix/ui`, surfaced through subpath exports:
-
 | Specifier | Contents |
 | --- | --- |
-| `@qeetrix/ui` | component barrel, hooks, `cn`, the typed token values components read (`COMPONENT`, `DURATION`, `EASING`, `ICON_SIZE`, `ICON_STROKE`) |
-| `@qeetrix/ui/styles.css` | the full app layer — *semantic* tokens (`--background`, `--foreground`), fonts, base |
-| `@qeetrix/ui/tokens.css` | the raw primitive ramp (`--qx-color-*`), which apps do not normally load |
-| `@qeetrix/ui/qeetrix.css` | the semantic token layer on its own |
-| `@qeetrix/ui/tokens.json` | every value as data, per theme (read by the Colors, Elevation, Opacity, Z-Index and Token Layers foundations) |
+| `@qeetrix/tokens/tokens.css` | every runtime token: `:root` (light), `[data-qx-color-scheme="dark"]`, `[data-qx-density="compact" \| "default" \| "comfortable"]`, plus the font faces |
+| `@qeetrix/tokens` (JS) and `@qeetrix/tokens/dtcg/*` | the same values as data, read by the Foundations pages |
+| `@qeetrix/react/styles.css` | the component stylesheet, in the `qx.base` and `qx.components` cascade layers |
+| `@qeetrix/react` | the stable components, `QeetrixProvider`, the formatters |
+| `@qeetrix/react/experimental` | components in their first product |
+| `@qeetrix/react/locales/hi` | the Hindi strings |
 
-Icons and `QeetLogo` are not in `@qeetrix/ui`: they come from `@qeetrix/icons`, the package
-`@qeetrix/ui` draws its own icons from.
+`.storybook/styles.css` loads them as the `@qeetrix/react` README tells a product to: the
+tokens, then `styles.css` in the `components` layer. Tailwind is loaded too, for the
+workshop's chrome only, and **without its preflight reset**: a global reset would hide what a
+product without Tailwind sees. The chrome's theme names (`border-border`,
+`text-muted-foreground`, …) are mapped to the tokens there.
 
-`.storybook/styles.css` imports both `styles.css` and `tokens.css` — the second only so
-the Foundations swatch galleries can resolve the primitive ramp, which a real app would
-never pull in.
+## The workshop renders the published packages
 
-## `@qeetrix/ui` is resolved from a sibling checkout
+`package.json` pins `@qeetrix/react`, and `bun.lock` installs it from npm. **That installed
+package is what the workshop renders**, in `dev`, `build` and `test` alike. There are no source
+aliases and no sibling checkout, so:
+- what you see is exactly what a Qeet product installs;
+- upgrading the library is a normal `package.json` change, and CI proves every story still
+  renders on the new release;
+- `tsc` and the workshop always read the same API.
 
-This is the single most surprising thing about the repo.
+The cost: an unreleased component change isn't visible here until it's released (or a local
+build is linked into `node_modules` for a moment).
 
-`package.json` lists `"@qeetrix/ui": "^2.1.4"` as a dependency, and it *is* installed into
-`node_modules`. **It is not what the workshop renders.** `.storybook/main.ts` rewrites
-every `@qeetrix/ui` specifier to `../qeetrix-ui/src` — a sibling git checkout on disk:
+### Props tables come from the type declarations
 
-```
-QG/qeetrix/
-├── qeetrix-ui/      ← the design system, resolved from src/
-└── qeetrix-story/   ← this repo
-```
+Storybook's own docgen reads the source files it compiles. A dependency's published
+JavaScript carries no types, so it would find no props. `scripts/docgen.mjs` reads
+`@qeetrix/react`'s `.d.ts` files (root and `experimental`) with the TypeScript compiler. It
+writes, per exported component:
+- its description, from the component's JSDoc;
+- the family folder it lives in, for the docs page's source link;
+- its props as Storybook argTypes: description, type, default (from "Default `x`" in the
+  JSDoc), required, and a control.
 
-**Without `../qeetrix-ui` checked out next to this repo, nothing works** — not `dev`, not
-`build`, not `test`. `scripts/gen-llms.mjs` fails loudly with clone instructions; the Vite
-aliases fail less loudly.
+The props come in two groups. First the component's own; then those it takes straight from
+the Base UI part it wraps (Dialog's `open`, Meter's `value`), under "Base UI". Inherited DOM
+attributes and plumbing (`className`, `style`, `ref`) are left out, as every enterprise props
+table does.
 
-**`tsc` does not follow the aliases.** `bun run typecheck` reads `@qeetrix/ui`'s types from
-`node_modules`. CI checks out the `qeetrix-ui` release tag that `bun.lock` installs, so there
-the two cannot drift; locally, keep `../qeetrix-ui` on that release. When they drift, the type
-check passes against one API while the workshop renders another, and an export the library has
-removed shows up only as an import error in `test` and `build`.
+`.storybook/preview.ts` hands these to autodocs through `parameters.docs.extractArgTypes`
+and `extractComponentDescription`. The output, `.storybook/docgen.json`, is generated and
+not committed; `dev`, `storybook`, `build`, `test` and `typecheck` all run `docgen` first.
 
-### The alias table (`.storybook/main.ts` → `viteFinal`)
+### Component names
 
-Order matters: specific subpaths must precede the generic rule, which must precede the
-bare specifier.
+The published build renames a component's function where it shares a name with the Base UI
+part it wraps (`Button$1` for `Button`, about twenty of them), and React reads that name for
+code snippets and DevTools. `preview.ts` gives every exported component its public name as
+its `displayName`, so "Show code" says `<Button>` and the props lookup finds it. The real fix
+belongs in qeetrix-react.
 
-| Pattern | Resolves to | Why it needs its own rule |
-| --- | --- | --- |
-| `@qeetrix/ui/styles.css` | `src/styles/index.css` | published export is renamed: the one stylesheet, including the host-global section that carries the reduced-motion collapse and the forced-colors remapping |
-| `@qeetrix/ui/tokens.css` | `src/styles/tokens.raw.css` | published export is renamed |
-| `@qeetrix/ui/qeetrix.css` | `src/styles/tokens.css` | published export is renamed |
-| `@qeetrix/ui/tokens.json` | `src/styles/tokens.json` | generated file, not in `dist` layout |
-| `@qeetrix/ui/<anything>` | `src/<anything>` | the generic catch-all: `components/*`, `providers/*`, `lib/*`, `hooks/*`, `fonts/*` |
-| `@qeetrix/ui` | `src/index.ts` | the barrel |
-| `@/<anything>` | `src/<anything>` | `@qeetrix/ui`'s *own* internal path alias, which its source uses and this repo never does |
+### Vite: one React, and the design system pre-bundled
 
-Why source rather than `dist`: the workshop gets live HMR against the library, and never
-depends on a `dist/` that a `tsc --watch` dev loop can leave holding unresolved `@/`
-aliases.
-
-### The react / react-dom dedupe is load-bearing
-
-```ts
-dedupe: [...(cfg.resolve?.dedupe ?? []), "react", "react-dom"]
-```
-
-Because the aliases pull `@qeetrix/ui` out of a sibling checkout, everything *it* imports
-— React itself, and Base UI's hooks — resolves against `../qeetrix-ui/node_modules`. That
-is a **second physical copy of React**, even though the version numbers match. Two copies
-means two hook dispatchers, and the first hook call inside any Base UI component throws:
-
-```
-Cannot read properties of null (reading 'useRef')
-```
-
-The Vite dev server hides this, because pre-bundling collapses everything into one
-optimized copy. **Vitest browser mode does not.** So the dedupe is what makes
-`bun run test` work at all. It lives in `.storybook/main.ts` rather than
-`vitest.config.ts` deliberately: `vitest.config.ts` reuses `main.ts` wholesale, so dev,
-build and test all resolve identically from one definition.
-
-### `server.fs.allow`
-
-Setting `fs.allow` explicitly *replaces* Vite's automatic workspace-root discovery, so
-`main.ts` re-adds both the Storybook project root and the `qeetrix-ui` sibling. Drop
-either one and the dev server refuses to serve half the files it needs.
+`main.ts` dedupes `react` and `react-dom`, so the stories, Base UI and `@qeetrix/react` share
+one React. It also pre-bundles `@qeetrix/react`, its `experimental` and `locales/hi` entries,
+`@qeetrix/tokens` and every `@qeetrix/icons/icons/*` module. Discovered mid-run instead, Vite
+would reload the page and fail the first Vitest run after a new import. Both live in `main.ts`,
+not `vitest.config.ts`, because `vitest.config.ts` reuses `main.ts` wholesale: dev, build and
+test resolve identically from one definition.
 
 ## Storybook composition
 
@@ -133,50 +111,70 @@ are declared: `addon-docs`, `addon-a11y`, `addon-themes`, `addon-vitest`.
 
 | File | Role |
 | --- | --- |
-| `.storybook/main.ts` | stories glob, addons, `viteFinal` (Tailwind plugin + the alias/dedupe/fs block above) |
-| `.storybook/preview.ts` | assembles the decorators, declares the a11y gate and the parameters that belong to no single global |
+| `.storybook/main.ts` | stories glob, addons, `staticDirs` (the tokens package's fonts at `/fonts`, for the chrome), `viteFinal` (Tailwind plugin, pre-bundling, dedupe) |
+| `.storybook/preview.ts` | the decorators, the a11y gate, the docs page and container, the docgen props tables, the component names, the sidebar order, the table of contents |
+| `.storybook/blocks/component-docs.tsx` | the docs page of every component (below) |
+| `.storybook/blocks/docs-container.tsx` | switches the docs pages between the light and dark docs themes with the Theme toolbar |
 | `.storybook/decorators/` | one module per toolbar global — each owns its `globalTypes` entry, its document-level side effect, and its decorator |
-| `.storybook/manager.ts` | brands the Storybook chrome and keeps it in lockstep with the Theme toggle by polling the top-window URL |
-| `.storybook/theme.ts` | the shared Qeetrix Storybook theme object (manager + autodocs) |
-| `.storybook/styles.css` | Qeetrix layer import + `@source "../stories"` + the docs-canvas restyling |
-| `.storybook/public/` | `staticDirs` root — where `llms.txt` / `llms-full.txt` are emitted |
+| `.storybook/manager.ts` | brands the Storybook chrome, renders the sidebar's Experimental pills, and keeps the chrome in lockstep with the Theme toggle |
+| `.storybook/theme.ts` | the light and dark Storybook themes (chrome + docs), in the tokens' values converted to hex |
+| `.storybook/manager-head.html` | the chrome's fonts (Qeet Sans, Fira Code), its dark restyling and the status pill |
+| `.storybook/styles.css` | the package imports, the chrome's theme-name mapping, and the docs canvas in the design language (ruled sections, square corners, the library's own code colours) |
+| `.storybook/public/` | `staticDirs` root: the Qeet logos |
+
+### The component docs page
+
+Every component's docs page has the same layout (`parameters.docs.page`), the one enterprise
+design systems share. Everything on it comes from the story's meta and the package's types,
+so it can't drift from the API. In order:
+1. the category, the name, and a status badge (Stable or Experimental, from the story
+   contract) with the package and version;
+2. the description, from the component's JSDoc;
+3. its import line, with a copy button;
+4. a playground, with every prop as a control;
+5. the examples, each story with its description;
+6. accessibility notes, and links to the source, npm and the changelog.
+
+An "On this page" table of contents follows the reader. Galleries (foundations, patterns,
+recipes) get a plain page: title, description, stories.
 
 ### Toolbar globals
 
-Each global is a module under `.storybook/decorators/`, owning its `globalTypes` entry,
-its document-level side effect, and its decorator. `decorators/index.ts` assembles them;
+Each global is a module under `.storybook/decorators/`. `decorators/index.ts` assembles them;
 `preview.ts` spreads the result.
 
 | Global | Applied as | Module |
 | --- | --- | --- |
-| `theme` | `.dark` class on `<html>` — the same class strategy `ThemeProvider` uses in production, so stories look identical to apps | `theme.decorator.tsx` |
-| `density` | `data-qx-density="comfortable" \| "compact"` on `<html>` (`legacy` removes the attribute) | `density.decorator.tsx` |
-| `direction` | `<html dir>` **plus** `@qeetrix/ui`'s own `DirectionProvider` — `dir` is always written, never removed, so a component cannot inherit a stale `rtl` from a previous toolbar selection in the same iframe | `rtl.decorator.tsx` |
-| `viewport` | nothing — **not a decorator**. Storybook 10 owns the tool, the global and the iframe resizing; the module only supplies `parameters.viewport.options`, replacing the 28 stock devices with four canonical Qeetrix breakpoints (390 / 768 / 1440 / 1920) | `viewport.decorator.tsx` |
+| `theme` | `data-qx-color-scheme="light" \| "dark"` (and `color-scheme`) on `<html>`: the attribute `QeetrixProvider` sets in production and the tokens scope their colours to | `theme.decorator.tsx` |
+| `density` | `data-qx-density="compact" \| "default" \| "comfortable"` on `<html>`, always written | `density.decorator.tsx` |
+| `locale` | `QeetrixProvider locale`, with the `hi` pack for Hindi, and `<html lang>`: the components' own strings and number and date formats | `locale.decorator.tsx` |
+| `direction` | `<html dir>` **plus** `QeetrixProvider direction`, which components read for arrow keys, submenus, sliders and drawers | `rtl.decorator.tsx` |
+| `viewport` | nothing — **not a decorator**. Storybook 10 owns the tool; the module only supplies one device per `@qeetrix/react` window size class (390 / 768 / 1024 / 1440 / 1920) | `viewport.decorator.tsx` |
 
 The document-level globals are applied **twice over**: from a decorator (first paint of a
-story) *and* straight off the preview channel (`setGlobals`, `globalsUpdated`). The
-decorator alone only fires when a *story* renders, which leaves pure-MDX pages —
-`Foundations/Introduction` has live components but no story exports — stuck on whatever
-theme loaded first. The channel alone would cost an event round-trip, so a story would
-paint one frame in the previous theme. Both are needed. `withDirection` additionally
-supplies a React context that no DOM attribute can.
+story) *and* straight off the preview channel (`setGlobals`, `globalsUpdated`). The decorator
+alone only fires when a *story* renders, which leaves pure-MDX pages stuck on whatever theme
+loaded first. The channel alone would cost an event round-trip, so a story would paint one
+frame in the previous theme. Both are needed.
 
-These are **affordances, not coverage**. There is a Direction toolbar and a viewport
-preset list; nothing runs the suite in RTL or at a non-default width.
+These are **affordances, not coverage**. Nothing runs the whole suite in RTL, Hindi, dark
+mode or at a non-default width; qeetrix-react's own tests cover those matrices for the
+components.
 
 ## Story layout
 
 | Path | Contents | Contract applies |
 | --- | --- | --- |
-| `stories/components/<category>/*.stories.tsx` | one file per `@qeetrix/ui` component | **yes** — full contract |
-| `stories/foundations/*.stories.tsx` | Colors, Typography, Spacing & Radius, Density, Token Layers, Elevation, Motion | title only |
-| `stories/brand/brand.stories.tsx` | adaptive `QeetLogo` | title only |
-| `stories/patterns/*.stories.tsx` | multi-component patterns (e.g. `Patterns/AuthenticationForm`) | not scanned — see [governance.md](./governance.md) |
-| `stories/recipes/*.stories.tsx` | cross-cutting recipes (loading states, empty states) | not scanned — see [governance.md](./governance.md) |
-| `stories/guides/*.mdx` | narrative guides (5) | n/a |
+| `stories/welcome.mdx` + `_welcome.tsx` | the front page | n/a |
+| `stories/components/<category>/*.stories.tsx` | one file per `@qeetrix/react` component | **yes** — full contract |
+| `stories/foundations/*` | the token galleries, generated from `@qeetrix/tokens` | title only |
+| `stories/brand/brand.stories.tsx` | the Qeet logo, brand colour and tenant theming | title only |
+| `stories/patterns/*.stories.tsx` | Qeet ID console screens built from the library | title only |
+| `stories/recipes/*.stories.tsx` | cross-cutting states (loading, empty, error, offline) | title only |
+| `stories/playground/*` | the catalogue of every component, built from the package's exports | title only |
+| `stories/guides/*.mdx` | narrative guides | n/a |
 | `stories/_contract.ts` | the story contract types + `qx()` helper | n/a |
-| `stories/_helpers.tsx` | shared swatch/copy helpers for the galleries | n/a |
+| `stories/_helpers.tsx` | shared swatch and layout helpers for the galleries | n/a |
 
 Files prefixed `_` are not matched by the stories glob (`*.mdx`, `*.stories.@(ts|tsx)`).
 
@@ -184,15 +182,9 @@ Files prefixed `_` are not matched by the stories glob (`*.mdx`, `*.stories.@(ts
 
 | Command | Output |
 | --- | --- |
-| `bun run llms` | `.storybook/public/llms.txt`, `llms-full.txt` (llmstxt.org convention) |
-| `bun run build` | `llms` step, then `storybook-static/` |
-| `bun run shoot` | `screenshots/` (ad-hoc capture) |
-
-`bun run build` is `node scripts/gen-llms.mjs && storybook build`, so the llms step gates
-the whole build. That step reads the **sibling checkout**, not `node_modules` — the
-published `@qeetrix/ui` tarball ships `dist/` only (no `src/`, no `tokens.json`), so
-reading `node_modules` cannot work. If `bun run build` fails at `gen-llms`, a missing or
-misplaced `../qeetrix-ui` checkout is the reason.
+| `bun run docgen` | `.storybook/docgen.json` (generated, not committed) |
+| `bun run build` | `docgen`, then `storybook-static/` |
+| `bun run shoot` | `screenshots/` (ad-hoc capture from `storybook-static`) |
 
 ## Known repo state
 
@@ -200,6 +192,6 @@ Documented so nobody burns an afternoon rediscovering it.
 
 | Thing | State |
 | --- | --- |
-| `bun run lint` · `typecheck` · `build` · `verify:stories` · `verify:foundations` · `test` | pass. `lint` prints 24 warnings, all in `.storybook/styles.css` (`noImportantStyles`, `noDescendingSpecificity`); warnings do not fail it |
-| CI and release | `ci.yml`, `version.yml`, `release.yml`, `rollback.yml` — the same four as `qeetrix-ui`, `qeetrix-icons` and `qeetrix-docs`; see [testing.md](./testing.md#in-ci). Each checks out **both repos side by side**, `qeetrix-ui` at the release `bun.lock` installs, and builds its generated tokens. No gate is `continue-on-error`; every gate runs even after an earlier failure so one run reports the whole picture. |
-| RTL / dark-mode / responsive test matrices | **do not exist.** There is now a Direction toolbar global, a `DirectionProvider` decorator and four viewport presets — those are affordances for a human clicking around, not automated coverage. Nothing runs the suite in RTL, in dark mode, or at a non-default width. |
+| CI and release | `ci.yml`, `version.yml`, `release.yml`, `rollback.yml` — the same four as `qeetrix-react`, `qeetrix-icons` and `qeetrix-docs`; see [testing.md](./testing.md#in-ci). They build from this repository alone. `rollback.yml` still checks out `qeetrix-ui` for tags up to v0.0.11, which rendered `@qeetrix/ui`. |
+| `bun run lint` | passes, with warnings for the `!important`s in `.storybook/styles.css` that override Storybook's own docs styling; warnings don't fail it |
+| MDX tables | the docs addon has no GFM plugin, so markdown tables in MDX don't render; the guides use lists |

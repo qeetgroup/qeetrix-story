@@ -1,207 +1,270 @@
-import {
-  CircleCheckIcon,
-  CircleXIcon,
-  InfoIcon,
-  KeyRoundIcon,
-  TriangleAlertIcon,
-  XIcon,
-} from "@qeetrix/icons";
-import { Alert, AlertAction, AlertDescription, AlertTitle, Button, IconButton } from "@qeetrix/ui";
+import { EyeIcon } from "@qeetrix/icons/icons/eye";
+import { KeyRoundIcon } from "@qeetrix/icons/icons/key-round";
+import { WrenchIcon } from "@qeetrix/icons/icons/wrench";
+import { Button, Inline, QeetrixProvider, Stack } from "@qeetrix/react";
+import { Alert, AppShell, PageHeader } from "@qeetrix/react/experimental";
+import { hi } from "@qeetrix/react/locales/hi";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
+import { expect, fn } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof Alert> = {
   title: "Components/Feedback/Alert",
   component: Alert,
   parameters: {
-    qeetrix: qx({ category: "feedback", status: "stable" }),
+    qeetrix: qx({ category: "feedback", status: "experimental" }),
     layout: "padded",
-    docs: {
-      description: {
-        component:
-          'Contextual inline feedback for the current page — security notices in Qeet ID, quota warnings in qeet-logs, or payment failures in qeet-pay. Use `variant` (`default` | `info` | `success` | `warning` | `destructive`) to signal intent; `danger` is an accepted alias of `destructive`. Status variants draw a subtle tint, a 3px inline-start accent bar and a title in the status colour, with neutral description prose. `emphasis="strong"` swaps that for a solid status fill — reserve it for messages that must not be missed. Put the icon first, then `AlertTitle` / `AlertDescription`, and an optional trailing `AlertAction`. Alert is `role="alert"` (assertive); pass `role="status"` for a notice that is present on load or merely informational. For page-level announcements that span the full viewport, use `Banner` instead.',
-      },
-    },
   },
-  tags: ["autodocs"],
-  argTypes: {
-    variant: {
-      control: "select",
-      options: ["default", "info", "success", "warning", "destructive", "danger"],
-    },
-    emphasis: {
-      control: "inline-radio",
-      options: ["subtle", "strong"],
-    },
+  tags: ["autodocs", "experimental"],
+  args: {
+    tone: "warning",
+    title: "Directory sync is behind",
+    children: "Users added in Azure AD in the last hour may be missing.",
   },
+  render: (args) => (
+    <div style={{ maxInlineSize: 640 }}>
+      <Alert {...args} />
+    </div>
+  ),
 };
+
 export default meta;
 type Story = StoryObj<typeof Alert>;
 
-export const Default: Story = {
-  args: { variant: "info" },
-  render: (args) => (
-    <Alert {...args} className="max-w-md">
-      <InfoIcon />
-      <AlertTitle>Heads up</AlertTitle>
-      <AlertDescription>
-        Your API keys rotate automatically every 90 days. No action needed.
-      </AlertDescription>
-    </Alert>
-  ),
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Default info alert — use for non-critical notices that don't require immediate action.",
-      },
-    },
-  },
-};
+export const Playground: Story = {};
 
 export const Variants: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The neutral `default` and the four status variants side by side — match the variant to the urgency of the message. Status variants carry a 3px accent bar and a title in the status colour; the description stays neutral so dense screens stay calm. `destructive` is the canonical name; `danger` renders identically and keeps working for older call sites.",
-      },
-    },
-  },
   render: () => (
-    <div className="flex max-w-md flex-col gap-3">
-      <Alert>
-        <KeyRoundIcon />
-        <AlertTitle>Signing key generated</AlertTitle>
-        <AlertDescription>
-          The new key becomes active for Qeet ID token signing at the next rotation.
-        </AlertDescription>
+    <Stack gap="lg" style={{ maxInlineSize: 640 }}>
+      <Alert tone="info" title="You're in Development">
+        Sign-ins here don't reach production.
       </Alert>
-      <Alert variant="info">
-        <InfoIcon />
-        <AlertTitle>Scheduled maintenance</AlertTitle>
-        <AlertDescription>
-          We&apos;ll be performing upgrades on Sunday at 02:00 UTC.
-        </AlertDescription>
+      <Alert tone="success" title="Directory synced">
+        1,284 users are up to date.
       </Alert>
-      <Alert variant="success">
-        <CircleCheckIcon />
-        <AlertTitle>Payment received</AlertTitle>
-        <AlertDescription>Your invoice has been settled.</AlertDescription>
+      <Alert tone="warning" title="Directory sync is behind">
+        Users added in the last hour may be missing.
       </Alert>
-      <Alert variant="warning">
-        <TriangleAlertIcon />
-        <AlertTitle>Approaching quota</AlertTitle>
-        <AlertDescription>You&apos;ve used 80% of your monthly event budget.</AlertDescription>
+      <Alert tone="danger" title="Directory sync failed">
+        Azure AD rejected the client secret.
       </Alert>
-      <Alert variant="destructive">
-        <CircleXIcon />
-        <AlertTitle>Connection failed</AlertTitle>
-        <AlertDescription>We couldn&apos;t reach the upstream service. Retrying…</AlertDescription>
-      </Alert>
-    </div>
+    </Stack>
   ),
 };
 
-export const Emphasis: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '`emphasis="strong"` is a solid, theme-invariant status fill with an on-fill label (white, or near-black on amber). Use it sparingly, for a message the user must not miss — a suspended account, paused payouts, a blocking error. Everything else stays on the default `emphasis="subtle"`. The neutral `default` variant has no strong fill.',
-      },
-    },
-  },
+export const WithActions: Story = {
+  name: "With actions",
   render: () => (
-    <div className="flex max-w-md flex-col gap-3">
-      <Alert variant="info" emphasis="strong">
-        <InfoIcon />
-        <AlertTitle>Read-only mode</AlertTitle>
-        <AlertDescription>
-          The Qeet ID admin console is read-only until the ap-south-1 migration completes.
-        </AlertDescription>
+    <Stack gap="lg" style={{ maxInlineSize: 640 }}>
+      <Alert
+        tone="danger"
+        title="Directory sync failed"
+        actions={
+          <>
+            <Button size="sm">Retry sync</Button>
+            <Button size="sm" variant="ghost" tone="neutral">
+              View details
+            </Button>
+          </>
+        }
+      >
+        The last three attempts timed out.
       </Alert>
-      <Alert variant="success" emphasis="strong">
-        <CircleCheckIcon />
-        <AlertTitle>Domain verified</AlertTitle>
-        <AlertDescription>Branded login is live on acme.id.qeet.in.</AlertDescription>
+      <Alert tone="success" title="Directory synced" onDismiss={() => {}}>
+        1,284 users are up to date.
       </Alert>
-      <Alert variant="warning" emphasis="strong">
-        <TriangleAlertIcon />
-        <AlertTitle>Payouts paused</AlertTitle>
-        <AlertDescription>
-          qeet-pay has held settlements until your KYC documents are re-verified.
-        </AlertDescription>
-      </Alert>
-      <Alert variant="destructive" emphasis="strong">
-        <CircleXIcon />
-        <AlertTitle>Account suspended</AlertTitle>
-        <AlertDescription>
-          Sign-ins are blocked for this workspace. Contact your Qeet ID administrator.
-        </AlertDescription>
-      </Alert>
-    </div>
+    </Stack>
   ),
 };
 
-export const WithAction: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`AlertAction` puts trailing controls in their own column at the inline end, vertically centred against the message — a Retry or View details button, or a dismiss `IconButton` (which needs an `aria-label`). It works on both emphases. Keep it to one or two controls; anything more is a form, not an alert.",
-      },
-    },
-  },
+export const WithIcon: Story = {
+  name: "With icon",
   render: () => (
-    <div className="flex max-w-lg flex-col gap-3">
-      <Alert variant="destructive">
-        <CircleXIcon />
-        <AlertTitle>Webhook delivery failed</AlertTitle>
-        <AlertDescription>
-          Qeet Notify got a 503 from hooks.acme.com on the last three attempts.
-        </AlertDescription>
-        <AlertAction>
-          <Button size="sm" variant="outline">
-            Retry
+    <Stack gap="lg" style={{ maxInlineSize: 640 }}>
+      <Alert tone="warning" icon={EyeIcon} title="You're viewing as Priya Sharma">
+        Anything you change is done as her.
+      </Alert>
+      <Alert tone="info" icon={KeyRoundIcon} title="The signing key rotates in 7 days" />
+    </Stack>
+  ),
+};
+
+/** The three approved page banners: viewing as someone else, maintenance, a trial ending. */
+function Banners({ onDismiss }: { onDismiss?: () => void }) {
+  return (
+    <>
+      <Alert
+        variant="banner"
+        tone="warning"
+        icon={EyeIcon}
+        title="You're viewing as Priya Sharma"
+        actions={
+          <Button size="sm" tone="neutral">
+            Exit
           </Button>
-        </AlertAction>
+        }
+      >
+        (priya@acme.in). Anything you change is done as her.
       </Alert>
-      <Alert variant="info" role="status">
-        <InfoIcon />
-        <AlertTitle>New log retention policy</AlertTitle>
-        <AlertDescription>qeet-logs now keeps debug-level events for 7 days.</AlertDescription>
-        <AlertAction>
-          <IconButton icon={XIcon} aria-label="Dismiss retention notice" size="icon-sm" />
-        </AlertAction>
+      {onDismiss && (
+        <Alert
+          variant="banner"
+          icon={WrenchIcon}
+          title="Maintenance on Sunday 2 November, 01:00–02:00 IST."
+          actions={
+            <Button size="sm" variant="ghost" tone="neutral">
+              Details
+            </Button>
+          }
+          onDismiss={onDismiss}
+        >
+          Sign-in keeps working.
+        </Alert>
+      )}
+      <Alert
+        variant="banner"
+        tone="danger"
+        title="Your trial ends in 3 days."
+        actions={<Button size="sm">Upgrade</Button>}
+      >
+        After that, new sign-ins stop.
       </Alert>
-      <Alert variant="warning" emphasis="strong">
-        <TriangleAlertIcon />
-        <AlertTitle>Card expires this week</AlertTitle>
-        <AlertDescription>Update it to keep your qeet-pay subscription active.</AlertDescription>
-        <AlertAction>
-          <Button size="sm" variant="outline">
-            Update card
-          </Button>
-        </AlertAction>
-      </Alert>
-    </div>
+    </>
+  );
+}
+
+export const PageBanner: Story = {
+  name: "Page banner",
+  parameters: {
+    layout: "fullscreen",
+    // AppShell is a whole page (100dvh): give it its own frame in the docs.
+    docs: { story: { inline: false, iframeHeight: 300 } },
+  },
+  render: () => (
+    <AppShell banners={<Banners onDismiss={() => {}} />}>
+      <PageHeader
+        title="Users"
+        description="People who can sign in to Acme Pvt Ltd's applications."
+        actions={<Button size="sm">Invite users</Button>}
+      />
+    </AppShell>
   ),
 };
 
-export const TitleOnly: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Title-only alert for brief, scannable warnings where a full description would be redundant.",
-      },
-    },
-  },
+/** Shows an alert only once something happens, so it can be announced. */
+function AnnounceDemo() {
+  const [synced, setSynced] = useState(false);
+  const [failed, setFailed] = useState(false);
+  return (
+    <Stack gap="lg">
+      <Inline gap="md">
+        <Button size="sm" variant="soft" onClick={() => setSynced(true)}>
+          Sync directory
+        </Button>
+        <Button size="sm" variant="soft" tone="danger" onClick={() => setFailed(true)}>
+          Delete connection
+        </Button>
+      </Inline>
+      {synced && (
+        <Alert tone="success" announce="polite" title="Directory synced">
+          1,284 users are up to date.
+        </Alert>
+      )}
+      {failed && (
+        <Alert tone="danger" announce="urgent" title="Couldn't delete the connection">
+          3 applications still sign in through it.
+        </Alert>
+      )}
+    </Stack>
+  );
+}
+
+export const Hindi: Story = {
+  tags: ["!dev", "!autodocs"],
   render: () => (
-    <Alert variant="warning" className="max-w-md">
-      <TriangleAlertIcon />
-      <AlertTitle>Your trial ends in 3 days.</AlertTitle>
-    </Alert>
+    <QeetrixProvider locale="hi-IN" messages={hi}>
+      <Alert tone="danger" title="साइन-इन विफल" onDismiss={() => {}}>
+        पासकी सत्यापित नहीं हो सकी।
+      </Alert>
+    </QeetrixProvider>
   ),
+  play: async ({ canvas, canvasElement }) => {
+    await expect(canvas.getByRole("button", { name: "खारिज करें" })).toBeVisible();
+    await expect(canvasElement.querySelector("[data-slot=alert-title]")).toHaveTextContent(
+      "त्रुटि: साइन-इन विफल",
+    );
+  },
+};
+
+export const DismissInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: Dismiss runs onDismiss",
+  args: {
+    tone: "success",
+    title: "Directory synced",
+    children: "1,284 users are up to date.",
+    onDismiss: fn(),
+  },
+  play: async ({ args, canvas, userEvent }) => {
+    await userEvent.click(canvas.getByRole("button", { name: "Dismiss" }));
+    await expect(args.onDismiss).toHaveBeenCalledOnce();
+  },
+};
+
+export const AnnounceInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: announces only what appears",
+  render: () => <AnnounceDemo />,
+  play: async ({ canvas, userEvent }) => {
+    await expect(canvas.queryByRole("status")).toBeNull();
+    await userEvent.click(canvas.getByRole("button", { name: "Sync directory" }));
+    await expect(await canvas.findByRole("status")).toHaveTextContent("Success: Directory synced");
+    await userEvent.click(canvas.getByRole("button", { name: "Delete connection" }));
+    await expect(await canvas.findByRole("alert")).toHaveTextContent(
+      "Error: Couldn't delete the connection",
+    );
+  },
+};
+
+export const ToneInWords: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: says its tone in words",
+  args: { tone: "warning", icon: EyeIcon, title: "You're viewing as Priya Sharma" },
+  play: async ({ canvasElement }) => {
+    await expect(canvasElement.querySelector("[data-slot=alert-title]")).toHaveTextContent(
+      "Warning: You're viewing as Priya Sharma",
+    );
+  },
+};
+
+/** The page banners, with the maintenance one gone once it's dismissed. */
+function DismissibleBanners({ onDismiss }: { onDismiss: () => void }) {
+  const [shown, setShown] = useState(true);
+  return (
+    <Banners
+      onDismiss={
+        shown
+          ? () => {
+              onDismiss();
+              setShown(false);
+            }
+          : undefined
+      }
+    />
+  );
+}
+
+export const BannerDismissInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a page banner's Dismiss",
+  args: { onDismiss: fn() },
+  render: (args) => <DismissibleBanners onDismiss={args.onDismiss ?? (() => {})} />,
+  play: async ({ args, canvas, userEvent }) => {
+    await expect(canvas.getByText(/Maintenance on Sunday/)).toBeVisible();
+    await userEvent.click(canvas.getByRole("button", { name: "Dismiss" }));
+    await expect(args.onDismiss).toHaveBeenCalledOnce();
+    await expect(canvas.queryByText(/Maintenance on Sunday/)).toBeNull();
+    await expect(canvas.getByRole("button", { name: "Upgrade" })).toBeVisible();
+  },
 };

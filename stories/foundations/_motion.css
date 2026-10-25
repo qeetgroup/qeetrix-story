@@ -1,0 +1,316 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Foundations / Motion (motion.stories.tsx). Token values only. Every demo runs on the motion
+ * tokens themselves, so under reduced motion it lands at once instead of moving.
+ *
+ * The demos read three custom properties, set from the story: --motion-duration, --motion-easing
+ * and --motion-slow (the Slow motion multiple, 1 when off).
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Controls: Play, Slow motion, the reduced-motion badge ─────────────────── */
+
+.qx-specimen-group-head:has(.qx-motion-controls) {
+  align-items: center;
+}
+
+.qx-motion-controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--qx-space-gap-lg);
+}
+
+.qx-motion-note {
+  font: var(--qx-typography-body-sm);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  color: var(--qx-color-text-subtle);
+}
+
+/* ── Duration: a dot crosses its rail, a trail filling in behind ──────────── */
+
+.qx-motion-lane {
+  display: grid;
+  gap: var(--qx-space-gap-sm);
+}
+
+.qx-motion-track {
+  position: relative;
+  display: block;
+  block-size: 1rem;
+}
+
+.qx-motion-track::before,
+.qx-motion-trail {
+  position: absolute;
+  inset-block-start: 50%;
+  block-size: 0.25rem;
+  border-radius: var(--qx-radius-sm);
+  translate: 0 -50%;
+}
+
+.qx-motion-track::before {
+  content: "";
+  inset-inline: 0;
+  background: var(--qx-color-border-default);
+}
+
+.qx-motion-trail {
+  inset-inline-start: 0;
+  inline-size: 0;
+  background: var(--qx-color-bg-brand-bold);
+}
+
+.qx-motion-dot {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: 1rem;
+  block-size: 1rem;
+  border-radius: var(--qx-radius-sm);
+  background: var(--qx-color-bg-brand-bold);
+  box-shadow: 0 0 0 var(--qx-border-width-strong) var(--qx-color-surface-default);
+}
+
+.qx-motion-track[data-run] .qx-motion-trail {
+  animation: qx-motion-fill var(--motion-duration) var(--qx-motion-easing-standard) both;
+}
+
+.qx-motion-track[data-run] .qx-motion-dot {
+  animation: qx-motion-cross var(--motion-duration) var(--qx-motion-easing-standard) both;
+}
+
+@keyframes qx-motion-fill {
+  to {
+    inline-size: calc(100% - 0.5rem);
+  }
+}
+
+@keyframes qx-motion-cross {
+  to {
+    inset-inline-start: calc(100% - 1rem);
+  }
+}
+
+/* ── Easing: a card per curve, its plot traced on Play ─────────────────────── */
+
+.qx-motion-curves {
+  --motion-duration: calc(var(--qx-motion-duration-slower) * var(--motion-slow, 1));
+
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+  gap: var(--qx-space-gap-lg);
+}
+
+.qx-motion-curve {
+  display: grid;
+  align-content: start;
+  gap: var(--qx-space-gap-lg);
+  min-inline-size: 0;
+  padding: var(--qx-space-inset-lg);
+  border: var(--qx-border-width-default) solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+}
+
+.qx-motion-plot-frame {
+  padding: var(--qx-space-inset-md);
+  border-radius: var(--qx-radius-sm);
+  background: var(--qx-color-surface-canvas);
+}
+
+/* Capped, so a card alone on its row in a narrow container doesn't grow a poster-sized plot. */
+.qx-motion-plot {
+  display: block;
+  inline-size: 100%;
+  max-inline-size: 16rem;
+  block-size: auto;
+  margin-inline: auto;
+  overflow: visible;
+}
+
+.qx-motion-plot :is(line, rect, path, circle) {
+  vector-effect: non-scaling-stroke;
+}
+
+.qx-motion-plot-grid {
+  fill: none;
+  stroke: var(--qx-color-border-subtle);
+  stroke-width: 1;
+}
+
+.qx-motion-plot-diagonal {
+  stroke: var(--qx-color-border-default);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.qx-motion-plot-handles {
+  fill: var(--qx-color-surface-default);
+  stroke: var(--qx-color-border-strong);
+  stroke-width: 1;
+}
+
+.qx-motion-plot-curve {
+  fill: none;
+  stroke: var(--qx-color-icon-brand);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.qx-motion-plot-rail {
+  stroke: var(--qx-color-border-default);
+  stroke-width: 4;
+}
+
+.qx-motion-plot-dot {
+  fill: var(--qx-color-bg-brand-bold);
+  stroke: var(--qx-color-surface-canvas);
+  stroke-width: 2;
+}
+
+/* In an SVG, a CSS length in a transform is in user units: 100px is the plot's full side. */
+.qx-motion-plot[data-run] .qx-motion-plot-time {
+  animation: qx-motion-time var(--motion-duration) linear both;
+}
+
+.qx-motion-plot[data-run] .qx-motion-plot-dot {
+  animation: qx-motion-rise var(--motion-duration) var(--motion-easing) both;
+}
+
+@keyframes qx-motion-time {
+  to {
+    transform: translateX(100px);
+  }
+}
+
+@keyframes qx-motion-rise {
+  to {
+    transform: translateY(-100px);
+  }
+}
+
+.qx-motion-curve-meta {
+  display: grid;
+  justify-items: start;
+  gap: var(--qx-space-gap-xs);
+  min-inline-size: 0;
+}
+
+.qx-motion-curve-name {
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+}
+
+.qx-motion-curve-value {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-motion-curve-meta .qx-motion-note {
+  margin-block-start: var(--qx-space-gap-xs);
+}
+
+/* ── Enter and exit: the toast on a page, the two phases beside it ──────────── */
+
+.qx-motion-enter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 18rem);
+  gap: var(--qx-space-layout-sm);
+}
+
+.qx-motion-stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--qx-space-layout-sm);
+  min-block-size: 13rem;
+  padding: var(--qx-space-inset-lg);
+  overflow: hidden;
+  border: var(--qx-border-width-default) solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-canvas);
+}
+
+.qx-motion-stage-page {
+  display: grid;
+  gap: var(--qx-space-gap-sm);
+}
+
+.qx-motion-stage-page > span {
+  block-size: 0.5rem;
+  border-radius: var(--qx-radius-sm);
+  background: var(--qx-color-bg-neutral-subtle);
+}
+
+.qx-motion-stage-page > span:nth-child(1) {
+  inline-size: 35%;
+}
+
+.qx-motion-stage-page > span:nth-child(2) {
+  inline-size: 70%;
+}
+
+.qx-motion-stage-page > span:nth-child(3) {
+  inline-size: 55%;
+}
+
+/* Where the toast viewport would put it: the bottom end of the page. */
+.qx-motion-toast {
+  align-self: flex-end;
+  inline-size: min(22.5rem, 100%);
+}
+
+/* Slow motion stretches the toast's own durations by the same multiple. */
+.qx-motion-stage[data-slow] .qx-toast {
+  transition-duration: calc(var(--qx-motion-duration-normal) * var(--motion-slow, 1));
+}
+
+.qx-motion-stage[data-slow] .qx-toast[data-ending-style] {
+  transition-duration: calc(var(--qx-motion-duration-fast) * var(--motion-slow, 1));
+}
+
+.qx-motion-phases {
+  display: grid;
+  align-content: center;
+  gap: var(--qx-space-layout-sm);
+}
+
+.qx-motion-phase {
+  display: grid;
+  justify-items: start;
+  gap: var(--qx-space-gap-xs);
+  padding-inline-start: var(--qx-space-inset-lg);
+  border-inline-start: var(--qx-border-width-accent) solid var(--qx-color-border-subtle);
+  transition: border-color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
+}
+
+.qx-motion-phase[data-active] {
+  border-inline-start-color: var(--qx-color-border-brand);
+}
+
+.qx-motion-phase-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--qx-space-gap-md);
+  inline-size: 100%;
+  margin-block-end: var(--qx-space-gap-xs);
+}
+
+.qx-motion-phase[data-active] .qx-specimen-label {
+  color: var(--qx-color-text-brand);
+}
+
+.qx-motion-phase-head code {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+}
+
+.qx-motion-phase .qx-motion-note {
+  margin-block-start: var(--qx-space-gap-xs);
+}
+
+@container (max-width: 40rem) {
+  .qx-motion-enter {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

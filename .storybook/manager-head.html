@@ -1,8 +1,8 @@
 <!--
   Loads the Qeet brand faces into the Storybook *chrome* (sidebar / toolbars),
-  which renders outside the preview iframe and so doesn't pick up the design
-  system's @font-face from @qeetrix/ui/styles.css. The woff2 are staged in
-  ./public/fonts and served from the static root. Falls back to system type if a
+  which renders outside the preview iframe and so doesn't pick up the faces
+  @qeetrix/tokens declares there. main.ts serves the tokens package's own font
+  files at /fonts. Falls back to system type if a
   face fails to load — purely a cosmetic uplift, no behavioural dependency.
 
   The companion <style> block also adds premium chrome refinements: custom
@@ -12,58 +12,39 @@
 <style>
   /* ── Brand faces ──────────────────────────────────────────────────────── */
   @font-face {
-    font-family: "Cal Sans Display";
-    src: url("/fonts/CalSansUI-GeoRegular.woff2") format("woff2");
-    font-weight: 400;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: "Cal Sans Display";
-    src: url("/fonts/CalSansUI-GeoSemiBold.woff2") format("woff2");
-    font-weight: 600;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: "Cal Sans Display";
-    src: url("/fonts/CalSansUI-GeoBold.woff2") format("woff2");
-    font-weight: 700;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: "Cal Sans Text";
-    src: url("/fonts/CalSansText-Regular.woff2") format("woff2");
-    font-weight: 400;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: "Cal Sans Text";
-    src: url("/fonts/CalSansText-Medium.woff2") format("woff2");
-    font-weight: 500;
-    font-display: swap;
-  }
-  @font-face {
-    font-family: "Cal Sans Text";
-    src: url("/fonts/CalSansText-SemiBold.woff2") format("woff2");
-    font-weight: 600;
+    font-family: "Qeet Sans";
+    src: url("/fonts/QeetSans.woff2") format("woff2");
+    font-weight: 400 700;
     font-display: swap;
   }
   @font-face {
     font-family: "Fira Code";
-    src: url("/fonts/FiraCode-Regular.ttf") format("truetype");
-    font-weight: 400;
+    src: url("/fonts/FiraCode-VF.woff2") format("woff2");
+    font-weight: 300 700;
     font-display: swap;
   }
-  @font-face {
-    font-family: "Fira Code";
-    src: url("/fonts/FiraCode-Medium.ttf") format("truetype");
-    font-weight: 500;
-    font-display: swap;
+
+  /* ── Status pill in the sidebar (manager.ts renderLabel) ─────────────────
+     Experimental components: Ember on its subtle tint, square 2px corners, the
+     label sized like Badge's. */
+  .qx-sidebar-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
   }
-  @font-face {
-    font-family: "Fira Code";
-    src: url("/fonts/FiraCode-SemiBold.ttf") format("truetype");
+  .qx-sidebar-badge {
+    padding: 0 5px;
+    border-radius: 2px;
+    background: #FFEBDB;
+    color: #B73D10;
+    font-size: 10px;
     font-weight: 600;
-    font-display: swap;
+    line-height: 16px;
+    letter-spacing: 0.02em;
+  }
+  .qx-chrome-dark .qx-sidebar-badge {
+    background: #2E1F18;
+    color: #F26D0E;
   }
 
   /* ── Brand logo — constrain the viewBox-only SVG to a consistent height ── */
@@ -78,7 +59,7 @@
   nav[role="navigation"],
   [class*="sidebar"] {
     scrollbar-width: thin;
-    scrollbar-color: #DAD6CF transparent;
+    scrollbar-color: #E3E1E0 transparent;
   }
 
   #storybook-explorer-tree::-webkit-scrollbar,
@@ -91,33 +72,33 @@
   }
   #storybook-explorer-tree::-webkit-scrollbar-thumb,
   nav[role="navigation"]::-webkit-scrollbar-thumb {
-    background: #DAD6CF;
+    background: #E3E1E0;
     border-radius: 2px;
   }
   #storybook-explorer-tree::-webkit-scrollbar-thumb:hover,
   nav[role="navigation"]::-webkit-scrollbar-thumb:hover {
-    background: #C5C1B8;
+    background: #848381;
   }
 
   /* ── Search input — clean rounded field ───────────────────────────────── */
   input[placeholder*="Find"],
   input[id="search"] {
-    border-radius: 10px;
-    font-family: "Cal Sans Text", ui-sans-serif, system-ui, sans-serif;
+    border-radius: 4px;
+    font-family: "Qeet Sans", ui-sans-serif, system-ui, sans-serif;
     font-size: 13px;
     transition: box-shadow 0.2s cubic-bezier(0.32, 0.72, 0, 1);
   }
   input[placeholder*="Find"]:focus,
   input[id="search"]:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(242, 109, 14, 0.18);
+    box-shadow: 0 0 0 3px rgba(208, 72, 0, 0.18);
   }
 
   /* ── Sidebar nav items — smooth hover transitions ─────────────────────── */
   [class*="TreeNode"],
   [class*="sidebar-item"],
   [data-nodeid] {
-    border-radius: 8px;
+    border-radius: 4px;
     transition: background-color 0.15s cubic-bezier(0.32, 0.72, 0, 1),
                 color 0.15s cubic-bezier(0.32, 0.72, 0, 1);
   }
@@ -135,13 +116,13 @@
   /* ── Toolbar buttons — slightly rounded active pill ───────────────────── */
   [class*="toolbars"] button,
   [class*="toolbar"] button {
-    border-radius: 8px;
+    border-radius: 4px;
     transition: background-color 0.15s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   /* ── Global manager body — apply the brand font ───────────────────────── */
   body {
-    font-family: "Cal Sans Text", "Cal Sans UI", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Qeet Sans", ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -153,12 +134,12 @@
      DS dark surfaces so the chrome follows the story canvas. Warm-neutral ramp
      matching the design tokens; brand orange (selected/hover) is untouched. */
   body.qx-chrome-dark {
-    background: #0f0e0c;
+    background: #0E0D0D;
   }
 
   /* Sidebar surface + default text */
   .qx-chrome-dark .sidebar-container {
-    background: #121110;
+    background: #131312;
   }
   /* Hovered nav-row text stays light. Declared before the base
      #storybook-explorer-menu rule below so selector specificity is
@@ -167,59 +148,59 @@
   .qx-chrome-dark .sidebar-item:not([data-selected="true"]):hover a,
   .qx-chrome-dark .sidebar-item:not([data-selected="true"]):hover button,
   .qx-chrome-dark .sidebar-item:not([data-selected="true"]):hover span {
-    color: #f5f3ee;
+    color: #F3F1EF;
   }
   .qx-chrome-dark .sidebar-container,
   .qx-chrome-dark #storybook-explorer-menu a,
   .qx-chrome-dark #storybook-explorer-menu button,
   .qx-chrome-dark #storybook-explorer-menu span {
-    color: #c7c4bb;
+    color: #D1CFCE;
   }
 
   /* Section headings (FOUNDATIONS / GUIDES / …) */
   .qx-chrome-dark [class*="sidebar-subheading"],
   .qx-chrome-dark #storybook-explorer-menu [class*="collapsible"] > button > span {
-    color: #8b897f;
+    color: #A6A4A3;
   }
 
   /* Toolbars — top bar + sidebar header/footer bars */
   .qx-chrome-dark .sb-bar {
-    background: #121110;
-    border-color: #2a2823;
+    background: #131312;
+    border-color: #262625;
   }
   .qx-chrome-dark .sb-bar button,
   .qx-chrome-dark .sb-bar span {
-    color: #a8a69c;
+    color: #D1CFCE;
   }
 
   /* Search field */
   .qx-chrome-dark .sidebar-container input,
   .qx-chrome-dark .search-field input {
-    background: #1a1813;
-    color: #f5f3ee;
-    border-color: #33302a;
+    background: #191818;
+    color: #F3F1EF;
+    border-color: #262625;
   }
   .qx-chrome-dark .sidebar-container input::placeholder {
-    color: #7a786e;
+    color: #A6A4A3;
   }
   /* Search pill wrapper (the white rounded box around the input) */
   .qx-chrome-dark .sidebar-container form > div,
   .qx-chrome-dark .sidebar-container label > div {
-    background: #1a1813;
-    border-color: #33302a;
+    background: #191818;
+    border-color: #262625;
   }
 
   /* Borders / rules that separate chrome regions */
   .qx-chrome-dark .sidebar-container hr,
   .qx-chrome-dark [class*="sidebar"] [style*="border"] {
-    border-color: #2a2823;
+    border-color: #262625;
   }
 
   /* Keyboard-shortcut chips (⌘K) + filter buttons */
   .qx-chrome-dark .sidebar-container kbd {
-    background: #211e18;
-    color: #a8a69c;
-    border-color: #33302a;
+    background: #262625;
+    color: #D1CFCE;
+    border-color: #262625;
   }
 
   /* Nav item hover — Storybook paints the hovered row a light-theme blue with dark
@@ -239,7 +220,30 @@
   .qx-chrome-dark #storybook-explorer-menu button[data-action="collapse-root"]:hover span,
   .qx-chrome-dark #storybook-explorer-menu [data-nodetype="group"]:hover span,
   .qx-chrome-dark #storybook-explorer-menu [data-nodetype="component"]:hover span {
-    color: #f5f3ee;
+    color: #F3F1EF;
   }
 
+
+  /* Addon panel (Controls, Actions, Interactions, Accessibility) in the dark scheme, for a
+     live toggle: Storybook themes the panel once at boot. Warm graphite from the dark tokens. */
+  .qx-chrome-dark #storybook-panel-root,
+  .qx-chrome-dark #storybook-panel-root [role="tabpanel"],
+  .qx-chrome-dark #storybook-panel-root [role="tablist"] {
+    background: #131312 !important;
+    color: #D1CFCE !important;
+    border-color: #262625 !important;
+  }
+  .qx-chrome-dark #storybook-panel-root :is(table, thead, tbody, tr, th, td) {
+    background: #131312 !important;
+    color: #F3F1EF !important;
+    border-color: #262625 !important;
+  }
+  .qx-chrome-dark #storybook-panel-root :is(input, textarea, select) {
+    background: #191818 !important;
+    color: #F3F1EF !important;
+    border-color: #262625 !important;
+  }
+  .qx-chrome-dark #storybook-panel-root :is(button, label, span, p) {
+    color: inherit;
+  }
 </style>

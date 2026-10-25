@@ -1,33 +1,29 @@
 import type { Decorator } from "@storybook/react-vite";
+import { effectiveGlobals } from "./inherit";
 
 /**
- * Drives the `data-qx-density` attribute on <html>, which is how @qeetrix/ui
- * rescales control heights, paddings and gaps.
- *
- * `legacy` is the absence of the attribute, not a value: the legacy sizings are the
- * unqualified defaults in the stylesheet, so the attribute is removed rather than
- * set to `"legacy"` — writing it would match no selector and silently do nothing.
+ * Drives the `data-qx-density` attribute on <html>, which is how @qeetrix/tokens
+ * rescales control heights, row heights and form gaps (`size.control.*`,
+ * `size.row`, `space.form-gap`). Always written, so a story never inherits the
+ * previous selection; AppShell sets `compact` on itself, as consoles are dense.
  */
 export const applyDensity = (density?: string) => {
   if (typeof document === "undefined") return;
-  if (density === "comfortable" || density === "compact") {
-    document.documentElement.setAttribute("data-qx-density", density);
-  } else {
-    document.documentElement.removeAttribute("data-qx-density");
-  }
+  const value = density === "comfortable" || density === "compact" ? density : "default";
+  document.documentElement.setAttribute("data-qx-density", value);
 };
 
 /** `globalTypes.density` — the Density toolbar control. */
 export const densityGlobalType = {
-  description: "Legacy / comfortable / compact",
-  defaultValue: "legacy",
+  description: "Compact / default / comfortable",
+  defaultValue: "default",
   toolbar: {
     title: "Density",
     icon: "component",
     items: [
-      { value: "legacy", title: "Legacy" },
-      { value: "comfortable", title: "Comfortable" },
       { value: "compact", title: "Compact" },
+      { value: "default", title: "Default" },
+      { value: "comfortable", title: "Comfortable" },
     ],
     dynamicTitle: true,
   },
@@ -35,6 +31,6 @@ export const densityGlobalType = {
 
 /** First-paint sync for story renders (see `syncGlobalsFromChannel` for MDX pages). */
 export const withDensity: Decorator = (Story, ctx) => {
-  applyDensity((ctx.globals as { density?: string }).density ?? "legacy");
+  applyDensity(effectiveGlobals(ctx.globals).density ?? "default");
   return Story();
 };

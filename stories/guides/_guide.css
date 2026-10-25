@@ -1,0 +1,306 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+ * Guides (stories/guides/_guide.tsx). Token values only, matching the Welcome page, the Overview
+ * and the component pages' example frames.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+.qx-guide {
+  --qx-guide-rule: color-mix(in oklab, var(--qx-color-border-subtle) 55%, transparent);
+  display: grid;
+  gap: 3rem;
+  max-inline-size: 52rem;
+  padding-block: 0.5rem 2rem;
+  color: var(--qx-color-text-default);
+}
+
+.qx-guide a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.qx-guide a:focus-visible {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: var(--qx-focus-ring-offset);
+}
+
+.qx-guide-header {
+  display: grid;
+  gap: 0.5rem;
+  padding-block-end: 2rem;
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-guide-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.qx-guide-lede,
+.qx-guide-text {
+  display: block;
+  max-inline-size: 40rem;
+  text-wrap: pretty;
+}
+
+/* ── Numbered steps on a rail ──────────────────────────────────────────────── */
+
+.qx-guide-steps {
+  display: grid;
+}
+
+.qx-guide-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 1.25rem;
+  padding-block-end: 2.5rem;
+}
+
+/* The rail joins one number to the next. */
+.qx-guide-step::before {
+  content: "";
+  position: absolute;
+  inset-block: 2.25rem 0.25rem;
+  inset-inline-start: calc(1rem - 0.5px);
+  border-inline-start: 1px solid var(--qx-color-border-default);
+}
+
+.qx-guide-step:last-child {
+  padding-block-end: 0;
+}
+
+.qx-guide-step:last-child::before {
+  display: none;
+}
+
+.qx-guide-step-n {
+  display: grid;
+  place-items: center;
+  inline-size: 2rem;
+  block-size: 2rem;
+  border: 1px solid var(--qx-color-border-brand);
+  border-radius: var(--qx-radius-full);
+  background: var(--qx-color-bg-brand-subtle);
+  color: var(--qx-color-text-brand);
+  font: var(--qx-typography-label-md);
+  font-variation-settings: "GEOM" var(--qx-font-geometry-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.qx-guide-step-body {
+  display: grid;
+  gap: 1rem;
+  min-inline-size: 0;
+  padding-block-start: 0.25rem;
+}
+
+.qx-guide-step-head {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.qx-guide-section {
+  display: grid;
+  gap: 1rem;
+}
+
+/* ── Demo frames ───────────────────────────────────────────────────────────── */
+
+.qx-guide-demo {
+  overflow: hidden;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-default);
+}
+
+.qx-guide-demo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-block-end: 1px solid var(--qx-color-border-subtle);
+  background: var(--qx-color-surface-canvas);
+}
+
+.qx-guide-demo-stage {
+  display: grid;
+  place-items: center;
+  min-block-size: 10rem;
+  padding: 2rem;
+  background:
+    linear-gradient(var(--qx-guide-rule) 1px, transparent 1px) 0 0 / 1.5rem 1.5rem,
+    linear-gradient(90deg, var(--qx-guide-rule) 1px, transparent 1px) 0 0 / 1.5rem 1.5rem,
+    var(--qx-color-surface-default);
+}
+
+.qx-guide-demo-code {
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+/* A CodeBlock inside a frame loses its own border: the frame is the border. */
+.qx-guide-demo-code [data-slot="code-block"] {
+  border: 0;
+  border-radius: 0;
+}
+
+/* A preview pane that carries its own scheme, density or direction. */
+.qx-guide-pane {
+  display: grid;
+  gap: 1rem;
+  inline-size: min(100%, 22rem);
+  padding: 1.25rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+  color: var(--qx-color-text-default);
+  box-shadow: var(--qx-shadow-raised);
+}
+
+.qx-guide-panes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  inline-size: 100%;
+}
+
+.qx-guide-panes .qx-guide-pane {
+  inline-size: 100%;
+}
+
+.qx-guide-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* The install tabs' code sits just under the tab strip. */
+.qx-guide-panel {
+  margin-block-start: 0.75rem;
+}
+
+.qx-guide-pane-label {
+  display: block;
+  margin-block-end: -0.25rem;
+}
+
+/* Brand presets: domain colours a tenant might pick, shown as swatches. */
+.qx-guide-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qx-guide-swatch {
+  inline-size: 1.75rem;
+  block-size: 1.75rem;
+  padding: 0;
+  border: 2px solid var(--qx-color-surface-default);
+  border-radius: var(--qx-radius-full);
+  box-shadow: 0 0 0 1px var(--qx-color-border-default);
+  cursor: pointer;
+}
+
+.qx-guide-swatch[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--qx-color-border-strong);
+}
+
+.qx-guide-swatch:focus-visible {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: var(--qx-focus-ring-offset);
+}
+
+.qx-guide-hex {
+  font: var(--qx-typography-code-sm);
+  color: var(--qx-color-text-subtle);
+}
+
+/* ── Notes and next steps ──────────────────────────────────────────────────── */
+
+.qx-guide-notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.qx-guide-notes li {
+  display: grid;
+  align-content: start;
+  gap: 0.375rem;
+  padding: 1.25rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+}
+
+.qx-guide-note-icon {
+  display: grid;
+  place-items: center;
+  inline-size: 2.25rem;
+  block-size: 2.25rem;
+  margin-block-end: 0.375rem;
+  border: 1px solid var(--qx-color-border-brand);
+  border-radius: var(--qx-radius-control);
+  background: var(--qx-color-bg-brand-subtle);
+  color: var(--qx-color-icon-brand);
+}
+
+.qx-guide-notes code,
+.qx-guide-text code {
+  padding: 0.0625rem 0.375rem;
+  border-radius: var(--qx-radius-sm);
+  background: var(--qx-color-surface-sunken);
+  font: var(--qx-typography-code-sm);
+}
+
+.qx-guide-next {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  padding-block-start: 2rem;
+  border-block-start: 1px solid var(--qx-color-border-subtle);
+}
+
+.qx-guide-next-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--qx-color-border-subtle);
+  border-radius: var(--qx-radius-surface);
+  background: var(--qx-color-surface-raised);
+  transition:
+    border-color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard),
+    box-shadow var(--qx-motion-duration-normal) var(--qx-motion-easing-standard),
+    transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
+}
+
+.qx-guide-next-card > span {
+  display: grid;
+}
+
+.qx-guide-next-card:hover {
+  border-color: var(--qx-color-border-default);
+  box-shadow: var(--qx-shadow-raised-hover);
+  transform: translateY(-2px);
+}
+
+.qx-guide-next-arrow {
+  color: var(--qx-color-icon-subtle);
+  transition: transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
+}
+
+.qx-guide-next-card:hover .qx-guide-next-arrow {
+  color: var(--qx-color-icon-brand);
+  transform: translateX(3px);
+}
+
+[dir="rtl"] .qx-guide-next-arrow {
+  transform: scaleX(-1);
+}

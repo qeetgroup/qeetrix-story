@@ -1,14 +1,11 @@
-import {
-  BellIcon,
-  CopyIcon,
-  EllipsisIcon,
-  SearchIcon,
-  SettingsIcon,
-  TrashIcon,
-} from "@qeetrix/icons";
-import { IconButton } from "@qeetrix/ui";
+import { CopyIcon } from "@qeetrix/icons/icons/copy";
+import { DownloadIcon } from "@qeetrix/icons/icons/download";
+import { RefreshCwIcon } from "@qeetrix/icons/icons/refresh-cw";
+import { SettingsIcon } from "@qeetrix/icons/icons/settings";
+import { TrashIcon } from "@qeetrix/icons/icons/trash";
+import { IconButton, Inline, Stack, Text } from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { expect } from "storybook/test";
+import { expect, fn, waitFor } from "storybook/test";
 import { qx } from "../../_contract";
 
 const meta: Meta<typeof IconButton> = {
@@ -17,12 +14,15 @@ const meta: Meta<typeof IconButton> = {
   parameters: {
     qeetrix: qx({ category: "actions", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          "An icon-only button that enforces an accessible `aria-label` at the TypeScript level — the prop is required and non-optional. Accepts any Qeetrix icon component via the `icon` prop. Three sizes: `icon-sm` (28 × 28 px), `icon` (32 × 32 px, default), and `icon-lg` (40 × 40 px). Follows the APG [button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/button/).",
-      },
-    },
+  },
+  args: {
+    icon: SettingsIcon,
+    "aria-label": "Open settings",
+    onClick: fn(),
+  },
+  argTypes: {
+    // A component reference: not something a control can edit.
+    icon: { control: false },
   },
   tags: ["autodocs"],
 };
@@ -30,109 +30,112 @@ const meta: Meta<typeof IconButton> = {
 export default meta;
 type Story = StoryObj<typeof IconButton>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Settings icon at the default `icon` size with `ghost` variant — the standard configuration for toolbar and action-menu triggers.",
-      },
-    },
-  },
-  render: () => <IconButton icon={SettingsIcon} aria-label="Open settings" />,
+/** The tooltip popup portals to the end of <body>, outside the canvas. */
+const tooltipPopup = () => document.querySelector<HTMLElement>("[data-slot=tooltip-popup]");
+
+export const Playground: Story = {};
+
+export const Variants: Story = {
+  render: (args) => (
+    <Stack gap="lg">
+      {(["brand", "neutral", "danger"] as const).map((tone) => (
+        <Inline key={tone} gap="md">
+          <IconButton {...args} tone={tone} variant="ghost" icon={TrashIcon} aria-label="Remove" />
+          <IconButton {...args} tone={tone} variant="soft" icon={TrashIcon} aria-label="Revoke" />
+          <IconButton {...args} tone={tone} variant="solid" icon={TrashIcon} aria-label="Delete" />
+        </Inline>
+      ))}
+    </Stack>
+  ),
 };
 
-export const Small: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`icon-sm` size (28 × 28 px) for compact toolbars and table-row inline actions such as copying an API key.",
-      },
-    },
-  },
-  render: () => <IconButton icon={CopyIcon} aria-label="Copy API key" size="icon-sm" />,
+export const Sizes: Story = {
+  render: (args) => (
+    <Inline gap="md">
+      <IconButton {...args} size="sm" aria-label="Settings, small" />
+      <IconButton {...args} size="md" aria-label="Settings, medium" />
+      <IconButton {...args} size="lg" aria-label="Settings, large" />
+    </Inline>
+  ),
 };
 
-export const Large: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`icon-lg` size (40 × 40 px) for prominent single-action areas such as a global search trigger in the Qeet ID header.",
-      },
-    },
-  },
-  render: () => <IconButton icon={SearchIcon} aria-label="Search" size="icon-lg" />,
+export const States: Story = {
+  render: (args) => (
+    <Inline gap="md">
+      <IconButton {...args} icon={RefreshCwIcon} aria-label="Refresh sessions" loading />
+      <IconButton {...args} icon={TrashIcon} aria-label="Delete workspace" disabled />
+    </Inline>
+  ),
 };
 
-export const ActivateInteraction: Story = {
-  name: "Interaction: reachable by accessible name",
+export const CustomTooltip: Story = {
+  name: "Custom tooltip",
   parameters: {
     docs: {
       description: {
-        story:
-          "An icon-only button renders no text, so its `aria-label` is the only way a keyboard or screen-reader user can identify it. This asserts the label is what actually reaches the accessibility tree.",
+        story: "`tooltip` replaces the text, `false` hides it, `tooltipSide` moves it.",
       },
     },
   },
-  render: () => <IconButton icon={SettingsIcon} aria-label="Open settings" />,
-  play: async ({ canvas, userEvent }) => {
+  render: (args) => (
+    <Inline gap="md">
+      <IconButton
+        {...args}
+        icon={DownloadIcon}
+        aria-label="Download invoice"
+        tooltip="Download INV-2026-0042 (PDF)"
+      />
+      <IconButton
+        {...args}
+        icon={RefreshCwIcon}
+        aria-label="Refresh sessions"
+        tooltipSide="bottom"
+      />
+      <Inline gap="xs">
+        <Text mono>usr_01J8K2M4PQ</Text>
+        <IconButton {...args} icon={CopyIcon} aria-label="Copy user ID" tooltip={false} />
+      </Inline>
+    </Inline>
+  ),
+};
+
+export const ClickInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: named by its aria-label",
+  play: async ({ args, canvas, userEvent }) => {
     const button = canvas.getByRole("button", { name: "Open settings" });
-
     await userEvent.click(button);
-
+    await expect(args.onClick).toHaveBeenCalledOnce();
     await expect(button).toHaveFocus();
   },
 };
 
-export const Variants: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "All four variants side by side — `ghost` (default) for toolbars; `outline` and `default` for more prominent action slots; `secondary` for neutral emphasis.",
-      },
-    },
+export const TooltipInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: focus shows the label as a tooltip",
+  play: async ({ canvas, userEvent }) => {
+    const button = canvas.getByRole("button", { name: "Open settings" });
+    await userEvent.tab();
+    await expect(button).toHaveFocus();
+    await waitFor(() => expect(tooltipPopup()).toHaveTextContent("Open settings"));
+    await userEvent.keyboard("{Escape}");
+    await waitFor(() => expect(tooltipPopup()).toBeNull());
+    await expect(button).toHaveFocus();
   },
-  render: () => (
-    <div className="flex items-center gap-2">
-      <IconButton icon={BellIcon} aria-label="Notifications (ghost)" variant="ghost" />
-      <IconButton icon={BellIcon} aria-label="Notifications (outline)" variant="outline" />
-      <IconButton icon={BellIcon} aria-label="Notifications (default)" variant="default" />
-      <IconButton icon={BellIcon} aria-label="Notifications (secondary)" variant="secondary" />
-    </div>
-  ),
 };
 
-export const Disabled: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Disabled state while a destructive confirmation dialog is open — prevents double-trigger of the delete action.",
-      },
-    },
+export const TooltipSideInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: tooltipSide opens the tooltip below",
+  args: { tooltipSide: "bottom" },
+  play: async ({ canvas, userEvent }) => {
+    const button = canvas.getByRole("button", { name: "Open settings" });
+    await userEvent.tab();
+    await waitFor(() => expect(tooltipPopup()).toHaveAttribute("data-side", "bottom"));
+    await waitFor(() =>
+      expect(tooltipPopup()?.getBoundingClientRect().top ?? 0).toBeGreaterThan(
+        button.getBoundingClientRect().bottom,
+      ),
+    );
   },
-  render: () => <IconButton icon={TrashIcon} aria-label="Delete workspace" disabled />,
-};
-
-export const Gallery: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Representative icons used across Qeet products: notification bell, copy, settings, overflow menu, and delete — each with a unique accessible label.",
-      },
-    },
-  },
-  render: () => (
-    <div className="flex items-center gap-2">
-      <IconButton icon={BellIcon} aria-label="Notifications" />
-      <IconButton icon={CopyIcon} aria-label="Copy to clipboard" />
-      <IconButton icon={SettingsIcon} aria-label="Open settings" />
-      <IconButton icon={EllipsisIcon} aria-label="More options" />
-      <IconButton icon={TrashIcon} aria-label="Delete item" />
-    </div>
-  ),
 };

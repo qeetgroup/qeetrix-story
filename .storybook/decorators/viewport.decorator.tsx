@@ -12,9 +12,9 @@ import type { ViewportMap } from "storybook/viewport";
  *
  * Supplying `options` *replaces* Storybook's stock device list (INITIAL_VIEWPORTS —
  * 28 entries, iPhone 5 through Pixel XL) rather than extending it. That is the point:
- * four fixed breakpoints, matching the @qeetrix/ui Tailwind breakpoints, so teams stop
- * inventing their own and two reviewers checking "does this work on tablet?" are
- * looking at the same 768px.
+ * one device per @qeetrix/react window size class (Grid's 600 / 840 / 1200 / 1600px;
+ * AppShell's sidebar becomes a column at 840px), so teams stop inventing their own
+ * and two reviewers checking "does this work on tablet?" are looking at the same 768px.
  *
  * Heights are the conventional portrait companions to each width and only matter for
  * the visible frame; components are authored against the width.
@@ -26,6 +26,7 @@ import type { ViewportMap } from "storybook/viewport";
 export const QEETRIX_VIEWPORTS = {
   mobile: { name: "Mobile", styles: { width: "390px", height: "844px" }, type: "mobile" },
   tablet: { name: "Tablet", styles: { width: "768px", height: "1024px" }, type: "tablet" },
+  laptop: { name: "Laptop", styles: { width: "1024px", height: "768px" }, type: "desktop" },
   desktop: { name: "Desktop", styles: { width: "1440px", height: "900px" }, type: "desktop" },
   wide: { name: "Wide", styles: { width: "1920px", height: "1080px" }, type: "desktop" },
 } as const satisfies ViewportMap;

@@ -1,29 +1,33 @@
 import type { Decorator } from "@storybook/react-vite";
+import { effectiveGlobals } from "./inherit";
 
 /**
- * Drives light/dark via the `.dark` class on <html> — the same class strategy
- * the Qeetrix ThemeProvider uses in production, so stories look identical to apps.
+ * Drives light/dark through `data-qx-color-scheme` on <html>, the attribute
+ * QeetrixProvider sets in production and that @qeetrix/tokens scopes its colours
+ * to, so stories look identical to apps.
  *
- * The class lands on the document element rather than a wrapper because that is
- * where `:root`/`.dark` custom properties from @qeetrix/ui/styles.css are defined;
- * scoping it lower would leave half the tokens resolving against the light values.
+ * It lands on the document element rather than a wrapper because portalled
+ * overlays (menus, dialogs, toasts) render at the end of <body> and must resolve
+ * the same tokens as the story.
  */
 export const applyTheme = (theme?: string) => {
   if (typeof document !== "undefined") {
-    document.documentElement.classList.toggle("dark", theme === "dark");
+    const scheme = theme === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-qx-color-scheme", scheme);
+    document.documentElement.style.colorScheme = scheme;
   }
 };
 
 /** `globalTypes.theme` — the Theme toolbar control. */
 export const themeGlobalType = {
-  description: "Light / dark",
+  description: "Colour scheme: light / dark",
   defaultValue: "light",
   toolbar: {
     title: "Theme",
     icon: "circlehollow",
     items: [
-      { value: "light", title: "Light" },
-      { value: "dark", title: "Dark" },
+      { value: "light", title: "Light", icon: "sun" },
+      { value: "dark", title: "Dark", icon: "moon" },
     ],
     dynamicTitle: true,
   },
@@ -31,6 +35,6 @@ export const themeGlobalType = {
 
 /** First-paint sync for story renders (see `syncGlobalsFromChannel` for MDX pages). */
 export const withTheme: Decorator = (Story, ctx) => {
-  applyTheme((ctx.globals as { theme?: string }).theme ?? "light");
+  applyTheme(effectiveGlobals(ctx.globals).theme ?? "light");
   return Story();
 };

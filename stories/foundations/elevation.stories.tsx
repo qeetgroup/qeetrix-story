@@ -1,17 +1,45 @@
-import tokens from "@qeetrix/ui/tokens.json";
+import {
+  Button,
+  Card,
+  Checkbox,
+  Inline,
+  Input,
+  Link,
+  Stack,
+  Switch,
+  Tab,
+  Tabs,
+  TabsList,
+  Text,
+  TextField,
+  Toggle,
+  ToggleGroup,
+} from "@qeetrix/react";
+import { Alert } from "@qeetrix/react/experimental";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { type CSSProperties, type ReactNode, useState } from "react";
+import { expect, userEvent, within } from "storybook/test";
 
-import { Page, Section } from "../_helpers";
-import { Callout, Code, Prose, TokenTable } from "./_foundation";
+import { CopyToken, Group, Specimen, SpecimenRow, SpecimenRows } from "../_helpers";
+import {
+  type DtcgColor,
+  type DtcgDimension,
+  type DtcgShadowLayer,
+  format,
+  ordered,
+  type Token,
+  tokens,
+} from "./_foundation";
+import "./_elevation.css";
 
 const meta: Meta = {
   title: "Foundations/Elevation",
   parameters: {
-    layout: "fullscreen",
+    layout: "padded",
     docs: {
       description: {
         component:
-          "Elevation is the *role* a surface plays; shadow is the value it renders with. A component picks `raised`, `overlay` or `modal` — never a shadow number — so the whole ladder can be retuned in one place. Semantic roles live in `--qx-elevation-*`, the raw values in `--qx-shadow-*`, and `@qeetrix/ui/styles.css` overrides Tailwind's `shadow-2xs`…`shadow-xl` scale so even the generic utilities land on the Qeetrix ladder. Shadows are neutral: cast in a near-black (`rgb(12 12 12)`) rather than pure black in light, kept low and tight so a screen with dozens of surfaces stays calm. Every role from `raised` up stacks soft drops over a hairline `0 0 0 1px` perimeter, which keeps a card legible on a tinted surface without a visible border. Dark mode leans on the surface ladder instead: Graphite steps each plane up in luminance, and its shadows are deeper black with a faint white rim — never a glow.",
+          "Shadows for floating layers, ruled borders, the stacking order, opacity and the focus ring.",
       },
     },
   },
@@ -20,246 +48,496 @@ const meta: Meta = {
 export default meta;
 type Story = StoryObj;
 
-/**
- * A theme's shadow primitives as `[name, value]` pairs, the nested ramp flattened to `ramp-<step>`,
- * so each name is the suffix of its CSS variable.
- */
-function primitives(set: typeof tokens.light.shadow): [string, string][] {
-  const { ramp, ...named } = set;
-  return [
-    ...Object.entries(named),
-    ...Object.entries(ramp).map(([step, value]): [string, string] => [`ramp-${step}`, value]),
-  ];
+/** Custom properties for a specimen's geometry, typed for React's style prop. */
+const vars = (values: Record<string, string | number>) => values as CSSProperties;
+
+/* ── Shadows ──────────────────────────────────────────────────────────────── */
+
+const SHADOWS = ordered(tokens("shadow"), ["inset", "raised", "raised-hover", "overlay", "modal"]);
+
+/** What each shadow is for (the @qeetrix/tokens README), and who reads it where a component does. */
+const SHADOW_USE: Record<string, { use: string; note: string }> = {
+  inset: { use: "Wells", note: "Sunken into the page" },
+  raised: { use: "Cards", note: "At rest. Hover to lift" },
+  "raised-hover": { use: "Cards", note: "Under the pointer" },
+  overlay: { use: "Menus", note: "Popover, Select, Toast" },
+  modal: { use: "Dialogs", note: "Dialog, Drawer" },
+};
+
+const px = (dimension: DtcgDimension) =>
+  dimension.unit === "rem" ? dimension.value * 16 : dimension.value;
+
+/** The layer that gives a shadow its height, the softest one: `y 12 · blur 24`. */
+function lift(value: unknown): string {
+  const layers = value as DtcgShadowLayer[];
+  const main = layers.reduce((a, b) => (px(b.blur) > px(a.blur) ? b : a));
+  return `${main.inset ? "inset · " : ""}y ${px(main.offsetY)} · blur ${px(main.blur)}`;
 }
 
-const DARK_SHADOW = new Map(primitives(tokens.light["shadow-dark"]));
+export const Shadows: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: "Floating layers only. Each pairs a tight contact shadow with a soft ambient one.",
+      },
+    },
+  },
+  render: () => (
+    <Specimen>
+      <Group label="Lowest to highest" aside="Each name copies its --qx-shadow-* variable">
+        <div className="qx-elev-stage qx-elev-shadows">
+          {SHADOWS.map((item) => (
+            <figure key={item.path} className="qx-elev-shadow">
+              <div
+                className="qx-elev-shadow-tile"
+                data-shadow={item.name}
+                style={vars({ "--shadow": `var(${item.cssVar})` })}
+              >
+                <span className="qx-elev-shadow-use">
+                  {SHADOW_USE[item.name]?.use ?? item.name}
+                </span>
+                <span className="qx-elev-shadow-note">{SHADOW_USE[item.name]?.note}</span>
+              </div>
+              <figcaption className="qx-elev-caption">
+                <CopyToken value={item.cssVar} label={item.name} />
+                {/* The numbers of the scheme on screen, like the shadow above them. */}
+                <span className="qx-elev-numbers">
+                  <span data-scheme="light">{lift(item.light)}</span>
+                  <span data-scheme="dark">{lift(item.dark)}</span>
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </Group>
+    </Specimen>
+  ),
+};
 
-/** The design ladder — what a component actually asks for. */
-const ROLES = [
-  {
-    role: "flat",
-    cssVar: "--qx-elevation-flat",
-    utility: "shadow-none",
-    use: "In-flow content. The default; not everything needs to leave the page.",
-  },
-  {
-    role: "inset",
-    cssVar: "--qx-elevation-inset",
-    utility: "shadow-inset-subtle",
-    use: "Wells and recessed tracks — the one role that reads as below the surface.",
-  },
-  {
-    role: "raised",
-    cssVar: "--qx-elevation-raised",
-    utility: "shadow-rest",
-    use: "Cards and panels sitting on the canvas at rest.",
-  },
-  {
-    role: "hover",
-    cssVar: "--qx-elevation-hover",
-    utility: "shadow-hover",
-    use: "The lift a raised surface takes on pointer hover or drag.",
-  },
-  {
-    role: "overlay",
-    cssVar: "--qx-elevation-overlay",
-    utility: "shadow-popover",
-    use: "Menus, popovers, tooltips, comboboxes — anything floating over the page.",
-  },
-  {
-    role: "modal",
-    cssVar: "--qx-elevation-modal",
-    utility: "shadow-modal",
-    use: "Dialogs and drawers, which sit above a scrim and need the deepest separation.",
-  },
-] as const;
+/* ── Borders ──────────────────────────────────────────────────────────────── */
 
-/** The Tailwind-facing ramp — a neutral 2xs…xl scale for surfaces with no role. */
-const RAMP = ["2xs", "xs", "sm", "md", "lg", "xl"] as const;
+const BORDERS = ordered(tokens("border.width"), ["default", "strong", "accent"]);
 
-function Specimen({
-  label,
-  cssVar,
-  inset = false,
-}: {
-  label: string;
-  cssVar: string;
-  inset?: boolean;
-}) {
+/** Each width on the edges that use it, in real components. */
+const BORDER_USE: Record<string, { use: string; sample: ReactNode }> = {
+  default: {
+    use: "Cards, fields, table rules",
+    sample: (
+      <Card
+        className="qx-elev-sample"
+        footer={
+          <Button size="sm" variant="soft">
+            Manage
+          </Button>
+        }
+      >
+        <Stack gap="xs">
+          <Text weight="medium">Acme Pvt Ltd</Text>
+          <Text size="sm" tone="subtle">
+            48 members · 3 admins
+          </Text>
+        </Stack>
+      </Card>
+    ),
+  },
+  strong: {
+    use: "Tab baselines, menu highlights",
+    sample: (
+      <Tabs defaultValue="users" className="qx-elev-sample">
+        <TabsList>
+          <Tab value="users">Users</Tab>
+          <Tab value="groups">Groups</Tab>
+          <Tab value="roles">Roles</Tab>
+        </TabsList>
+      </Tabs>
+    ),
+  },
+  accent: {
+    use: "Alerts, dialogs, the current item",
+    sample: (
+      <Alert className="qx-elev-sample" title="Directory sync paused">
+        People added in Okta appear once it resumes.
+      </Alert>
+    ),
+  },
+};
+
+export const Borders: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Three widths: hairline rules, emphasis lines, and the accent bar on the current item.",
+      },
+    },
+  },
+  render: () => (
+    <Specimen>
+      <SpecimenRows>
+        {BORDERS.map((item) => (
+          <SpecimenRow
+            key={item.path}
+            token={item.cssVar}
+            meta={
+              <>
+                <span className="qx-elev-rule-meta">
+                  <span className="qx-elev-rule" style={{ blockSize: `var(${item.cssVar})` }} />
+                  {format(item.type, item.light)}
+                </span>
+                <span className="qx-elev-use">{BORDER_USE[item.name]?.use}</span>
+              </>
+            }
+          >
+            {BORDER_USE[item.name]?.sample}
+          </SpecimenRow>
+        ))}
+      </SpecimenRows>
+    </Specimen>
+  ),
+};
+
+/* ── Layers ───────────────────────────────────────────────────────────────── */
+
+/** Front to back, the way the stack reads from the top of the illustration. */
+const LADDER = tokens("z").sort((a, b) => Number(b.light) - Number(a.light));
+
+/** The @qeetrix/react components that read each rung, from the published stylesheet. */
+const READ_BY: Record<string, string> = {
+  "skip-link": "SkipLink",
+  spotlight: "Guided tours",
+  tooltip: "Tooltip",
+  toast: "ToastProvider",
+  popover: "Popover, Menu, Select, Combobox",
+  modal: "Dialog, Drawer, CommandPalette",
+  overlay: "Dialog and Drawer backdrops",
+  dropdown: "No component yet",
+  sticky: "Table header, AppShell",
+  base: "Page content",
+};
+
+type View = "exploded" | "composed";
+
+/**
+ * One rung as a plane of a console screen, drawn in projection. Each plane stacks by its own
+ * z-index token: the DOM lists them front to back, so z-index alone puts them in order.
+ */
+function Plane({ item, rung }: { item: Token; rung: number }) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div
-        className={`flex h-20 w-full items-center justify-center rounded-xl ${
-          inset ? "bg-muted" : "bg-card"
-        }`}
-        style={{ boxShadow: `var(${cssVar})` }}
-      />
-      <code className="text-xs text-muted-foreground">{label}</code>
+    <div
+      className="qx-elev-plane"
+      data-layer={item.name}
+      style={{ ...vars({ "--rung": rung }), zIndex: `var(${item.cssVar})` }}
+    >
+      <span className="qx-elev-plane-el" />
+      {item.name === "base" && (
+        <>
+          <span className="qx-elev-page-line" />
+          <span className="qx-elev-page-line" />
+          <span className="qx-elev-page-line" />
+        </>
+      )}
     </div>
   );
 }
 
-export const Roles: Story = {
+function LayersSpecimen() {
+  const [view, setView] = useState<View>("exploded");
+  return (
+    <Specimen>
+      <div className="qx-elev-stage qx-elev-layers" data-view={view}>
+        <div className="qx-elev-layers-bar">
+          <ToggleGroup
+            aria-label="View"
+            size="sm"
+            value={[view]}
+            onValueChange={(value) => {
+              const next = value[0] as View | undefined;
+              if (next) setView(next);
+            }}
+          >
+            <Toggle value="exploded">Exploded</Toggle>
+            <Toggle value="composed">Composed</Toggle>
+          </ToggleGroup>
+        </div>
+        <div className="qx-elev-scene" style={vars({ "--rungs": LADDER.length })}>
+          <ol className="qx-elev-legend" aria-label="Stacking order, front to back">
+            {LADDER.map((item, index) => (
+              <li key={item.path} style={vars({ "--rung": LADDER.length - 1 - index })}>
+                <span className="qx-elev-legend-text">
+                  <span className="qx-elev-legend-token">
+                    <CopyToken value={item.cssVar} />
+                    <code>{String(item.light)}</code>
+                  </span>
+                  <span className="qx-elev-legend-note">{READ_BY[item.name] ?? "—"}</span>
+                </span>
+              </li>
+            ))}
+          </ol>
+          <div className="qx-elev-planes" aria-hidden="true">
+            {LADDER.map((item, index) => (
+              <Plane key={item.path} item={item} rung={LADDER.length - 1 - index} />
+            ))}
+          </div>
+        </div>
+      </div>
+    </Specimen>
+  );
+}
+
+export const Layers: Story = {
   parameters: {
     docs: {
       description: {
         story:
-          "The six semantic roles, each painted from its live CSS variable so the ladder re-renders with the theme toolbar.",
+          "From the top layer down. Popovers sit above modals, so one opened from a dialog shows.",
+      },
+    },
+  },
+  render: () => <LayersSpecimen />,
+};
+
+/* ── Opacity ──────────────────────────────────────────────────────────────── */
+
+/**
+ * An illustration with no disabled colour of its own: what the opacity token is for. Painted with
+ * dataviz roles, as a stand-in for a product image.
+ */
+function Illustration({ overlay }: { overlay?: string }) {
+  return (
+    <svg viewBox="0 0 160 72" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect width="160" height="72" fill="var(--qx-color-bg-info-subtle)" />
+      <circle cx="44" cy="36" r="16" fill="var(--qx-color-dataviz-categorical-1)" />
+      <rect x="72" y="26" width="52" height="7" fill="var(--qx-color-dataviz-categorical-3)" />
+      <rect x="72" y="40" width="34" height="7" fill="var(--qx-color-dataviz-categorical-2)" />
+      {overlay && <rect width="160" height="72" fill={`var(${overlay})`} />}
+    </svg>
+  );
+}
+
+function Tile({
+  name,
+  token,
+  value,
+  faded,
+  children,
+}: {
+  name: string;
+  token?: string;
+  value: string;
+  faded?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <figure className="qx-elev-tile">
+      <div className="qx-elev-tile-sample" data-faded={faded ? "" : undefined}>
+        {children}
+      </div>
+      <figcaption className="qx-elev-caption">
+        <span className="qx-elev-tile-name">{name}</span>
+        {token && <CopyToken value={token} />}
+        <span className="qx-elev-numbers">{value}</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+const OPACITY = tokens("opacity");
+const STATE_LAYERS = [...tokens("color.overlay"), ...tokens("color.selection")];
+
+/** An alpha as a percentage: light, then dark when it differs. */
+function alpha(item: Token): string {
+  const percent = (color: unknown) => `${Math.round(((color as DtcgColor).alpha ?? 1) * 100)}%`;
+  const [light, dark] = [percent(item.light), percent(item.dark)];
+  return light === dark ? light : `${light} · ${dark}`;
+}
+
+const sentence = (name: string) => name.charAt(0).toUpperCase() + name.slice(1);
+
+export const Opacity: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story: "One opacity, for content with no disabled colour of its own, and the state layers.",
       },
     },
   },
   render: () => (
-    <Page>
-      <Section title="The elevation ladder">
-        <Prose>
-          Read top to bottom as distance from the page. A surface only climbs the ladder when it
-          genuinely floats above what it covers — depth is a signal, and a page where everything is
-          raised signals nothing.
-        </Prose>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
-          {ROLES.map((role) => (
-            <Specimen
-              key={role.role}
-              label={role.role}
-              cssVar={role.cssVar}
-              inset={role.role === "inset"}
+    <Specimen>
+      <Group label="Opacity">
+        <div className="qx-elev-tiles">
+          <Tile name="At rest" value="100%">
+            <Illustration />
+          </Tile>
+          {OPACITY.map((item) => (
+            <Tile
+              key={item.path}
+              name={sentence(item.name)}
+              token={item.cssVar}
+              value={`${Math.round(Number(item.light) * 100)}%`}
+              faded
+            >
+              <Illustration />
+            </Tile>
+          ))}
+        </div>
+      </Group>
+      <Group label="State layers" aside="Light · dark">
+        <div className="qx-elev-tiles">
+          {STATE_LAYERS.map((item) => (
+            <Tile
+              key={item.path}
+              name={sentence(item.name)}
+              token={item.cssVar}
+              value={alpha(item)}
+            >
+              {item.name === "selection" ? (
+                <span className="qx-elev-selection">
+                  Priya <mark>Sharma</mark>
+                </span>
+              ) : (
+                <Illustration overlay={item.cssVar} />
+              )}
+            </Tile>
+          ))}
+        </div>
+      </Group>
+    </Specimen>
+  ),
+};
+
+/* ── Focus ring ───────────────────────────────────────────────────────────── */
+
+/**
+ * One callout on the zoomed edge: the token, its value, and a bracket over the span it measures
+ * (or a dot on the thing it names). `from` and `to` are positions across the figure.
+ */
+function Callout({
+  token,
+  value,
+  from,
+  to,
+  top,
+  point = false,
+}: {
+  token: string;
+  value?: string;
+  from: string;
+  to: string;
+  top: string;
+  point?: boolean;
+}) {
+  return (
+    <div
+      className="qx-elev-callout"
+      data-point={point ? "" : undefined}
+      style={vars({ "--from": from, "--to": to, "--top": top })}
+    >
+      <span className="qx-elev-callout-label">
+        <CopyToken value={token} />
+        {value && <code>{value}</code>}
+      </span>
+      <span className="qx-elev-callout-lead" />
+      <span className="qx-elev-callout-mark" />
+    </div>
+  );
+}
+
+const FOCUS_RING = tokens("focus.ring");
+const RING = format("dimension", FOCUS_RING.find((item) => item.name === "width")?.light);
+const OFFSET = format("dimension", FOCUS_RING.find((item) => item.name === "offset")?.light);
+
+export const FocusRing: Story = {
+  name: "Focus ring",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "2px in the focus colour: inside the edge of filled controls, 2px outside small ones.",
+      },
+    },
+  },
+  render: () => (
+    <Specimen>
+      <div className="qx-elev-split">
+        <Group label="Inside the edge" aside="Buttons, fields, tabs">
+          <div className="qx-elev-zoom" data-ring="inside">
+            <span className="qx-elev-zoom-control" />
+            <Callout
+              token="--qx-focus-ring-width"
+              value={RING}
+              from="var(--edge)"
+              to="calc(var(--edge) + var(--ring))"
+              top="4.75rem"
             />
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Semantic roles">
-        <TokenTable
-          caption="--qx-elevation-* — the roles, and the utility each one is exposed as."
-          columns={["Role", "CSS variable", "Utility", "When to use it"]}
-          rows={ROLES.map((role) => ({
-            token: role.role,
-            cells: [role.cssVar, role.utility, <span key={role.role}>{role.use}</span>],
-          }))}
-        />
-        <Callout title="subtle and low exist too">
-          <Code>--qx-elevation-subtle</Code> and <Code>--qx-elevation-low</Code> alias the{" "}
-          <Code>xs</Code> and <Code>sm</Code> steps of the ramp below. They are there for surfaces
-          that need a hint of separation without joining the raised/overlay/modal conversation.
-        </Callout>
-        <Callout title="In dark mode, luminance does the lifting">
-          A shadow on near-black is close to invisible, so the dark theme separates surfaces by
-          making each one lighter — <Code>surface-default</Code> to <Code>surface-elevated</Code> to{" "}
-          <Code>surface-overlay</Code> — and keeps the shadow for the edge. A component that pairs
-          its elevation role with the matching surface role gets that for free; one that paints a
-          raised card on <Code>bg-background</Code> loses its depth in dark.
-        </Callout>
-      </Section>
-    </Page>
+            <Callout
+              token="--qx-color-border-focus"
+              from="calc(var(--edge) + var(--ring) / 2)"
+              to="calc(var(--edge) + var(--ring) / 2)"
+              top="7rem"
+              point
+            />
+          </div>
+          {/* A picture of focus: the rings are drawn statically, so the controls are inert. */}
+          <div className="qx-elev-focus-live" data-ring="inside" inert>
+            <Button>Invite users</Button>
+            <Input aria-label="Search members" placeholder="Search members" />
+          </div>
+        </Group>
+        <Group label="Outside the edge" aside="Checkboxes, links, switches">
+          <div className="qx-elev-zoom" data-ring="outside">
+            <span className="qx-elev-zoom-control" />
+            <Callout
+              token="--qx-focus-ring-offset"
+              value={OFFSET}
+              from="calc(var(--edge) - var(--gap))"
+              to="var(--edge)"
+              top="4.75rem"
+            />
+            <Callout
+              token="--qx-focus-ring-width"
+              value={RING}
+              from="calc(var(--edge) - var(--gap) - var(--ring))"
+              to="calc(var(--edge) - var(--gap))"
+              top="7rem"
+            />
+          </div>
+          <div className="qx-elev-focus-live" data-ring="outside" inert>
+            <Checkbox label="Remember this device" defaultChecked />
+            <Link href="#audit-log">View the audit log</Link>
+          </div>
+        </Group>
+      </div>
+    </Specimen>
   ),
 };
 
-export const Ramp: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The generic Tailwind scale. `@qeetrix/ui/styles.css` remaps `--shadow-2xs`…`--shadow-xl` onto `--qx-elevation-ramp-*`, so `shadow-md` in product code is a Qeetrix shadow rather than a stock one. `shadow-2xs` is the faintest step — a 1px contact shadow for chips and toggles that sit flush with the surface.",
-      },
-    },
-  },
+/* ── Hidden test: real controls take focus in DOM order ───────────────────── */
+
+export const InteractionFocusOrder: Story = {
+  name: "Interaction: focus order",
+  tags: ["!dev", "!autodocs"],
   render: () => (
-    <Page>
-      <Section title="Shadow ramp">
-        <Prose>
-          Six evenly-spaced steps for surfaces that have no semantic role. Prefer a role where one
-          fits — the ramp is the escape hatch, not the front door. Unlike the roles, the ramp steps
-          carry no hairline perimeter, so a ramp shadow on its own does not give a surface an edge.
-        </Prose>
-        <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-6">
-          {RAMP.map((step) => (
-            <Specimen key={step} label={`shadow-${step}`} cssVar={`--qx-elevation-ramp-${step}`} />
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Ramp tokens">
-        <TokenTable
-          caption="--qx-elevation-ramp-* — the Tailwind shadow scale, retuned."
-          columns={["Utility", "Semantic alias", "Primitive"]}
-          rows={RAMP.map((step) => ({
-            token: `shadow-${step}`,
-            cells: [`--qx-elevation-ramp-${step}`, `--qx-shadow-ramp-${step}`],
-          }))}
-        />
-      </Section>
-    </Page>
+    <Stack gap="lg" style={{ inlineSize: 360 }}>
+      <Inline gap="md">
+        <Button>Invite users</Button>
+        <Button variant="soft">Export</Button>
+      </Inline>
+      <TextField label="Work email" type="email" placeholder="e.g. priya.sharma@acme.in" />
+      <Checkbox label="Remember this device" />
+      <Switch label="Security alerts" />
+      <Link href="#audit-log">View the audit log</Link>
+      <Text size="sm" tone="subtle">
+        Acme Pvt Ltd
+      </Text>
+    </Stack>
   ),
-};
-
-export const Values: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The raw values behind the roles, for light and dark surfaces, as published in `@qeetrix/ui/tokens.json` — the numbers the CSS variables resolve to — and the component tokens that pick a role.",
-      },
-    },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Invite users" })).toHaveFocus();
+    await userEvent.tab();
+    await expect(canvas.getByRole("button", { name: "Export" })).toHaveFocus();
+    await userEvent.tab();
+    await expect(canvas.getByRole("textbox", { name: "Work email" })).toHaveFocus();
   },
-  render: () => (
-    <Page>
-      <Section title="Primitive shadow values">
-        <Prose>
-          Published in <Code>@qeetrix/ui/tokens.json</Code> (<Code>shadow</Code> and{" "}
-          <Code>shadow-dark</Code>), for tooling that needs the numbers — a design-tool import, a
-          canvas renderer, a chart tooltip drawn outside the component tree.
-        </Prose>
-        <TokenTable
-          caption="Shadow primitives, generated from the same token source as the CSS."
-          columns={["Primitive", "Light — --qx-shadow-*", "Dark — --qx-shadow-dark-*"]}
-          rows={primitives(tokens.light.shadow).map(([name, light]) => ({
-            token: name,
-            cells: [
-              <span key="light" className="break-all">
-                {light}
-              </span>,
-              <span key="dark" className="break-all">
-                {DARK_SHADOW.get(name)}
-              </span>,
-            ],
-          }))}
-        />
-      </Section>
-
-      <Section title="Component elevation">
-        <Prose>
-          Components that own their own depth read a component-layer token rather than a role
-          directly, which is what lets a single component be retuned without moving the ladder.
-        </Prose>
-        <TokenTable
-          caption="Component-layer elevation tokens and the role each resolves to."
-          columns={["Component token", "Resolves to"]}
-          rows={[
-            { token: "--qx-component-card-elevation", cells: ["--qx-elevation-raised"] },
-            { token: "--qx-component-card-elevation-hover", cells: ["--qx-elevation-hover"] },
-            { token: "--qx-component-card-elevation-elevated", cells: ["--qx-elevation-hover"] },
-            { token: "--qx-component-file-card-elevation", cells: ["--qx-elevation-raised"] },
-            { token: "--qx-component-file-card-elevation-hover", cells: ["--qx-elevation-hover"] },
-            { token: "--qx-component-menu-elevation", cells: ["--qx-elevation-overlay"] },
-            { token: "--qx-component-popover-elevation", cells: ["--qx-elevation-overlay"] },
-            { token: "--qx-component-dialog-elevation", cells: ["--qx-elevation-modal"] },
-          ]}
-        />
-        <Callout title="Read a role, not a primitive">
-          A primitive is drawn for one background: <Code>--qx-shadow-*</Code> for light surfaces,{" "}
-          <Code>--qx-shadow-dark-*</Code> for dark ones. The <Code>--qx-elevation-*</Code> roles are
-          redeclared under <Code>.dark</Code> to pick the right one, so code that needs a
-          theme-correct shadow should hand the browser <Code>var(--qx-elevation-overlay)</Code>{" "}
-          rather than a value from <Code>tokens.json</Code>.
-        </Callout>
-        <Callout title="Shadows disappear under forced colors">
-          The base layer sets <Code>box-shadow: none</Code> on everything inside a{" "}
-          <Code>forced-colors: active</Code> media query, because a Windows high-contrast palette
-          has no way to render a soft drop. Depth must therefore never be the only thing separating
-          two surfaces — the hairline ring in every Qeetrix shadow is a border in disguise for
-          exactly this reason, and a real <Code>border</Code> is what survives.
-        </Callout>
-      </Section>
-    </Page>
-  ),
 };

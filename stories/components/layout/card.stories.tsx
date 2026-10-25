@@ -2,17 +2,48 @@ import {
   Badge,
   Button,
   Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@qeetrix/ui";
+  formatRelativeTime,
+  Grid,
+  Inline,
+  Stack,
+  Table,
+  Text,
+} from "@qeetrix/react";
+import { DescriptionItem, DescriptionList } from "@qeetrix/react/experimental";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import * as React from "react";
 import { expect } from "storybook/test";
 import { qx } from "../../_contract";
+
+/** A fixed "now", so relative times read the same in every run. */
+const NOW = Date.UTC(2026, 9, 25, 9, 30);
+const minutesAgo = (n: number) => NOW - n * 60_000;
+
+const SIGN_INS = [
+  { id: "s1", name: "Priya Sharma", method: "Passkey", at: minutesAgo(2) },
+  { id: "s2", name: "Rahul Verma", method: "Passkey", at: minutesAgo(18) },
+  { id: "s3", name: "Ananya Iyer", method: "Authenticator", at: minutesAgo(64) },
+];
+
+function SignIns() {
+  return (
+    <Table
+      label="Recent sign-ins"
+      rows={SIGN_INS}
+      rowId={(row) => row.id}
+      rowLabel={(row) => row.name}
+      columns={[
+        { id: "name", header: "Name", cell: (row) => row.name },
+        { id: "method", header: "Method", cell: (row) => row.method },
+        {
+          id: "at",
+          header: "When",
+          align: "end",
+          cell: (row) => formatRelativeTime(row.at, "en-IN", NOW),
+        },
+      ]}
+    />
+  );
+}
 
 const meta: Meta<typeof Card> = {
   title: "Components/Layout/Card",
@@ -20,263 +51,194 @@ const meta: Meta<typeof Card> = {
   parameters: {
     qeetrix: qx({ category: "layout", status: "stable" }),
     layout: "centered",
-    docs: {
-      description: {
-        component:
-          'Surface container with `CardHeader`, `CardTitle`, `CardDescription`, `CardAction`, `CardContent`, and `CardFooter` slots. Available in `size="default"` (standard padding) and `size="sm"` (compact). Use for settings panels, confirmation dialogs, summary tiles, and detail drawers.\n\n`variant` sets the surface treatment: `default` (boundary plus the faintest shadow), `outline` (no shadow, for dense layouts and repeated tiles) and `elevated` (one step forward — for the one surface on a page that should stand out). A card is static by default. `interactive` adds the hover lift, pointer cursor and Qeet focus ring for a card that is itself the control — pair it with `render` (`render={<a href="…" />}` for navigation, `render={<button type="button" />}` for a short, phrasing-only card). `selected` paints the 2px brand boundary; it is visual only, so the state itself must be carried by the control (`aria-pressed`, or a radio or checkbox inside the card).',
-      },
-    },
   },
-  argTypes: {
-    variant: {
-      control: "select",
-      options: ["default", "outline", "elevated"],
-    },
-    size: {
-      control: "select",
-      options: ["default", "sm"],
-    },
-    interactive: { control: "boolean" },
-    selected: { control: "boolean" },
+  args: {
+    title: "Create API key",
+    level: 2,
+    description: "Machine-to-machine access to Acme Pvt Ltd.",
+    children: "Name the key so you can find it in the audit log.",
   },
+  render: (args) => (
+    <div style={{ inlineSize: 400 }}>
+      <Card {...args} />
+    </div>
+  ),
   tags: ["autodocs"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Card>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Standard API-key creation card. The footer uses `justify-end` to right-align the Cancel / Create action pair — a common pattern for destructive or irreversible operations.",
-      },
-    },
-  },
-  render: () => (
-    <Card className="w-80">
-      <CardHeader>
-        <CardTitle>Create API key</CardTitle>
-        <CardDescription>Keys grant full access to your tenant.</CardDescription>
-      </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">
-        Name this key so you can recognise it later in the audit log.
-      </CardContent>
-      <CardFooter className="justify-end gap-2">
-        <Button variant="ghost" size="sm">
-          Cancel
-        </Button>
-        <Button size="sm">Create</Button>
-      </CardFooter>
-    </Card>
-  ),
-};
+const viewDocs = (
+  <Button variant="ghost" size="sm">
+    View docs
+  </Button>
+);
 
-export const SmallVariant: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '`size="sm"` compact variant — ideal for dense lists such as org-member summary tiles in a sidebar or a grid of recent invites.',
-      },
-    },
-  },
-  render: () => (
-    <Card size="sm" className="w-72">
-      <CardHeader>
-        <CardTitle>Ada Lovelace</CardTitle>
-        <CardDescription>ada@acme.com · Owner</CardDescription>
-      </CardHeader>
-      <CardContent className="text-sm text-muted-foreground">
-        Member since 12 Jan 2026 · Last active 2 hours ago
-      </CardContent>
-    </Card>
-  ),
-};
+const createFooter = (
+  <>
+    <Button variant="ghost" size="sm">
+      Cancel
+    </Button>
+    <Button size="sm">Create key</Button>
+  </>
+);
 
-export const WithAction: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`CardAction` renders in the top-right corner of the header, outside the title/description flow. Used here for a quick Disable toggle on a webhook endpoint — keeps the primary reading path uncluttered.",
-      },
-    },
-  },
-  render: () => (
-    <Card className="w-96">
-      <CardHeader>
-        <CardTitle>Webhook endpoint</CardTitle>
-        <CardDescription>https://api.acme.com/hooks/qeet</CardDescription>
-        <CardAction>
-          <Button variant="outline" size="sm">
-            Disable
-          </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent className="space-y-1 text-sm text-muted-foreground">
-        <p>
-          Subscribed events:{" "}
-          <span className="text-foreground font-medium">user.created, session.ended</span>
-        </p>
-        <p>
-          Last delivery: <span className="text-foreground font-medium">200 OK · 3 min ago</span>
-        </p>
-        <p>
-          Signing secret: <span className="font-mono text-foreground">whsec_••••••••6f3a</span>
-        </p>
-      </CardContent>
-      <CardFooter className="justify-end">
-        <Button variant="ghost" size="sm">
-          View delivery log
-        </Button>
-      </CardFooter>
-    </Card>
+// The actions and footer start as the API key card's; type into their controls to replace them.
+export const Playground: Story = {
+  render: (args) => (
+    <div style={{ inlineSize: 400 }}>
+      <Card {...args} actions={args.actions ?? viewDocs} footer={args.footer ?? createFooter} />
+    </div>
   ),
 };
 
 export const Variants: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "The three surface treatments on the same qeet-pay summary tile. `default` is the resting card; `outline` drops the shadow for grids of repeated tiles; `elevated` stands one step forward and is meant for a single surface per page — here, the payout that needs attention.",
-      },
-    },
-  },
   render: () => (
-    <div className="grid w-full max-w-3xl gap-4 sm:grid-cols-3">
-      {(
-        [
-          ["default", "Collected this month", "₹18,42,600", "1,284 payments · 6 Oct"],
-          ["outline", "Refunded this month", "₹42,150", "37 refunds · 6 Oct"],
-          ["elevated", "Next payout", "₹17,96,240", "Releases 8 Oct, 10:00 IST"],
-        ] as const
-      ).map(([variant, title, value, meta]) => (
-        <Card key={variant} variant={variant}>
-          <CardHeader>
-            <CardDescription>{title}</CardDescription>
-            <CardTitle className="text-2xl tabular-nums">{value}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>{meta}</span>
-            <span className="font-mono">{`variant="${variant}"`}</span>
-          </CardContent>
+    <Stack gap="lg" style={{ inlineSize: 400 }}>
+      <Stack gap="xs">
+        <Text size="sm" tone="subtle">
+          Default
+        </Text>
+        <Card title="Sign-in methods" level={2}>
+          Passkeys first, then authenticator apps.
         </Card>
-      ))}
-    </div>
-  ),
-};
-
-export const Interactive: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '`interactive` with `render={<a href="…" />}` — the whole card is the link, so it gets one tab stop, the pointer lift on hover and the Qeet focus ring. Used for the product switcher on the Qeet console home. An anchor may contain the card\'s block content; the card must not also contain other links or buttons.',
-      },
-    },
-  },
-  render: () => (
-    <div className="grid w-full max-w-2xl gap-4 sm:grid-cols-3">
-      {(
-        [
-          ["Qeet ID", "/id", "Passkeys, SSO and SCIM for 24 members.", "3 connections"],
-          ["qeet-pay", "/pay", "Payments, payouts and GST invoicing.", "Live mode"],
-          ["qeet-logs", "/logs", "Logs, metrics and traces for every service.", "12 streams"],
-        ] as const
-      ).map(([product, href, description, status]) => (
-        <Card key={product} interactive render={<a href={href} />}>
-          <CardHeader>
-            <CardTitle>{product}</CardTitle>
-            <CardDescription>{description}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Badge variant="muted">{status}</Badge>
-          </CardContent>
+      </Stack>
+      <Stack gap="xs">
+        <Text size="sm" tone="subtle">
+          Subdued
+        </Text>
+        <Card variant="subdued" title="Usage this month" level={2}>
+          48,210 sign-ins · 72% with a passkey
         </Card>
-      ))}
-    </div>
-  ),
-};
-
-const PLANS = [
-  { id: "starter", name: "Starter", price: "₹0", detail: "Up to 1,000 monthly active users" },
-  { id: "growth", name: "Growth", price: "₹4,999 / mo", detail: "Up to 25,000 MAU · SAML SSO" },
-  { id: "business", name: "Business", price: "₹14,999 / mo", detail: "Unlimited MAU · SCIM · SLA" },
-] as const;
-
-/**
- * Selectable cards rendered as toggle buttons. `selected` only paints the boundary; the state a
- * screen reader hears is `aria-pressed` on the element the card renders as.
- */
-function PlanPicker() {
-  const [plan, setPlan] = React.useState<(typeof PLANS)[number]["id"]>("growth");
-  return (
-    // biome-ignore lint/a11y/useSemanticElements: a set of toggle buttons; a fieldset would add form semantics.
-    <div
-      role="group"
-      aria-label="Qeet ID plan"
-      className="grid w-full max-w-2xl gap-3 sm:grid-cols-3"
-    >
-      {PLANS.map(({ id, name, price, detail }) => (
+      </Stack>
+      <Stack gap="xs">
+        <Text size="sm" tone="subtle">
+          Danger
+        </Text>
         <Card
-          key={id}
-          size="sm"
-          variant="outline"
-          interactive
-          selected={plan === id}
-          render={<button type="button" aria-pressed={plan === id} onClick={() => setPlan(id)} />}
+          tone="danger"
+          title="Delete organisation"
+          level={2}
+          footer={
+            <Button size="sm" tone="danger">
+              Delete Acme Pvt Ltd
+            </Button>
+          }
         >
-          <span className="flex flex-col gap-1 px-3">
-            <span className="font-heading text-sm font-medium">{name}</span>
-            <span className="text-base font-semibold tabular-nums">{price}</span>
-            <span className="text-xs text-muted-foreground">{detail}</span>
-          </span>
+          Removes its 1,284 users and 12 applications. This can't be undone.
         </Card>
-      ))}
-    </div>
-  );
-}
-
-export const Selected: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`selected` on an `interactive` card rendered as `<button type=\"button\" aria-pressed>` — the plan picker on a Qeet ID tenant's billing page. The 2px brand boundary is the visual signal; `aria-pressed` is the one assistive technology reads. A button may only hold phrasing content, so the card's children are spans rather than `CardHeader` / `CardContent`.",
-      },
-    },
-  },
-  render: () => <PlanPicker />,
+      </Stack>
+    </Stack>
+  ),
 };
 
-export const SelectInteraction: Story = {
-  name: "Interaction: keyboard selects a card",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "An interactive card has to behave like the control it renders as. The test tabs onto a plan card, activates it with Space and asserts that `aria-pressed` — not just the painted boundary — moved from the old plan to the new one.",
-      },
-    },
+export const Untitled: Story = {
+  args: {
+    title: undefined,
+    level: undefined,
+    description: undefined,
+    children: (
+      <Inline justify="between">
+        <Text tone="subtle">Next payout</Text>
+        <Text size="lg" weight="semibold">
+          ₹17,96,240
+        </Text>
+      </Inline>
+    ),
   },
-  render: () => <PlanPicker />,
-  play: async ({ canvas, userEvent }) => {
-    const growth = canvas.getByRole("button", { name: /Growth/ });
-    const business = canvas.getByRole("button", { name: /Business/ });
-    await expect(growth).toHaveAttribute("aria-pressed", "true");
-    await expect(business).toHaveAttribute("aria-pressed", "false");
+};
 
-    // Starter → Growth → Business: each card is its own tab stop.
-    await userEvent.tab();
-    await userEvent.tab();
-    await userEvent.tab();
-    await expect(business).toHaveFocus();
+export const EdgeToEdge: Story = {
+  name: "Edge to edge",
+  parameters: {
+    layout: "padded",
+    docs: { description: { story: "A Table or a `rows` DescriptionList as the body." } },
+  },
+  render: () => (
+    <Grid columns={{ base: 1, expanded: 2 }} gap="lg">
+      <Card title="Recent sign-ins" level={2}>
+        <SignIns />
+      </Card>
+      <Card title="Priya Sharma" level={2}>
+        <DescriptionList>
+          <DescriptionItem term="Email">priya@acme.in</DescriptionItem>
+          <DescriptionItem term="Status">
+            <Badge tone="success">Active</Badge>
+          </DescriptionItem>
+          <DescriptionItem term="MFA">Passkey</DescriptionItem>
+        </DescriptionList>
+      </Card>
+    </Grid>
+  ),
+};
 
-    await userEvent.keyboard(" ");
+export const InContext: Story = {
+  name: "In context",
+  parameters: { layout: "padded" },
+  render: () => (
+    <Grid columns={{ base: 1, expanded: 3 }} gap="lg">
+      <Card
+        title="Collected"
+        level={2}
+        footer={
+          <Button variant="ghost" size="sm">
+            View payments
+          </Button>
+        }
+      >
+        <Text size="lg" weight="semibold">
+          ₹18,42,600
+        </Text>
+      </Card>
+      <Card
+        title="Outstanding"
+        level={2}
+        footer={
+          <Button variant="ghost" size="sm">
+            View invoices
+          </Button>
+        }
+      >
+        <Inline gap="sm">
+          <Text size="lg" weight="semibold">
+            ₹3,18,200
+          </Text>
+          <Badge tone="warning">9 overdue</Badge>
+        </Inline>
+      </Card>
+      <Card title="Next payout" level={2} footer={<Button size="sm">Withdraw</Button>}>
+        <Text size="lg" weight="semibold">
+          ₹17,96,240
+        </Text>
+      </Card>
+    </Grid>
+  ),
+};
 
-    await expect(business).toHaveAttribute("aria-pressed", "true");
-    await expect(growth).toHaveAttribute("aria-pressed", "false");
+export const ArticleInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: renders as an article",
+  args: {
+    render: <article />,
+    title: "Passkeys are now the default",
+    level: 3,
+    description: "Qeet ID changelog · 21 Oct 2026",
+    children: "New users are asked to add a passkey at their first sign-in.",
+  },
+  play: async ({ canvas }) => {
+    const card = canvas.getByRole("article", { name: "Passkeys are now the default" });
+    await expect(card).toBeVisible();
+  },
+};
+
+export const RegionInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a titled card is a named region",
+  args: { title: "Recent sign-ins", level: 2, description: undefined, children: <SignIns /> },
+  play: async ({ canvas }) => {
+    const region = canvas.getByRole("region", { name: "Recent sign-ins" });
+    await expect(region.tagName).toBe("SECTION");
+    await expect(canvas.getByRole("heading", { level: 2, name: "Recent sign-ins" })).toBeVisible();
   },
 };

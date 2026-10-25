@@ -143,6 +143,17 @@ for (const { dir, file } of componentStoryFiles()) {
     if (!contract.status) errors.push(`${path}: contract is missing "status"`);
     else if (!STATUSES.includes(contract.status))
       errors.push(`${path}: unknown status "${contract.status}"`);
+
+    // The sidebar shows an Experimental pill from the `experimental` tag (manager.ts), so the
+    // tag and the contract's status must agree, or the sidebar and the docs page disagree.
+    const tagged = csf.meta?.tags?.includes("experimental") ?? false;
+    if ((contract.status === "experimental") !== tagged) {
+      errors.push(
+        tagged
+          ? `${path}: tagged "experimental" but its status is "${contract.status}"`
+          : `${path}: status "experimental" needs the "experimental" tag in meta.tags`,
+      );
+    }
   }
 
   // Warning, not an error: fixing it changes the story id, which is a call to make

@@ -1,109 +1,205 @@
-import { BuildingIcon, FileTextIcon, FolderIcon, UserIcon, UsersIcon } from "@qeetrix/icons";
-import { type TreeNode, TreeView } from "@qeetrix/ui";
+import { BuildingIcon } from "@qeetrix/icons/icons/building";
+import { UserGroupIcon } from "@qeetrix/icons/icons/user-group";
+import { Card } from "@qeetrix/react";
+import { type TreeNode, TreeView } from "@qeetrix/react/experimental";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect, fn } from "storybook/test";
 import { qx } from "../../_contract";
 
-const data: TreeNode[] = [
-  {
-    id: "src",
-    label: "src",
-    icon: FolderIcon,
-    defaultOpen: true,
-    children: [
-      {
-        id: "components",
-        label: "components",
-        icon: FolderIcon,
-        children: [
-          { id: "button", label: "button.tsx", icon: FileTextIcon },
-          { id: "card", label: "card.tsx", icon: FileTextIcon },
-        ],
-      },
-      { id: "index", label: "index.ts", icon: FileTextIcon },
-    ],
-  },
-  { id: "pkg", label: "package.json", icon: FileTextIcon },
-];
-
-const orgData: TreeNode[] = [
+const UNITS: TreeNode[] = [
   {
     id: "acme",
-    label: "Acme Inc.",
+    label: "Acme Pvt Ltd",
     icon: BuildingIcon,
-    defaultOpen: true,
+    meta: "1,284",
     children: [
       {
-        id: "engineering",
+        id: "eng",
         label: "Engineering",
-        icon: UsersIcon,
-        defaultOpen: true,
+        icon: UserGroupIcon,
+        meta: "412",
         children: [
-          { id: "ada", label: "Ada Lovelace", icon: UserIcon },
-          { id: "alan", label: "Alan Turing", icon: UserIcon },
+          { id: "platform", label: "Platform", icon: UserGroupIcon, meta: "96" },
+          { id: "mobile", label: "Mobile", icon: UserGroupIcon, meta: "58" },
         ],
       },
+      { id: "fin", label: "Finance", icon: UserGroupIcon, meta: "74" },
       {
-        id: "product",
-        label: "Product",
-        icon: UsersIcon,
-        children: [{ id: "grace", label: "Grace Hopper", icon: UserIcon }],
-      },
-      {
-        id: "finance",
-        label: "Finance",
-        icon: UsersIcon,
-        children: [{ id: "katherine", label: "Katherine Johnson", icon: UserIcon }],
+        id: "sales",
+        label: "Sales",
+        icon: UserGroupIcon,
+        meta: "203",
+        children: [
+          { id: "north", label: "North India", meta: "88" },
+          { id: "south", label: "South India", meta: "115" },
+        ],
       },
     ],
   },
+];
+
+const PERMISSIONS: TreeNode[] = [
+  {
+    id: "users",
+    label: "Users",
+    children: [
+      { id: "users.view", label: "View users" },
+      { id: "users.mfa", label: "Reset MFA" },
+      { id: "users.delete", label: "Delete users" },
+    ],
+  },
+  {
+    id: "apps",
+    label: "Applications",
+    children: [
+      { id: "apps.view", label: "View applications" },
+      // A permission this admin's own role can't grant.
+      { id: "apps.secrets", label: "Rotate client secrets", disabled: true },
+    ],
+  },
+  { id: "audit", label: "Audit log" },
 ];
 
 const meta: Meta<typeof TreeView> = {
   title: "Components/Data Display/TreeView",
   component: TreeView,
   parameters: {
-    qeetrix: qx({ category: "data-display", status: "stable" }),
+    qeetrix: qx({ category: "data-display", status: "experimental" }),
     layout: "padded",
-    docs: {
-      description: {
-        component:
-          "A recursive collapsible tree for hierarchical data — file systems, org charts, permission trees, and category taxonomies. Each node accepts an `icon`, a `label`, optional `children`, and a `defaultOpen` flag. The component manages expand/collapse state internally; control `defaultOpen` to pre-expand meaningful subtrees on first render.",
-      },
-    },
   },
-  tags: ["autodocs"],
+  args: {
+    label: "Organisation units",
+    items: UNITS,
+    defaultExpanded: ["acme"],
+    onExpandedChange: fn(),
+    onSelectedChange: fn(),
+    onCheckedChange: fn(),
+    style: { maxInlineSize: 360 },
+  },
+  tags: ["autodocs", "experimental"],
 };
+
 export default meta;
 type Story = StoryObj<typeof TreeView>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "File-system tree for a small TypeScript project. Folder nodes use `Folder` and are collapsible; leaf nodes use `Document`. `defaultOpen: true` on the root node ensures the first level is visible without user interaction.",
-      },
-    },
+export const Playground: Story = {};
+
+export const Checkable: Story = {
+  args: {
+    label: "Permissions",
+    items: PERMISSIONS,
+    checkable: true,
+    defaultExpanded: ["users", "apps"],
+    defaultChecked: ["users.view", "users.mfa", "audit"],
   },
+};
+
+export const InContext: Story = {
+  name: "In context",
   render: () => (
-    <div className="w-64 rounded-lg border p-2">
-      <TreeView data={data} />
+    <div style={{ inlineSize: 360 }}>
+      <Card title="Organisation units" level={2}>
+        <TreeView
+          label="Organisation units"
+          items={UNITS}
+          defaultExpanded={["acme", "eng"]}
+          defaultSelected="platform"
+        />
+      </Card>
     </div>
   ),
 };
 
-export const OrgHierarchy: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Organisation chart for a qeet-people HCM tenant. Department nodes (`People`) are collapsible; individual members (`User`) are leaf nodes. Use `defaultOpen: true` on the top-level org node and selected departments to surface the most relevant structure without overwhelming the view.",
-      },
-    },
+const item = (name: string) => new RegExp(`^${name}`);
+
+export const Keyboard: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: arrows, Home, End and type-ahead",
+  play: async ({ canvas, userEvent, args }) => {
+    const treeitem = (name: string) => canvas.getByRole("treeitem", { name: item(name) });
+    treeitem("Acme Pvt Ltd").focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(treeitem("Engineering")).toHaveFocus();
+    // Right opens a closed node, then steps into it.
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(treeitem("Engineering")).toHaveAttribute("aria-expanded", "true");
+    await expect(args.onExpandedChange).toHaveBeenLastCalledWith(["acme", "eng"]);
+    await userEvent.keyboard("{ArrowRight}");
+    await expect(treeitem("Platform")).toHaveFocus();
+    // Left steps out to the parent, then closes it.
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(treeitem("Engineering")).toHaveFocus();
+    await userEvent.keyboard("{ArrowLeft}");
+    await expect(treeitem("Engineering")).toHaveAttribute("aria-expanded", "false");
+    await userEvent.keyboard("{End}");
+    await expect(treeitem("Sales")).toHaveFocus();
+    await userEvent.keyboard("{Home}");
+    await expect(treeitem("Acme Pvt Ltd")).toHaveFocus();
+    await userEvent.keyboard("f");
+    await expect(treeitem("Finance")).toHaveFocus();
   },
-  render: () => (
-    <div className="w-72 rounded-lg border p-2">
-      <TreeView data={orgData} />
-    </div>
-  ),
+};
+
+export const Selecting: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: Enter or a click selects; the chevron only opens",
+  play: async ({ canvas, canvasElement, userEvent, args }) => {
+    const treeitem = (name: string) => canvas.getByRole("treeitem", { name: item(name) });
+    treeitem("Finance").focus();
+    await userEvent.keyboard("{Enter}");
+    await expect(args.onSelectedChange).toHaveBeenLastCalledWith("fin");
+    await expect(treeitem("Finance")).toHaveAttribute("aria-selected", "true");
+    const chevron = treeitem("Sales").querySelector<HTMLElement>(".qx-tree-toggle");
+    await expect(chevron).not.toBeNull();
+    if (chevron) await userEvent.click(chevron);
+    await expect(treeitem("Sales")).toHaveAttribute("aria-expanded", "true");
+    await expect(args.onSelectedChange).toHaveBeenCalledTimes(1);
+    await userEvent.click(canvas.getByText("North India"));
+    await expect(args.onSelectedChange).toHaveBeenLastCalledWith("north");
+    await expect(canvasElement.querySelectorAll('[aria-selected="true"]')).toHaveLength(1);
+  },
+};
+
+export const Ticking: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: a parent ticks all its nodes",
+  args: Checkable.args,
+  play: async ({ canvas, userEvent, args }) => {
+    const treeitem = (name: string) => canvas.getByRole("treeitem", { name: item(name) });
+    await expect(canvas.getByRole("tree")).toHaveAttribute("aria-multiselectable", "true");
+    await expect(treeitem("Users")).toHaveAttribute("aria-checked", "mixed");
+    treeitem("Delete users").focus();
+    await userEvent.keyboard(" ");
+    await expect(treeitem("Users")).toHaveAttribute("aria-checked", "true");
+    treeitem("Users").focus();
+    await userEvent.keyboard(" ");
+    await expect(treeitem("View users")).toHaveAttribute("aria-checked", "false");
+    await expect(args.onCheckedChange).toHaveBeenLastCalledWith(["audit"]);
+  },
+};
+
+export const SkipDisabled: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: the keys and ticks skip a disabled node",
+  args: Checkable.args,
+  play: async ({ canvas, userEvent, args }) => {
+    const treeitem = (name: string) => canvas.getByRole("treeitem", { name: item(name) });
+    await expect(treeitem("Rotate client secrets")).toHaveAttribute("aria-disabled", "true");
+    treeitem("View applications").focus();
+    await userEvent.keyboard("{ArrowDown}");
+    await expect(treeitem("Audit log")).toHaveFocus();
+    await userEvent.keyboard("{ArrowUp}");
+    await expect(treeitem("View applications")).toHaveFocus();
+    // The parent ticks what it can; the disabled node stays off, so the parent stays mixed.
+    treeitem("Applications").focus();
+    await userEvent.keyboard(" ");
+    await expect(args.onCheckedChange).toHaveBeenLastCalledWith([
+      "users.view",
+      "users.mfa",
+      "audit",
+      "apps.view",
+    ]);
+    await expect(treeitem("Rotate client secrets")).toHaveAttribute("aria-checked", "false");
+    await expect(treeitem("Applications")).toHaveAttribute("aria-checked", "mixed");
+  },
 };

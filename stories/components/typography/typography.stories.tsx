@@ -1,232 +1,202 @@
-import { Prose, proseVariants, Typography } from "@qeetrix/ui";
+import {
+  Box,
+  Card,
+  Grid,
+  Heading,
+  type HeadingSize,
+  Stack,
+  Text,
+  type TextSize,
+  type TextTone,
+  type TextWeight,
+} from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { Fragment } from "react";
+import { expect } from "storybook/test";
 import { qx } from "../../_contract";
 
-const meta: Meta<typeof Typography> = {
-  title: "Components/Typography/Typography",
-  component: Typography,
-  parameters: {
-    qeetrix: qx({ category: "typography", status: "stable" }),
-    layout: "padded",
-    docs: {
-      description: {
-        component:
-          "Consistent text styling for discrete pieces of copy — headings, lead paragraphs, blockquotes, inline code, and muted captions. Use `variant` to pick the right semantic element and visual weight; switch to `Prose` when rendering long-form MDX or rich-text output (e.g. qeet-docs articles).\n\nNo variant carries outer margins — the parent's gap owns spacing. `as` changes the element without changing the look, so keep the heading level right for the outline and pick the variant for its size. `truncate` clips with an ellipsis: `true` for one line, a number to clamp to that many lines; the full text stays in the DOM for assistive technology.\n\n`Prose` owns reading rhythm and has a `size` axis, from `proseVariants`: `md` (the default) for articles, help pages and release notes, and `sm` for compact prose in editing surfaces and dense console panels — a fixed 24px line and a heading ladder one step down. `proseVariants({ size })` returns the full class string, so it can style an element that is not a `Prose`.",
-      },
-    },
-  },
-  argTypes: {
-    variant: {
-      control: "select",
-      options: [
-        "h1",
-        "h2",
-        "h3",
-        "h4",
-        "p",
-        "blockquote",
-        "lead",
-        "large",
-        "small",
-        "muted",
-        "inlineCode",
-        "list",
-      ],
-    },
-    truncate: { control: "number" },
-  },
-  tags: ["autodocs"],
-};
-export default meta;
-type Story = StoryObj<typeof Typography>;
-
-export const Variants: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "All `variant` values rendered together — a quick visual reference for the Qeet type scale.",
-      },
-    },
-  },
-  render: () => (
-    <div className="flex max-w-2xl flex-col gap-4">
-      <Typography variant="h1">Qeet ID — passkeys-first identity</Typography>
-      <Typography variant="h2">Authenticate without passwords</Typography>
-      <Typography variant="h3">Developer quick-start</Typography>
-      <Typography variant="h4">Environment variables</Typography>
-      <Typography variant="lead">
-        Qeet ID ships a hosted login UI, passkey registration, and a full OIDC/OAuth 2.0 server —
-        ready to drop into any stack in under 15 minutes.
-      </Typography>
-      <Typography variant="p">
-        Every Qeet product — from qeet-logs real-time log streams to qeet-pay India-first checkout —
-        uses Qeet ID tokens for authentication. A single JWT carries org membership, roles, and
-        custom claims.
-      </Typography>
-      <Typography variant="blockquote">
-        Passkeys eliminate the password as an attack surface — and Qeet ID makes them the default,
-        not an afterthought.
-      </Typography>
-      <Typography variant="large">99.97% uptime · 42 ms median token issuance</Typography>
-      <Typography variant="small">Last rotated: 14 Jun 2026</Typography>
-      <Typography variant="muted">Token expires in 3,600 seconds · issued by id.qeet.in</Typography>
-      <Typography variant="p">
-        Install with{" "}
-        <Typography as="code" variant="inlineCode">
-          bun add @qeetrix/ui
-        </Typography>{" "}
-        and import the stylesheet.
-      </Typography>
-    </div>
-  ),
-};
-
-export const ProseBlock: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`Prose` styles raw HTML or MDX output — used by qeet-docs to render product documentation without a `@tailwindcss/typography` dependency.",
-      },
-    },
-  },
-  render: () => (
-    <Prose className="max-w-2xl">
-      <h1>Getting started with Qeet ID</h1>
-      <p>
-        Qeet ID is the identity platform for the Qeet suite. It provides passkey-first
-        authentication, OIDC/OAuth 2.0 token issuance, and a hosted login UI — all under the{" "}
-        <code>id.qeet.in</code> domain.
-      </p>
-      <h2>Installation</h2>
-      <p>Add the SDK and import styles in your entry file:</p>
-      <pre>
-        <code>bun add @qeetrix/ui</code>
-      </pre>
-      <h3>What you get</h3>
-      <ul>
-        <li>Passkey registration and assertion — no passwords stored</li>
-        <li>
-          Org-scoped JWTs with <strong>custom claims</strong> and <em>refresh token rotation</em>
-        </li>
-        <li>Magic-link and OTP fallback for devices without passkey support</li>
-      </ul>
-      <blockquote>
-        Passkeys are phishing-resistant by design — the private key never leaves the device.
-      </blockquote>
-      <hr />
-      <h3>Supported grant types</h3>
-      <ol>
-        <li>Authorization Code + PKCE</li>
-        <li>Client Credentials (machine-to-machine)</li>
-      </ol>
-    </Prose>
-  ),
-};
-
-function ReleaseNote() {
+/** A small comparison label. */
+function Label({ children }: { children: string }) {
   return (
-    <>
-      <h2>Passkey autofill on the hosted login</h2>
-      <p>
-        The Qeet ID hosted login now offers saved passkeys in the browser's autofill menu, so a
-        returning member signs in without typing an email first.
-      </p>
-      <h3>What changes for your tenant</h3>
-      <ul>
-        <li>
-          Autofill is on by default for new tenants on <code>id.qeet.in</code>.
-        </li>
-        <li>Existing tenants can enable it under Settings → Sign-in methods.</li>
-      </ul>
-      <p>
-        Read the <a href="#passkey-autofill">migration guide</a> before enabling it for SSO-only
-        organisations.
-      </p>
-    </>
+    <Text size="sm" tone="subtle">
+      {children}
+    </Text>
   );
 }
 
-export const Sizes: Story = {
+const meta: Meta<typeof Text> = {
+  title: "Components/Typography/TextAndHeading",
+  component: Text,
+  subcomponents: { Heading },
   parameters: {
-    docs: {
-      description: {
-        story:
-          "`Prose` at both `size` values with the same Qeet ID release note. `md` (left) is the reading size for articles and help pages; `sm` (right) keeps a 24px line and steps every heading down one rung, for a rich-text editor, a policy preview or a comment, where content should not dwarf the controls around it.",
-      },
-    },
+    qeetrix: qx({ category: "typography", status: "stable" }),
+    layout: "padded",
   },
+  args: {
+    children: "₹1,24,500.00 received from Acme Pvt Ltd on 24 October 2026.",
+  },
+  tags: ["autodocs"],
+};
+
+export default meta;
+type Story = StoryObj<typeof Text>;
+
+export const Playground: Story = {};
+
+const SIZES: TextSize[] = ["sm", "md", "lg"];
+const WEIGHTS: TextWeight[] = ["regular", "medium", "semibold"];
+
+export const SizesAndWeights: Story = {
+  name: "Sizes and weights",
   render: () => (
-    <div className="grid max-w-5xl grid-cols-2 gap-8">
-      <section aria-label="Prose size md" className="flex flex-col gap-2">
-        <Typography variant="small" className="text-muted-foreground">
-          size="md"
-        </Typography>
-        <Prose size="md">
-          <ReleaseNote />
-        </Prose>
-      </section>
-      <section aria-label="Prose size sm" className="flex flex-col gap-2">
-        <Typography variant="small" className="text-muted-foreground">
-          size="sm"
-        </Typography>
-        <Prose size="sm" className="text-sm">
-          <ReleaseNote />
-        </Prose>
-      </section>
-    </div>
+    <Grid columns={5} gap="md" align="center" style={{ inlineSize: 640 }}>
+      <span />
+      {[...WEIGHTS, "mono"].map((column) => (
+        <Label key={column}>{column}</Label>
+      ))}
+      {SIZES.map((size) => (
+        <Fragment key={size}>
+          <Label>{size}</Label>
+          {WEIGHTS.map((weight) => (
+            <Text key={weight} size={size} weight={weight}>
+              ₹1,24,500
+            </Text>
+          ))}
+          <Text size={size} mono>
+            usr_8f2c1a
+          </Text>
+        </Fragment>
+      ))}
+    </Grid>
   ),
 };
 
-export const ProseVariantsHelper: Story = {
-  name: "proseVariants helper",
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`proseVariants({ size: \"sm\" })` on an `<article>` — a Qeet People leave-policy preview inside a settings panel. Each size's string is already merged, so it can be applied on its own to an element that cannot be a `Prose` (a sanitised HTML container, a third-party editor's content node) without restating overrides.",
-      },
-    },
-  },
+const TONES: { tone: TextTone; text: string }[] = [
+  { tone: "default", text: "Priya Sharma signed in" },
+  { tone: "subtle", text: "2 minutes ago, Bengaluru" },
+  { tone: "subtlest", text: "Synced from Azure AD" },
+  { tone: "brand", text: "Passkey autofill is on" },
+  { tone: "success", text: "acme.in verified" },
+  { tone: "warning", text: "Signing key expires in 6 days" },
+  { tone: "danger", text: "PAN must have 10 characters" },
+  { tone: "info", text: "Invitations expire after 7 days" },
+];
+
+export const Tones: Story = {
   render: () => (
-    <div className="max-w-md rounded-(--qx-corner-surface) border border-border p-4">
-      <article className={proseVariants({ size: "sm" })}>
-        <h3>Earned leave</h3>
-        <p>
-          Employees accrue <strong>1.5 days</strong> of earned leave for every month worked, up to a
-          carry-forward limit of 45 days.
-        </p>
-        <ul>
-          <li>Accrual starts after the 90-day probation period.</li>
-          <li>Unused leave above the limit lapses on 31 March.</li>
-        </ul>
-      </article>
-    </div>
+    <Grid columns={2} gap="sm" align="center" style={{ inlineSize: 480 }}>
+      {TONES.map(({ tone, text }) => (
+        <Fragment key={tone}>
+          <Label>{tone}</Label>
+          <Text tone={tone}>{text}</Text>
+        </Fragment>
+      ))}
+      <Label>inverse</Label>
+      <Box background="inverse" paddingInline="sm" paddingBlock="xs" radius="control">
+        <Text tone="inverse">Viewing as Rahul Verma</Text>
+      </Box>
+    </Grid>
   ),
 };
 
-export const Truncate: Story = {
+const HEADING_SIZES: HeadingSize[] = [
+  "display-lg",
+  "display-md",
+  "display-sm",
+  "heading-lg",
+  "heading-md",
+  "heading-sm",
+  "title-lg",
+  "title-md",
+  "title-sm",
+];
+
+export const Headings: Story = {
   parameters: {
-    docs: {
-      description: {
-        story:
-          "`truncate` on a fixed-width column. `true` keeps a heading or a small label to one line; `truncate={2}` clamps a description to two. The clipped text is still in the DOM, so a screen reader reads all of it — pair a visual truncation with a way to see the full value when it matters.",
-      },
-    },
+    docs: { description: { story: "`level` sets the element; `size` sets the look." } },
   },
   render: () => (
-    <div className="flex w-72 flex-col gap-3">
-      <Typography variant="h4" truncate>
-        Acme Retail Private Limited — Bengaluru South warehouse
-      </Typography>
-      <Typography variant="muted" truncate={2}>
-        Webhook endpoint https://hooks.acme-retail.example/qeet/payments/v2/settlements failed three
-        consecutive deliveries and was paused by qeet-pay.
-      </Typography>
-      <Typography variant="small" truncate>
-        ses_9f3c2a71e04b4d8a7c11e0d2b5f6a903
-      </Typography>
-    </div>
+    <Stack gap="md">
+      {HEADING_SIZES.map((size) => (
+        <Stack key={size} gap="none">
+          <Label>{size}</Label>
+          <Heading level={2} size={size}>
+            Payments for Acme Pvt Ltd
+          </Heading>
+        </Stack>
+      ))}
+    </Stack>
   ),
+};
+
+export const Truncation: Story = {
+  render: () => (
+    <Stack gap="lg" style={{ inlineSize: 280 }}>
+      <Stack gap="xs">
+        <Label>One line</Label>
+        <Heading level={2} size="title-md" truncate>
+          Acme Retail Private Limited, Bengaluru South
+        </Heading>
+      </Stack>
+      <Stack gap="xs">
+        <Label>Two lines</Label>
+        <Text tone="subtle" truncate={2}>
+          The webhook https://hooks.acme.in/qeet/id/v2/users failed three deliveries in a row and
+          was paused.
+        </Text>
+      </Stack>
+    </Stack>
+  ),
+};
+
+export const LevelsInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: levels and sizes are independent",
+  render: () => (
+    <Stack gap="lg" style={{ inlineSize: 560 }}>
+      <Heading level={1} size="display-sm">
+        Good morning, Priya
+      </Heading>
+      <Card title="Sign-ins this week" level={2}>
+        <Heading level={3} size="title-sm" tone="subtle">
+          By method
+        </Heading>
+      </Card>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    const h1 = canvas.getByRole("heading", { level: 1, name: "Good morning, Priya" });
+    await expect(h1).toHaveAttribute("data-size", "display-sm");
+    await expect(
+      canvas.getByRole("heading", { level: 2, name: "Sign-ins this week" }),
+    ).toBeVisible();
+    const h3 = canvas.getByRole("heading", { level: 3, name: "By method" });
+    await expect(h3).toHaveAttribute("data-size", "title-sm");
+  },
+};
+
+export const DefaultSizesInteraction: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: each level has a default size",
+  render: () => (
+    <Stack gap="md">
+      <Heading level={1}>Users</Heading>
+      <Heading level={2}>Priya Sharma</Heading>
+      <Heading level={3}>Sign-in methods</Heading>
+      <Heading level={4}>Passkeys</Heading>
+      <Heading level={5}>MacBook Pro</Heading>
+      <Heading level={6}>Registered 14 March 2024</Heading>
+    </Stack>
+  ),
+  play: async ({ canvas }) => {
+    const sizes = canvas.getAllByRole("heading").map((h) => h.getAttribute("data-size"));
+    await expect(sizes).toEqual([
+      "heading-lg",
+      "heading-md",
+      "heading-sm",
+      "title-lg",
+      "title-md",
+      "title-sm",
+    ]);
+  },
 };

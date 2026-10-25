@@ -1,358 +1,179 @@
-import { CreditCardIcon, KeyRoundIcon, ShieldAlertIcon, UserPlusIcon } from "@qeetrix/icons";
+import { CircleCheckIcon } from "@qeetrix/icons/icons/circle-check";
+import { CircleXIcon } from "@qeetrix/icons/icons/circle-x";
+import { CreditCardIcon } from "@qeetrix/icons/icons/credit-card";
+import { FingerprintPatternIcon } from "@qeetrix/icons/icons/fingerprint-pattern";
+import { GlobeIcon } from "@qeetrix/icons/icons/globe";
+import { KeyRoundIcon } from "@qeetrix/icons/icons/key-round";
+import { LogInIcon } from "@qeetrix/icons/icons/log-in";
+import { ShieldAlertIcon } from "@qeetrix/icons/icons/shield-alert";
+import { SparklesIcon } from "@qeetrix/icons/icons/sparkles";
+import { TriangleAlertIcon } from "@qeetrix/icons/icons/triangle-alert";
+import { UserCogIcon } from "@qeetrix/icons/icons/user-cog";
+import { UserPlusIcon } from "@qeetrix/icons/icons/user-plus";
+import { Card, Grid, Stack, Text } from "@qeetrix/react";
 import {
   Timeline,
-  TimelineContent,
-  TimelineDescription,
-  TimelineHeader,
-  TimelineIndicator,
+  TimelineGroup,
   TimelineItem,
-  TimelineTime,
-  TimelineTitle,
-} from "@qeetrix/ui";
+  type TimelineProps,
+} from "@qeetrix/react/experimental";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { expect } from "storybook/test";
 import { qx } from "../../_contract";
+
+/** Priya Sharma's recent activity, as her Qeet ID user page shows it. */
+function Activity(props: TimelineProps) {
+  return (
+    <Timeline
+      aria-label="Recent activity"
+      {...props}
+      style={{ maxInlineSize: 420, ...props.style }}
+    >
+      <TimelineGroup label="Today">
+        <TimelineItem
+          icon={LogInIcon}
+          title="Signed in with a passkey"
+          description="Bengaluru, India · Chrome on macOS"
+          time="2 min ago"
+          dateTime="2026-10-25T09:28:00Z"
+        />
+        <TimelineItem
+          icon={CircleXIcon}
+          tone="danger"
+          title="Failed sign-in"
+          description="Wrong password · Mumbai, India"
+          time="09:12"
+          dateTime="2026-10-25T03:42:00Z"
+        />
+      </TimelineGroup>
+      <TimelineGroup label="Yesterday">
+        <TimelineItem
+          icon={FingerprintPatternIcon}
+          title="Added a passkey"
+          description="MacBook Pro · Touch ID"
+          time="18:40"
+          dateTime="2026-10-24T13:10:00Z"
+        />
+        <TimelineItem
+          icon={UserCogIcon}
+          title="Role changed to Admin"
+          description="By Rahul Verma"
+          time="11:05"
+          dateTime="2026-10-24T05:35:00Z"
+        />
+      </TimelineGroup>
+    </Timeline>
+  );
+}
 
 const meta: Meta<typeof Timeline> = {
   title: "Components/Data Display/Timeline",
   component: Timeline,
+  subcomponents: { TimelineGroup, TimelineItem },
   parameters: {
-    qeetrix: qx({ category: "data-display", status: "stable" }),
+    qeetrix: qx({ category: "data-display", status: "experimental" }),
     layout: "padded",
-    docs: {
-      description: {
-        component:
-          'A vertical event list for audit trails, activity feeds, and change histories. Each `TimelineItem` pairs an `TimelineIndicator` dot with a `TimelineContent` block that can hold a title, timestamp, and optional description. Items render in document order — newest-first is the recommended convention for audit logs.\n\nWrap `TimelineTitle` and `TimelineTime` in a `TimelineHeader` to put the time at the line\'s end; give `TimelineTime` a `dateTime` and it renders a `<time>` element. Events have three levels of hierarchy: `emphasis="minor"` on a `TimelineItem` for housekeeping noise, the default for meaningful events, and an `icon` on the `TimelineIndicator` for the ones that matter most. `tone` (`neutral` · `brand` · `info` · `success` · `warning` · `destructive`) colours the marker as a second channel only — the title still says what happened, and `label` adds screen-reader text when it does not. The marker rail is one box wide for dots, icons and custom children alike, so the connector stays centred.',
-      },
-    },
   },
-  tags: ["autodocs"],
+  args: {
+    variant: "default",
+  },
+  tags: ["autodocs", "experimental"],
 };
+
 export default meta;
 type Story = StoryObj<typeof Timeline>;
 
-export const Default: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A minimal three-event activity feed showing the kinds of actions tracked in a Qeet ID tenant: API key lifecycle, member management, and tenant provisioning. `TimelineDescription` is optional — omit it for terse events.",
-      },
-    },
-  },
-  render: () => (
-    <Timeline className="w-80">
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineTitle>API key revoked</TimelineTitle>
-          <TimelineTime>2 hours ago · by Ada</TimelineTime>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineTitle>Member invited</TimelineTitle>
-          <TimelineTime>Yesterday · by Grace</TimelineTime>
-          <TimelineDescription>alan@acme.com was invited with the Admin role.</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineTitle>Tenant created</TimelineTitle>
-          <TimelineTime>Mar 4 · by system</TimelineTime>
-        </TimelineContent>
-      </TimelineItem>
+export const Playground: Story = {
+  render: (args) => <Activity {...args} />,
+};
+
+/** Every tone, in both variants. */
+function Verification(props: TimelineProps) {
+  return (
+    <Timeline aria-label="Domain verification" {...props}>
+      <TimelineItem icon={KeyRoundIcon} title="Signing key rotated" time="10:04" />
+      <TimelineItem
+        icon={CircleCheckIcon}
+        tone="success"
+        title="Domain acme.in verified"
+        time="09:55"
+      />
+      <TimelineItem icon={GlobeIcon} tone="info" title="TXT record found" time="09:50" />
+      <TimelineItem
+        icon={TriangleAlertIcon}
+        tone="warning"
+        title="Signing key expires soon"
+        time="09:30"
+      />
+      <TimelineItem icon={ShieldAlertIcon} tone="danger" title="Sign-in blocked" time="09:20" />
+      <TimelineItem icon={SparklesIcon} tone="brand" title="Upgraded to Qeet Pro" time="09:02" />
     </Timeline>
+  );
+}
+
+export const Variants: Story = {
+  render: () => (
+    <Grid columns={2} gap="xl" style={{ inlineSize: 720 }}>
+      <Stack gap="md">
+        <Text size="sm" tone="subtle">
+          Default
+        </Text>
+        <Verification />
+      </Stack>
+      <Stack gap="md">
+        <Text size="sm" tone="subtle">
+          Compact
+        </Text>
+        <Verification variant="compact" aria-label="Domain verification, compact" />
+      </Stack>
+    </Grid>
   ),
 };
 
-export const AuditLog: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "A fuller Qeet ID tenant audit trail demonstrating five distinct event types — passkey lifecycle, SAML federation, bulk member actions, webhook configuration, and tenant provisioning. Use `TimelineDescription` to surface key metadata (device, provider, reason, URL) inline without needing a detail drawer for common cases.",
-      },
-    },
-  },
+export const InContext: Story = {
+  name: "In context",
   render: () => (
-    <Timeline className="w-96">
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineTitle>Passkey registered</TimelineTitle>
-          <TimelineTime>5 min ago · by ada@acme.com</TimelineTime>
-          <TimelineDescription>Device: iPhone 15 Pro</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineTitle>SAML connection enabled</TimelineTitle>
-          <TimelineTime>1h ago · by alan@acme.com</TimelineTime>
-          <TimelineDescription>Provider: Okta</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineTitle>2 members suspended</TimelineTitle>
-          <TimelineTime>3h ago · by system</TimelineTime>
-          <TimelineDescription>Reason: failed login threshold exceeded</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineTitle>Webhook endpoint added</TimelineTitle>
-          <TimelineTime>2 days ago · by grace@acme.com</TimelineTime>
-          <TimelineDescription>URL: https://hooks.acme.com/qeet</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineTitle>Organization created</TimelineTitle>
-          <TimelineTime>Mar 4 · by system</TimelineTime>
-        </TimelineContent>
-      </TimelineItem>
-    </Timeline>
+    <div style={{ inlineSize: 420 }}>
+      <Card title="Payout history" level={2}>
+        <Timeline aria-label="Payout history">
+          <TimelineItem
+            icon={CircleCheckIcon}
+            tone="success"
+            title="₹4,82,000 settled"
+            description="HDFC Bank ••4421"
+            time="5 min ago"
+            dateTime="2026-10-25T09:25:00Z"
+          />
+          <TimelineItem
+            icon={CreditCardIcon}
+            title="Payout initiated"
+            description="Weekly settlement"
+            time="32 min ago"
+            dateTime="2026-10-25T08:58:00Z"
+          />
+          <TimelineItem
+            icon={UserPlusIcon}
+            title="Bank account added"
+            description="By Ananya Iyer"
+            time="Yesterday"
+            dateTime="2026-10-24T10:00:00Z"
+          />
+        </Timeline>
+      </Card>
+    </div>
   ),
 };
 
-export const WithHeader: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "`TimelineHeader` lays the title at the start and the time at the end of one line, wrapping to two lines in a narrow panel rather than truncating either. `TimelineTime` with `dateTime` renders `<time datetime>`, so a relative label (“5 min ago”) keeps an exact instant behind it.",
-      },
-    },
+export const OrderedByDay: Story = {
+  tags: ["!dev", "!autodocs"],
+  name: "Interaction: an ordered list, grouped by day",
+  render: () => <Activity />,
+  play: async ({ canvas, canvasElement }) => {
+    const list = canvas.getByRole("list", { name: "Recent activity" });
+    await expect(list.tagName).toBe("OL");
+    await expect(canvas.getByText("Today")).toBeVisible();
+    const time = canvasElement.querySelector("time");
+    await expect(time).toHaveAttribute("datetime", "2026-10-25T09:28:00Z");
+    await expect(time).toHaveTextContent("2 min ago");
   },
-  render: () => (
-    <Timeline className="w-96">
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Payout of ₹4,82,000 settled</TimelineTitle>
-            <TimelineTime dateTime="2026-08-18T09:42:00+05:30">5 min ago</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>HDFC Bank ••4421 · UTR HDFCN52026081812345</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Payout initiated</TimelineTitle>
-            <TimelineTime dateTime="2026-08-18T09:15:00+05:30">32 min ago</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>Weekly settlement for Acme Retail Pvt Ltd</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Settlement batch closed</TimelineTitle>
-            <TimelineTime dateTime="2026-08-17T23:59:00+05:30">Yesterday</TimelineTime>
-          </TimelineHeader>
-        </TimelineContent>
-      </TimelineItem>
-    </Timeline>
-  ),
-};
-
-export const Tones: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "Every `tone` on a default dot. `neutral` is the default because most history is routine — a stream where every dot is Qeet orange has nothing left to say “this one matters”. `danger` is still accepted as a deprecated alias of `destructive`.",
-      },
-    },
-  },
-  render: () => (
-    <Timeline className="w-96">
-      <TimelineItem>
-        <TimelineIndicator tone="neutral" />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Profile updated</TimelineTitle>
-            <TimelineTime>09:41</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>neutral — routine history</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator tone="brand" />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Upgraded to Qeet ID Enterprise</TimelineTitle>
-            <TimelineTime>09:30</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>brand — a Qeet milestone</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator tone="info" />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>SCIM sync started</TimelineTitle>
-            <TimelineTime>09:12</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>info — in progress</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator tone="success" />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Domain acme.com verified</TimelineTitle>
-            <TimelineTime>08:55</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>success — a check passed</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator tone="warning" />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Signing key expires in 7 days</TimelineTitle>
-            <TimelineTime>08:00</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>warning — needs attention soon</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator tone="destructive" />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Webhook delivery failed</TimelineTitle>
-            <TimelineTime>07:48</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>destructive — something went wrong</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-    </Timeline>
-  ),
-};
-
-export const IconMarkers: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          "An `icon` puts a glyph in an opaque, tinted circular marker — the strongest level, for the events a reviewer is scanning for. The icon is decorative; where the title does not already state the outcome, `label` gives the marker screen-reader text (“Failed”).",
-      },
-    },
-  },
-  render: () => (
-    <Timeline className="w-96">
-      <TimelineItem>
-        <TimelineIndicator tone="destructive" icon={<CreditCardIcon />} label="Failed" />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Card payment for INV-2026-0418</TimelineTitle>
-            <TimelineTime dateTime="2026-08-18T10:04:00+05:30">10:04</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>Issuer declined · insufficient funds · ₹18,400</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator tone="warning" icon={<ShieldAlertIcon />} />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Sign-in blocked from a new country</TimelineTitle>
-            <TimelineTime dateTime="2026-08-18T09:20:00+05:30">09:20</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>grace@acme.com · Frankfurt, DE · risk score 82</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator tone="success" icon={<KeyRoundIcon />} />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Passkey added</TimelineTitle>
-            <TimelineTime dateTime="2026-08-18T08:47:00+05:30">08:47</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>ada@acme.com · iPhone 15 Pro</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator tone="brand" icon={<UserPlusIcon />} />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Alan Turing joined Engineering</TimelineTitle>
-            <TimelineTime dateTime="2026-08-17T10:00:00+05:30">Yesterday</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>Qeet People onboarding complete</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-    </Timeline>
-  ),
-};
-
-export const Emphasis: Story = {
-  parameters: {
-    docs: {
-      description: {
-        story:
-          '`emphasis="minor"` for system and housekeeping events: a small marker, muted text and a tighter rhythm, so a run of them reads as one quiet block between the events that matter. A minor marker never takes its tone\'s colour.',
-      },
-    },
-  },
-  render: () => (
-    <Timeline className="w-96">
-      <TimelineItem>
-        <TimelineIndicator tone="success" icon={<KeyRoundIcon />} />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>SAML connection enabled</TimelineTitle>
-            <TimelineTime>11:02</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>Provider: Okta · 214 members can now sign in</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem emphasis="minor">
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Attribute mapping saved</TimelineTitle>
-            <TimelineTime>10:58</TimelineTime>
-          </TimelineHeader>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem emphasis="minor">
-        <TimelineIndicator tone="info" />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Metadata refreshed by system</TimelineTitle>
-            <TimelineTime>10:57</TimelineTime>
-          </TimelineHeader>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem emphasis="minor">
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>Connection renamed to “Okta (prod)”</TimelineTitle>
-            <TimelineTime>10:51</TimelineTime>
-          </TimelineHeader>
-        </TimelineContent>
-      </TimelineItem>
-      <TimelineItem>
-        <TimelineIndicator />
-        <TimelineContent>
-          <TimelineHeader>
-            <TimelineTitle>SAML connection created</TimelineTitle>
-            <TimelineTime>10:44</TimelineTime>
-          </TimelineHeader>
-          <TimelineDescription>by alan@acme.com</TimelineDescription>
-        </TimelineContent>
-      </TimelineItem>
-    </Timeline>
-  ),
 };
