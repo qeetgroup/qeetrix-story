@@ -441,6 +441,7 @@
 }
 
 .qx-welcome-card {
+  position: relative;
   display: grid;
   grid-template-rows: auto 1fr;
   overflow: hidden;
@@ -453,7 +454,7 @@
     transform var(--qx-motion-duration-normal) var(--qx-motion-easing-standard);
 }
 
-.qx-welcome-card:hover {
+.qx-welcome-card:has(.qx-welcome-card-link:hover) {
   border-color: var(--qx-color-border-default);
   box-shadow: var(--qx-shadow-raised-hover);
   transform: translateY(-2px);
@@ -502,13 +503,29 @@
     color var(--qx-motion-duration-fast) var(--qx-motion-easing-standard);
 }
 
-.qx-welcome-card:hover .qx-welcome-card-arrow {
+.qx-welcome-card:has(.qx-welcome-card-link:hover) .qx-welcome-card-arrow {
   color: var(--qx-color-icon-brand);
   transform: translateX(3px);
 }
 
-[dir="rtl"] .qx-welcome-card:hover .qx-welcome-card-arrow {
+[dir="rtl"] .qx-welcome-card:has(.qx-welcome-card-link:hover) .qx-welcome-card-arrow {
   transform: translateX(-3px) scaleX(-1);
+}
+
+/* The title's link covers the card; the focus ring goes on the card. */
+.qx-welcome a.qx-welcome-card-link {
+  outline: none;
+}
+
+.qx-welcome-card-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.qx-welcome-card:has(.qx-welcome-card-link:focus-visible) {
+  outline: var(--qx-focus-ring-width) solid var(--qx-color-border-focus);
+  outline-offset: var(--qx-focus-ring-offset);
 }
 
 /* Card art: each a small picture of where the card goes. */

@@ -305,6 +305,9 @@
   padding: 0.625rem 0.875rem;
   text-align: start;
   vertical-align: top;
+  /* Token names and media queries read left to right in every direction. */
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 .qx-ftable thead th {
@@ -365,8 +368,7 @@
 .qx-swatch-var,
 .qx-swatch-value,
 .qx-ramp-hex,
-.qx-specimen-row-numbers,
-.qx-ftable :is(th, td) {
+.qx-specimen-row-numbers {
   direction: ltr;
   unicode-bidi: isolate;
 }

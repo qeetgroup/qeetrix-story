@@ -354,7 +354,8 @@ export const ItemsInteraction: Story = {
       "aria-checked",
       "false",
     );
-    await expect(menu).toBeVisible();
+    // Still open after choosing: polled, since the popup may be mid-transition on a slow runner.
+    await waitFor(() => expect(menu).toBeVisible());
   },
 };
 

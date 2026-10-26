@@ -79,17 +79,21 @@ function Tile({ entry }: { entry: Entry }) {
       </div>
       <div className="qx-overview-meta">
         <Heading level={3} size="title-sm" truncate>
-          {family.name}
+          {href ? (
+            // The name is the link; its ::after stretches over the tile, so the whole tile is
+            // clickable without wrapping the preview's own links and buttons in another link.
+            <a className="qx-overview-link" href={href} target="_top">
+              {family.name}
+            </a>
+          ) : (
+            family.name
+          )}
         </Heading>
         <ArrowRightIcon size={16} className="qx-overview-arrow" aria-hidden />
       </div>
     </>
   );
-  return href ? (
-    <a className="qx-overview-tile" href={href} target="_top" data-family={family.name}>
-      {body}
-    </a>
-  ) : (
+  return (
     <div className="qx-overview-tile" data-family={family.name}>
       {body}
     </div>
