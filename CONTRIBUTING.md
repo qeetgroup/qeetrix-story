@@ -48,6 +48,9 @@ Only these exist. Do not assume a script that isn't in `package.json`.
 Every command above passes. `lint` may print warnings for `!important` and selector order in
 `.storybook/styles.css`, which restyles Storybook's own chrome; warnings do not fail it.
 
+**Branches:** Work on a branch from `develop` and open its pull request into `develop`. Only `develop` goes into `main`, through
+a `develop` → `main` pull request the maintainer opens; `main` refuses anything else.
+
 **CI** runs lint · typecheck · `verify:stories` · `test` · `build` on every push to `develop` and
 every PR into it, and a merge to `main` deploys — [`docs/testing.md`](./docs/testing.md#in-ci) describes
 all four workflows. They build from this repository alone, against the `@qeetrix/react`
