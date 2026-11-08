@@ -143,8 +143,8 @@ The workflows are the same four as `qeetrix-react`, `qeetrix-icons` and `qeetrix
 
 | Workflow | Runs on | Does |
 | --- | --- | --- |
-| `ci.yml` | every PR, push to `main` | the gates below |
-| `version.yml` | PR into `main` | bumps the patch version on the PR branch, unless it is already raised |
+| `ci.yml` | every push to `develop`, every PR into it | the gates below |
+| `version.yml` | PR into `main` | checks the version is above `main`'s (raise it on `develop`) |
 | `release.yml` | push to `main` | gates, builds and deploys Storybook to Vercel production, then tags `vX.Y.Z` |
 | `rollback.yml` | manual, with a tag | redeploys exactly the commit a release tag names |
 

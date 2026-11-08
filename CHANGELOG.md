@@ -1,6 +1,21 @@
 # @qeetrix/stories
 
-## Unreleased
+## 0.0.14
+
+The workshop moves to **`@qeetrix/react` 0.5.1**, **`@qeetrix/tokens` 0.0.15** and **`@qeetrix/icons`
+2.1.2**.
+
+- **PictureChoice** has a page: avatars, colour swatches, the two sizes, an unavailable option and
+  right to left, with interaction tests for choosing with the arrow keys and for every option's
+  name. Its Overview tile keeps every export with one.
+- **Input's Playground** has a `size` control: `lg` is the one field of a sign-in or sign-up step.
+- **ToggleGroup** has a Full width example, and **AvatarItem** a Status one.
+- **Welcome's New in** shows 0.5's: pictures to choose from, a large field for one value and
+  full-width toggles. Its heading names the minor line ("New in 0.5").
+- **Versions are raised on develop.** The Version workflow checks a develop → main pull request
+  instead of committing a bump.
+
+## 0.0.13
 
 The workshop moves from `@qeetrix/ui` to **`@qeetrix/react` 0.4.0**, **`@qeetrix/tokens`
 0.0.13** and **`@qeetrix/icons` 2.1.0**, and every page is rebuilt to a premium, enterprise standard.

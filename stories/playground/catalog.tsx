@@ -122,6 +122,8 @@ import {
   PageHeader,
   Pagination,
   PasswordInput,
+  PictureChoice,
+  PictureChoiceGroup,
   ProportionalCircles,
   ProviderButton,
   ProviderButtonGroup,
@@ -914,6 +916,16 @@ export const PREVIEWS: Record<string, Preview> = {
         <Chip value="active">Active</Chip>
         <Chip value="invited">Invited</Chip>
       </ChipGroup>
+    ),
+  },
+  PictureChoice: {
+    width: 240,
+    render: () => (
+      <PictureChoiceGroup aria-label="Background" shape="square" defaultValue="teal">
+        <PictureChoice value="teal" label="Teal" color="#0f766e" />
+        <PictureChoice value="sand" label="Sand" color="#e7d8b9" />
+        <PictureChoice value="plum" label="Plum" color="#6b2d5c" />
+      </PictureChoiceGroup>
     ),
   },
   Form: {

@@ -75,7 +75,7 @@ fails a story whose tag and status disagree.
 `internal` sits outside that flow: shipped and supported, but not part of the public API
 contract — consumers should not reach for it directly.
 
-`bun run verify:stories` prints the live count per status. With `@qeetrix/react` 0.4.0,
+`bun run verify:stories` prints the live count per status. With `@qeetrix/react` 0.5,
 the root families are `stable` and the `experimental` channel's are `experimental`.
 
 ## What `verify:stories` enforces vs reports

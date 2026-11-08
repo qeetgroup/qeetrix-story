@@ -1,7 +1,6 @@
 name: CI
 
-# Gates every PR and every push to main — the same triggers as qeetrix-react's,
-# qeetrix-icons' and qeetrix-docs' CI.
+# Runs on develop only, every push to it and every PR into it, as every Qeetrix repository's CI does.
 #
 # The workshop renders the PUBLISHED @qeetrix/react and @qeetrix/tokens that bun.lock
 # installs, exactly as a Qeet product does: no sibling checkout, no source aliases.
@@ -13,10 +12,14 @@ name: CI
 # run reports the state of all of them. The job still fails overall.
 
 on:
+  # On develop only: every push to it, and every pull request into it (Dependabot's). A develop → main pull request
+  # is checked by develop's run on the same commit, and main isn't checked again after the merge: main requires
+  # this check on an up-to-date branch, so what's merged is exactly what passed here.
   push:
-    branches: [main]
+    branches: [develop]
   pull_request:
-  # The Version workflow starts it on the commit it bumps, which GitHub holds as a pull_request run.
+    branches: [develop]
+  # By hand, on any branch.
   workflow_dispatch:
 
 concurrency:

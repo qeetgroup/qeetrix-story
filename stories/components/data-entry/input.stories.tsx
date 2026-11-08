@@ -11,11 +11,21 @@ const meta: Meta<typeof Input> = {
   parameters: {
     qeetrix: qx({ category: "data-entry", status: "stable" }),
     layout: "centered",
+    docs: {
+      description: {
+        component:
+          "A text field's box. `size` `md` is the shared field height; `lg` is for the one value a sign-in or sign-up step asks for, such as a phone number or a name: taller, the value in title type with tabular figures. Use `lg` for that step's one field only.",
+      },
+    },
   },
   args: {
     type: "email",
     placeholder: "e.g. priya@acme.in",
+    size: "md",
     onValueChange: fn(),
+  },
+  argTypes: {
+    size: { control: "inline-radio", options: ["md", "lg"] },
   },
   // An Input lives in a Field, which gives it its label, description and error.
   render: (args) => (

@@ -43,6 +43,28 @@ export const Sizes: Story = {
   ),
 };
 
+export const Status: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A `status` puts its dot on the avatar and its words with the name: "Priya Sharma, Online". The visible name is unchanged.',
+      },
+    },
+  },
+  render: (args) => (
+    <Stack gap="md">
+      <AvatarItem {...args} status={{ label: "Online", tone: "success" }} />
+      <AvatarItem
+        {...args}
+        name="Rahul Verma"
+        description="rahul@acme.in"
+        status={{ label: "Away", tone: "warning" }}
+      />
+    </Stack>
+  ),
+};
+
 export const Shapes: Story = {
   render: (args) => (
     <Inline gap="xl">
