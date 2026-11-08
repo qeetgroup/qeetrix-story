@@ -1,5 +1,5 @@
 import { Badge, Card, QeetrixProvider, Stack, Table, type TableColumn, Text } from "@qeetrix/react";
-import { Pagination, type PaginationProps } from "@qeetrix/react/experimental";
+import { type OffsetPaginationProps, Pagination } from "@qeetrix/react/experimental";
 import { hi } from "@qeetrix/react/locales/hi";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { useState } from "react";
@@ -32,7 +32,7 @@ type Story = StoryObj<typeof Pagination>;
 
 export const Playground: Story = {};
 
-const STATES: { label: string; props: Partial<PaginationProps> }[] = [
+const STATES: { label: string; props: Partial<OffsetPaginationProps> }[] = [
   { label: "First page", props: { offset: 0 } },
   { label: "Loading", props: { loading: true } },
   { label: "Empty", props: { offset: 0, total: 0 } },
@@ -47,7 +47,11 @@ export const States: Story = {
             {label}
           </Text>
           {/* Each bar is a navigation landmark: give each its own name. */}
-          <Pagination {...args} {...props} messages={{ label: `Pagination, ${label}` }} />
+          <Pagination
+            {...(args as OffsetPaginationProps)}
+            {...props}
+            messages={{ label: `Pagination, ${label}` }}
+          />
         </Stack>
       ))}
     </Stack>
