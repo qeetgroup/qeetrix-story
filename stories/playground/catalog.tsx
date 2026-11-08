@@ -46,6 +46,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+  PortalContainer,
   Progress,
   QeetrixProvider,
   Radio,
@@ -79,13 +80,27 @@ import {
   AppShell,
   AvatarGroup,
   AvatarItem,
+  BarList,
   Breadcrumb,
   BreadcrumbItem,
   Calendar,
+  ChartLegend,
+  ChartTooltip,
+  CheckItem,
+  CheckList,
+  Chip,
+  ChipGroup,
   CodeBlock,
+  CodeField,
+  ColorField,
+  ColorSwatchGroup,
+  ColumnChart,
   Combobox,
   CommandPalette,
+  Composer,
+  Conversation,
   CopyButton,
+  CopyField,
   DataState,
   DatePicker,
   DateRangePicker,
@@ -95,28 +110,55 @@ import {
   ErrorSummary,
   FileUpload,
   FilterTags,
+  FloatingPanel,
   Form,
+  GraphCanvas,
+  InstructionList,
+  InstructionStep,
+  Kbd,
+  MultiEmailField,
   NumberField,
   OTPInput,
   PageHeader,
   Pagination,
   PasswordInput,
+  ProportionalCircles,
+  ProviderButton,
+  ProviderButtonGroup,
   QRCode,
   RangeCalendar,
+  RelativeTime,
   SearchField,
+  ShareBar,
+  ShowMore,
   Sidebar,
   SidebarGroup,
   SidebarItem,
+  SiteHeader,
+  SiteNav,
+  SiteNavItem,
+  SpanChart,
+  Sparkline,
   Stat,
+  StateRuler,
+  StateRulerItem,
   StatGroup,
   Steps,
+  ThemeSwitcher,
   Timeline,
   TimelineGroup,
   TimelineItem,
+  Toolbar,
+  ToolbarButton,
   TopBar,
   TopBarSearch,
   TopBarSwitcher,
+  Treemap,
   TreeView,
+  Turn,
+  Workspace,
+  WorkspaceMain,
+  WorkspacePane,
 } from "@qeetrix/react/experimental";
 import { hi } from "@qeetrix/react/locales/hi";
 import type { ReactNode } from "react";
@@ -706,6 +748,16 @@ export const PREVIEWS: Record<string, Preview> = {
     ),
   },
 
+  PortalContainer: {
+    width: 240,
+    render: () => (
+      <PortalContainer container={null}>
+        <Text size="sm" tone="subtle">
+          Menus, popovers and dialogs open inside the container it names.
+        </Text>
+      </PortalContainer>
+    ),
+  },
   /* Experimental */
   Alert: {
     width: 250,
@@ -855,6 +907,15 @@ export const PREVIEWS: Record<string, Preview> = {
       />
     ),
   },
+  Chip: {
+    width: 280,
+    render: () => (
+      <ChipGroup label="Status" multiple defaultValue={["active"]}>
+        <Chip value="active">Active</Chip>
+        <Chip value="invited">Invited</Chip>
+      </ChipGroup>
+    ),
+  },
   Form: {
     zoom: 0.85,
     width: 300,
@@ -979,6 +1040,356 @@ export const PREVIEWS: Record<string, Preview> = {
           },
         ]}
       />
+    ),
+  },
+  BarList: {
+    width: 260,
+    render: () => (
+      <BarList
+        aria-label="Sign-ins by method"
+        items={[
+          { id: "passkey", label: "Passkey", value: 812 },
+          { id: "otp", label: "One-time code", value: 356 },
+          { id: "password", label: "Password", value: 116 },
+        ]}
+      />
+    ),
+  },
+  ChartLegend: {
+    width: 240,
+    render: () => (
+      <ChartLegend
+        items={[
+          { label: "Successful", tone: "data" },
+          { label: "Failed", tone: "negative" },
+        ]}
+      />
+    ),
+  },
+  ChartTooltip: {
+    width: 200,
+    render: () => (
+      <ChartTooltip
+        title="12 Nov"
+        items={[
+          { label: "Successful", value: "1,204", tone: "data" },
+          { label: "Failed", value: "38", tone: "negative" },
+        ]}
+      />
+    ),
+  },
+  CheckItem: {
+    width: 280,
+    render: () => (
+      <CheckList>
+        <CheckItem title="Signing certificate" status="running" detail="Checking the expiry date" />
+      </CheckList>
+    ),
+  },
+  CheckList: {
+    width: 280,
+    render: () => (
+      <CheckList>
+        <CheckItem title="Metadata URL reachable" status="passed" />
+        <CheckItem title="Signing certificate" status="failed" detail="Expired on 2 Nov 2026" />
+      </CheckList>
+    ),
+  },
+  CodeField: {
+    width: 280,
+    render: () => (
+      <CodeField
+        aria-label="Request body"
+        language="json"
+        rows={3}
+        defaultValue={'{\n  "email": "priya@acme.in"\n}'}
+      />
+    ),
+  },
+  ColorField: {
+    width: 260,
+    render: () => <ColorField aria-label="Brand colour" defaultValue="#f26d0e" />,
+  },
+  ColorSwatchGroup: {
+    width: 220,
+    render: () => (
+      <ColorSwatchGroup
+        aria-label="Accent"
+        defaultValue="ember"
+        options={[
+          { value: "ember", label: "Ember", color: "#f26d0e" },
+          { value: "teal", label: "Teal", color: "#0f766e" },
+          { value: "indigo", label: "Indigo", color: "#4338ca" },
+        ]}
+      />
+    ),
+  },
+  ColumnChart: {
+    width: 280,
+    render: () => (
+      <ColumnChart
+        label="Sign-ins a day"
+        height={96}
+        series={[
+          { label: "Successful", tone: "data" },
+          { label: "Failed", tone: "negative" },
+        ]}
+        columns={[
+          { id: "mon", label: "Mon", values: [120, 4] },
+          { id: "tue", label: "Tue", values: [148, 9] },
+          { id: "wed", label: "Wed", values: [131, 2] },
+          { id: "thu", label: "Thu", values: [162, 6] },
+          { id: "fri", label: "Fri", values: [139, 3] },
+        ]}
+      />
+    ),
+  },
+  Composer: {
+    width: 300,
+    render: () => <Composer onSend={() => {}} placeholder="Ask about this tenant" />,
+  },
+  Conversation: {
+    width: 320,
+    render: () => (
+      <Conversation>
+        <Turn speaker="user">Who signed in from a new device today?</Turn>
+        <Turn speaker="assistant" speakerName="Qeet AI">
+          Two people: Priya Sharma and Rahul Verma.
+        </Turn>
+      </Conversation>
+    ),
+  },
+  CopyField: {
+    width: 260,
+    render: () => <CopyField label="Client ID" value="qid_7f3k29d1" />,
+  },
+  FloatingPanel: {
+    width: 300,
+    render: () => (
+      // A fixed panel; the box contains it, so it stays in the tile.
+      <div style={{ position: "relative", contain: "layout paint", blockSize: 160 }}>
+        <FloatingPanel
+          title="Icon details"
+          defaultOpen
+          defaultPlace={{ start: 0, top: 0, width: 280, height: 150 }}
+        >
+          <Text size="sm">arrow-right · sharp, 16px</Text>
+        </FloatingPanel>
+      </div>
+    ),
+  },
+  GraphCanvas: {
+    zoom: 0.6,
+    width: 420,
+    height: 260,
+    render: () => (
+      <GraphCanvas
+        aria-label="Who reaches Billing"
+        nodes={[
+          { id: "billing", label: "Billing" },
+          { id: "finance", label: "Finance", parent: "billing", relation: "has access" },
+          { id: "priya", label: "Priya Sharma", parent: "finance", relation: "member of" },
+        ]}
+      />
+    ),
+  },
+  InstructionList: {
+    width: 280,
+    render: () => (
+      <InstructionList>
+        <InstructionStep title="Copy the metadata URL">Paste it into Okta.</InstructionStep>
+        <InstructionStep title="Assign people">Only they can sign in.</InstructionStep>
+      </InstructionList>
+    ),
+  },
+  InstructionStep: {
+    width: 280,
+    render: () => (
+      <InstructionList>
+        <InstructionStep title="Add this record" value="TXT qeet-verify=7f3k29">
+          At your DNS provider.
+        </InstructionStep>
+      </InstructionList>
+    ),
+  },
+  Kbd: {
+    width: 160,
+    render: () => <Kbd keys="Mod+K" />,
+  },
+  MultiEmailField: {
+    width: 280,
+    render: () => (
+      <MultiEmailField
+        aria-label="Invite people"
+        defaultValue={["priya@acme.in", "rahul@acme.in"]}
+      />
+    ),
+  },
+  ProportionalCircles: {
+    width: 280,
+    render: () => (
+      <ProportionalCircles
+        groups={[
+          {
+            id: "roles",
+            label: "Roles",
+            items: [
+              { id: "owner", label: "Owner", value: 3 },
+              { id: "admin", label: "Admin", value: 12 },
+              { id: "member", label: "Member", value: 240 },
+            ],
+          },
+        ]}
+      />
+    ),
+  },
+  ProviderButton: {
+    width: 280,
+    render: () => (
+      <ProviderButtonGroup aria-label="Sign in with">
+        <ProviderButton aria-label="Sign in with Google">Google</ProviderButton>
+        <ProviderButton aria-label="Sign in with Microsoft">Microsoft</ProviderButton>
+      </ProviderButtonGroup>
+    ),
+  },
+  RelativeTime: {
+    width: 180,
+    render: () => (
+      <RelativeTime
+        date="2026-11-08T09:58:00Z"
+        now={Date.parse("2026-11-08T10:00:00Z")}
+        live={false}
+      />
+    ),
+  },
+  ShareBar: {
+    width: 280,
+    render: () => (
+      <ShareBar
+        label="Users by status"
+        legend
+        parts={[
+          { id: "active", label: "Active", value: 1012, tone: "data" },
+          { id: "invited", label: "Invited", value: 184, tone: "warning" },
+          { id: "suspended", label: "Suspended", value: 88, tone: "negative" },
+        ]}
+      />
+    ),
+  },
+  ShowMore: {
+    width: 240,
+    render: () => <ShowMore hasMore onMore={() => {}} />,
+  },
+  SiteHeader: {
+    zoom: 0.35,
+    width: 900,
+    render: () => (
+      <SiteHeader
+        brand={<Text weight="semibold">Qeet</Text>}
+        navigation={
+          <SiteNav aria-label="Sections">
+            <SiteNavItem label="Products" href="#products" />
+            <SiteNavItem label="Pricing" href="#pricing" />
+          </SiteNav>
+        }
+        action={<Button size="sm">Get started</Button>}
+      />
+    ),
+  },
+  SiteNav: {
+    width: 260,
+    render: () => (
+      <SiteNav aria-label="Sections">
+        <SiteNavItem label="Products" href="#products" current />
+        <SiteNavItem label="Docs" href="#docs" />
+      </SiteNav>
+    ),
+  },
+  SpanChart: {
+    width: 300,
+    render: () => (
+      <SpanChart
+        aria-label="Sessions over the last week"
+        from={Date.parse("2026-11-01T00:00:00Z")}
+        to={Date.parse("2026-11-08T00:00:00Z")}
+        rows={[
+          {
+            id: "mac",
+            label: "MacBook",
+            start: Date.parse("2026-11-02T00:00:00Z"),
+            end: Date.parse("2026-11-07T00:00:00Z"),
+            description: "2 to 7 Nov",
+          },
+          {
+            id: "phone",
+            label: "Pixel 9",
+            start: Date.parse("2026-11-05T00:00:00Z"),
+            end: Date.parse("2026-11-08T00:00:00Z"),
+            description: "5 to 8 Nov",
+          },
+        ]}
+      />
+    ),
+  },
+  Sparkline: {
+    width: 200,
+    render: () => <Sparkline values={NOW_TREND} />,
+  },
+  StateRuler: {
+    width: 320,
+    render: () => (
+      <StateRuler aria-label="Connection states">
+        <StateRulerItem label="Draft" description="Not used to sign in" />
+        <StateRulerItem label="On" description="Signs people in" current />
+        <StateRulerItem label="Off" description="Kept, not used" />
+      </StateRuler>
+    ),
+  },
+  ThemeSwitcher: {
+    width: 240,
+    render: () => <ThemeSwitcher variant="segmented" defaultValue="system" />,
+  },
+  Toolbar: {
+    width: 300,
+    render: () => (
+      <Toolbar aria-label="Icons" start={<Text size="sm">3 selected</Text>}>
+        <ToolbarButton variant="ghost">Export</ToolbarButton>
+      </Toolbar>
+    ),
+  },
+  Treemap: {
+    width: 280,
+    render: () => (
+      <Treemap
+        aria-label="Users by department"
+        nodes={[
+          { id: "eng", label: "Engineering", value: 420 },
+          { id: "fin", label: "Finance", value: 180 },
+          { id: "ops", label: "Operations", value: 120 },
+        ]}
+      />
+    ),
+  },
+  Turn: {
+    width: 300,
+    render: () => (
+      <Turn speaker="assistant" speakerName="Qeet AI">
+        Three people have no passkey yet.
+      </Turn>
+    ),
+  },
+  Workspace: {
+    zoom: 0.5,
+    width: 560,
+    render: () => (
+      <Workspace layout="list-main" style={{ blockSize: 200 }}>
+        <WorkspacePane side="list" label="Icons">
+          <Text size="sm">arrow-right</Text>
+        </WorkspacePane>
+        <WorkspaceMain aria-label="Preview">
+          <Text size="sm">The chosen icon, at every size.</Text>
+        </WorkspaceMain>
+      </Workspace>
     ),
   },
 };

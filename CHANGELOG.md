@@ -2,15 +2,29 @@
 
 ## Unreleased
 
-The workshop moves from `@qeetrix/ui` to **`@qeetrix/react` 0.1.0** and **`@qeetrix/tokens`
-0.0.8**, and every page is rebuilt to a premium, enterprise standard.
+The workshop moves from `@qeetrix/ui` to **`@qeetrix/react` 0.4.0**, **`@qeetrix/tokens`
+0.0.13** and **`@qeetrix/icons` 2.1.0**, and every page is rebuilt to a premium, enterprise standard.
+
+### From 0.1.0 to 0.4.0
+
+- **Chip and ChipGroup** have a page: selectable, removable, one value, several, the three sizes,
+  right to left and Hindi, with interaction tests for turning a chip on and off, moving a one-value
+  choice with the arrow keys, and removing one. ui.qeet.in's Chip page links to it.
+- **Components › Overview** has a preview for each of the 34 families 0.2 to 0.4 added (the charts,
+  CheckList, CopyField, Kbd, ThemeSwitcher, the conversation and workspace parts and the rest), so
+  every export has its tile.
+- **Welcome's New in** shows 0.4.0's: chips, a status on avatars and filled icons on the selected tab.
+- **Menu's View example** keeps its column and sort choices in state and stays open while they
+  change, as 0.2's radio items close the menu by default.
+- **Pagination's states** use its offset props, now one of two prop shapes (offset or cursor).
 
 ### Major changes
 
 - **Renders the published packages.** `@qeetrix/react` and `@qeetrix/tokens` install from npm.
   There's no sibling checkout, so CI, the release workflow and Vercel all build from the registry.
-- **Only what `@qeetrix/react` ships.** 75 component families (42 stable, 33 experimental), one
-  page each. Stories for `@qeetrix/ui` components with no successor are deleted.
+- **Only what `@qeetrix/react` ships.** 110 component families (43 stable, 67 experimental), each
+  with a tile on the Overview; 76 have a page of their own (0.1.0's 75, and Chip). Stories for
+  `@qeetrix/ui` components with no successor are deleted.
 - **Props tables from the type declarations.** `scripts/docgen.mjs` reads the package's `.d.ts`
   into `.storybook/docgen.json`, so a page can't drift from the API.
 

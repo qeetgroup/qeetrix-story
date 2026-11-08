@@ -35,6 +35,7 @@ import {
   MenuTrigger,
 } from "@qeetrix/react";
 import type { Meta, StoryObj } from "@storybook/react-vite";
+import { useState } from "react";
 import { expect, fn, screen, waitFor, within } from "storybook/test";
 import { qx } from "../../_contract";
 
@@ -128,8 +129,18 @@ function MemberRowMenu(props: Omit<MenuProps, "children">) {
   );
 }
 
-/** A members table's view menu. */
+/**
+ * A members table's view menu: several settings change in a row, so it stays open as they do, and
+ * holds them in state, as a closed menu unmounts its items.
+ */
 function TableViewMenu(props: Omit<MenuProps, "children">) {
+  const [columns, setColumns] = useState(["email", "role"]);
+  const [sort, setSort] = useState("name");
+  const column = (id: string) => ({
+    checked: columns.includes(id),
+    onCheckedChange: (checked: boolean) =>
+      setColumns((all) => (checked ? [...all, id] : all.filter((each) => each !== id))),
+  });
   return (
     <Menu {...props}>
       <MenuTrigger
@@ -142,17 +153,23 @@ function TableViewMenu(props: Omit<MenuProps, "children">) {
       <MenuContent>
         <MenuGroup>
           <MenuGroupLabel>Columns</MenuGroupLabel>
-          <MenuCheckboxItem defaultChecked>Email</MenuCheckboxItem>
-          <MenuCheckboxItem defaultChecked>Role</MenuCheckboxItem>
-          <MenuCheckboxItem>Last sign-in</MenuCheckboxItem>
-          <MenuCheckboxItem>Passkeys</MenuCheckboxItem>
+          <MenuCheckboxItem {...column("email")}>Email</MenuCheckboxItem>
+          <MenuCheckboxItem {...column("role")}>Role</MenuCheckboxItem>
+          <MenuCheckboxItem {...column("last-sign-in")}>Last sign-in</MenuCheckboxItem>
+          <MenuCheckboxItem {...column("passkeys")}>Passkeys</MenuCheckboxItem>
         </MenuGroup>
         <MenuSeparator />
-        <MenuRadioGroup defaultValue="name">
+        <MenuRadioGroup value={sort} onValueChange={(value) => setSort(String(value))}>
           <MenuGroupLabel>Sort by</MenuGroupLabel>
-          <MenuRadioItem value="name">Name</MenuRadioItem>
-          <MenuRadioItem value="last-sign-in">Last sign-in</MenuRadioItem>
-          <MenuRadioItem value="added">Date added</MenuRadioItem>
+          <MenuRadioItem value="name" closeOnClick={false}>
+            Name
+          </MenuRadioItem>
+          <MenuRadioItem value="last-sign-in" closeOnClick={false}>
+            Last sign-in
+          </MenuRadioItem>
+          <MenuRadioItem value="added" closeOnClick={false}>
+            Date added
+          </MenuRadioItem>
         </MenuRadioGroup>
       </MenuContent>
     </Menu>

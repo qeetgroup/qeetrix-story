@@ -6,9 +6,9 @@
       "name": "@qeetrix/stories",
       "dependencies": {
         "@base-ui/react": "^1.9.0",
-        "@qeetrix/icons": "^1.0.12",
-        "@qeetrix/react": "0.1.0",
-        "@qeetrix/tokens": "^0.0.8",
+        "@qeetrix/icons": "^2.1.0",
+        "@qeetrix/react": "0.4.0",
+        "@qeetrix/tokens": "^0.0.13",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
       },
@@ -263,11 +263,11 @@
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 
-    "@qeetrix/icons": ["@qeetrix/icons@1.0.12", "", { "peerDependencies": { "react": "^19.0.0" } }, "sha512-mNchi41jSbVf/jpdowLrj/C8WAkviHOcggAJdtm9Cu/qy49duEe1Vel8MAFFoz8aGkxKW6qyMWzC5NAvZ/sRrA=="],
+    "@qeetrix/icons": ["@qeetrix/icons@2.1.0", "", { "peerDependencies": { "react": "^19.0.0" } }, "sha512-rB3VgR90Xn/8ZvDPaZhhDoSTLcVg1FaVNT3D0SnQ8jJ0lHVAYOOP0Q/jP5tVc7PLmSVw2BU3lqTboKq3w+60LQ=="],
 
-    "@qeetrix/react": ["@qeetrix/react@0.1.0", "", { "dependencies": { "@qeetrix/icons": "^1.0.12" }, "peerDependencies": { "@base-ui/react": "^1.9.0", "@qeetrix/tokens": "^0.0.7 || ^0.0.8", "react": "^19.2.0", "react-dom": "^19.2.0" } }, "sha512-pt/RalpZFo/wCZzU5dcqDEPqycp1dDkogQYSbGeIa0Pwp03K/puBoUxWPrQV1tjygJqs+rOD/E0yVsIk6uGf0g=="],
+    "@qeetrix/react": ["@qeetrix/react@0.4.0", "", { "dependencies": { "@qeetrix/icons": "^2.0.0" }, "peerDependencies": { "@base-ui/react": "^1.9.0", "@qeetrix/tokens": ">=0.0.10 <0.1.0", "react": "^19.2.0", "react-dom": "^19.2.0" } }, "sha512-9k9Nu/d8lExqwaZ4FNfazD88EwbHwl6HPXrsRuMTlAEOsXxcBezmFgr5T0CykmBeBRtSakM275uYSqPjpDko6Q=="],
 
-    "@qeetrix/tokens": ["@qeetrix/tokens@0.0.8", "", {}, "sha512-M/mTv7fuWiZCcFc5RuAGhGUN2dapwn2DN/KlKrQvGPmWl/Lii+JKJDeauiHvIwrc0kLhqx/oxGkv3LpgKlNcLg=="],
+    "@qeetrix/tokens": ["@qeetrix/tokens@0.0.13", "", {}, "sha512-mAvlbEM/t9QcCmOLFwJiN53AYQS72pP4WVe48BzVfKvMiZO/AapNuqJhNhuyqBEtlZKiB+Hxw0D0LpKSSiMzmQ=="],
 
     "@rolldown/binding-android-arm-eabi": ["@rolldown/binding-android-arm-eabi@1.2.5", "", { "os": "android", "cpu": "arm" }, "sha512-DLe/i+l8ynIBY7XEQ191TeZvCoowIGa18R+dIV30GW7DiOtp74i/xX8hs8GUjW5ARV7VZuie3d6AumSmCwbeRA=="],
 

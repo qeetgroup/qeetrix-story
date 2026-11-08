@@ -24,7 +24,14 @@ import {
   TabsList,
   Text,
 } from "@qeetrix/react";
-import { AvatarGroup, CodeBlock, CopyButton, Stat } from "@qeetrix/react/experimental";
+import {
+  AvatarGroup,
+  Chip,
+  ChipGroup,
+  CodeBlock,
+  CopyButton,
+  Stat,
+} from "@qeetrix/react/experimental";
 import react from "@qeetrix/react/package.json";
 import tokens from "@qeetrix/tokens/package.json";
 import type { ComponentType, ReactElement, ReactNode } from "react";
@@ -226,59 +233,42 @@ const EXPLORE: Destination[] = [
 
 const NEW_IN_RELEASE: Destination[] = [
   {
-    title: "Square avatars",
+    title: "Chips",
+    text: "Chip",
+    path: "/docs/components-data-entry-chip--docs",
+    art: (
+      <ChipGroup label="Status" multiple defaultValue={["active"]}>
+        <Chip value="active">Active</Chip>
+        <Chip value="invited">Invited</Chip>
+      </ChipGroup>
+    ),
+  },
+  {
+    title: "A status on avatars",
     text: "Avatar",
     path: "/docs/components-media-avatar--docs",
     art: (
       <span className="qx-welcome-row">
-        <Avatar name="Priya Sharma" size="lg" />
-        <Avatar name="Acme Pvt Ltd" shape="square" size="lg" />
-        <Avatar name="Qeet Pay" shape="square" size="lg" />
+        <Avatar name="Priya Sharma" size="lg" status={{ label: "Online", tone: "success" }} />
+        <Avatar name="Rahul Verma" size="lg" status={{ label: "Away", tone: "warning" }} />
       </span>
     ),
   },
   {
-    title: "Solid badges",
-    text: "Badge",
-    path: "/docs/components-data-display-badge--docs",
-    art: (
-      <span className="qx-welcome-row">
-        <Badge variant="solid" tone="success">
-          Active
-        </Badge>
-        <Badge variant="solid" tone="warning">
-          Pending
-        </Badge>
-        <Badge variant="solid" tone="danger">
-          Suspended
-        </Badge>
-      </span>
-    ),
-  },
-  {
-    title: "Contained tabs",
+    title: "Filled when selected",
     text: "Tabs",
     path: "/docs/components-navigation-tabs--docs",
     art: (
       <Tabs defaultValue="members">
-        <TabsList variant="contained">
-          <Tab value="members" badge={24}>
+        <TabsList>
+          <Tab value="members" icon={UsersIcon}>
             Members
           </Tab>
-          <Tab value="groups">Groups</Tab>
+          <Tab value="settings" icon={SettingsIcon}>
+            Settings
+          </Tab>
         </TabsList>
       </Tabs>
-    ),
-  },
-  {
-    title: "Meter tones",
-    text: "Meter",
-    path: "/docs/components-data-display-meter--docs",
-    art: (
-      <span className="qx-welcome-meters">
-        <Meter label="Seats" value={72} tone="info" showValue />
-        <Meter label="Storage" value={41} tone="neutral" showValue />
-      </span>
     ),
   },
 ];
