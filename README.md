@@ -51,9 +51,10 @@ Icons in component demos come from `@qeetrix/icons`, one import per icon
 ## Release
 
 The same flow as `qeetrix-react`, `qeetrix-icons` and `qeetrix-docs`:
-1. Open a PR from `develop` into `main`. `version.yml` bumps the patch version on it.
-2. Merge it. `release.yml` runs every CI gate, deploys the built workshop to Vercel production
-   and tags `vX.Y.Z`.
+1. Raise `version` in `package.json` on `develop`, then open a PR from `develop` into `main`. Its Version check
+   (`version.yml`) fails until the version is above `main`'s.
+2. Merge it. `release.yml` builds the workshop and deploys it to Vercel production (every gate already passed
+   in develop's CI), then tags `vX.Y.Z`.
 
 `rollback.yml` redeploys an earlier tag; tags up to v0.0.11 still rebuild against the
 `@qeetrix/ui` release they shipped with.

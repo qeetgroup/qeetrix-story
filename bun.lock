@@ -6,9 +6,9 @@
       "name": "@qeetrix/stories",
       "dependencies": {
         "@base-ui/react": "^1.9.0",
-        "@qeetrix/icons": "^2.1.0",
-        "@qeetrix/react": "0.4.0",
-        "@qeetrix/tokens": "^0.0.13",
+        "@qeetrix/icons": "^2.1.2",
+        "@qeetrix/react": "0.5.0",
+        "@qeetrix/tokens": "^0.0.15",
         "react": "^19.2.6",
         "react-dom": "^19.2.6",
       },
@@ -263,11 +263,11 @@
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 
-    "@qeetrix/icons": ["@qeetrix/icons@2.1.0", "", { "peerDependencies": { "react": "^19.0.0" } }, "sha512-rB3VgR90Xn/8ZvDPaZhhDoSTLcVg1FaVNT3D0SnQ8jJ0lHVAYOOP0Q/jP5tVc7PLmSVw2BU3lqTboKq3w+60LQ=="],
+    "@qeetrix/icons": ["@qeetrix/icons@2.1.2", "", { "peerDependencies": { "react": "^19.0.0" } }, "sha512-xuMoI/5oqi6IEDPdA1XpsrX6725PIbmnHBpl63rtuXapxLCADces9nug7ylUQsvuiN/W5XlFfI1ElWe0w2KSVw=="],
 
-    "@qeetrix/react": ["@qeetrix/react@0.4.0", "", { "dependencies": { "@qeetrix/icons": "^2.0.0" }, "peerDependencies": { "@base-ui/react": "^1.9.0", "@qeetrix/tokens": ">=0.0.10 <0.1.0", "react": "^19.2.0", "react-dom": "^19.2.0" } }, "sha512-9k9Nu/d8lExqwaZ4FNfazD88EwbHwl6HPXrsRuMTlAEOsXxcBezmFgr5T0CykmBeBRtSakM275uYSqPjpDko6Q=="],
+    "@qeetrix/react": ["@qeetrix/react@0.5.0", "", { "dependencies": { "@qeetrix/icons": "^2.0.0" }, "peerDependencies": { "@base-ui/react": "^1.9.0", "@qeetrix/tokens": ">=0.0.13 <0.1.0", "react": "^19.2.0", "react-dom": "^19.2.0" } }, "sha512-vB7VWqNqZS0zaEswbmVQ6B27mrLoKLScHCFyWz8eAFlL0qMQ5bqxWXscKBCaeoGSAXKJdOLuj8qp3QbuTSummg=="],
 
-    "@qeetrix/tokens": ["@qeetrix/tokens@0.0.13", "", {}, "sha512-mAvlbEM/t9QcCmOLFwJiN53AYQS72pP4WVe48BzVfKvMiZO/AapNuqJhNhuyqBEtlZKiB+Hxw0D0LpKSSiMzmQ=="],
+    "@qeetrix/tokens": ["@qeetrix/tokens@0.0.15", "", {}, "sha512-I7XPuxdmqT4d4T+4bQLm+Qm8NchohNcjmEfFImZlxKL3vyXUf2bidwA8H2wgHi+nGwzqqzaoLLhdl0wtGXKMjg=="],
 
     "@rolldown/binding-android-arm-eabi": ["@rolldown/binding-android-arm-eabi@1.2.5", "", { "os": "android", "cpu": "arm" }, "sha512-DLe/i+l8ynIBY7XEQ191TeZvCoowIGa18R+dIV30GW7DiOtp74i/xX8hs8GUjW5ARV7VZuie3d6AumSmCwbeRA=="],
 

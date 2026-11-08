@@ -19,17 +19,16 @@ import {
   Input,
   Meter,
   Switch,
-  Tab,
-  Tabs,
-  TabsList,
   Text,
+  Toggle,
+  ToggleGroup,
 } from "@qeetrix/react";
 import {
   AvatarGroup,
-  Chip,
-  ChipGroup,
   CodeBlock,
   CopyButton,
+  PictureChoice,
+  PictureChoiceGroup,
   Stat,
 } from "@qeetrix/react/experimental";
 import react from "@qeetrix/react/package.json";
@@ -233,42 +232,35 @@ const EXPLORE: Destination[] = [
 
 const NEW_IN_RELEASE: Destination[] = [
   {
-    title: "Chips",
-    text: "Chip",
-    path: "/docs/components-data-entry-chip--docs",
+    title: "Pictures to choose from",
+    text: "PictureChoice",
+    path: "/docs/components-data-entry-picturechoice--docs",
     art: (
-      <ChipGroup label="Status" multiple defaultValue={["active"]}>
-        <Chip value="active">Active</Chip>
-        <Chip value="invited">Invited</Chip>
-      </ChipGroup>
+      <PictureChoiceGroup aria-label="Background" shape="square" defaultValue="teal">
+        <PictureChoice value="teal" label="Teal" color="#0f766e" />
+        <PictureChoice value="sand" label="Sand" color="#e7d8b9" />
+        <PictureChoice value="plum" label="Plum" color="#6b2d5c" />
+      </PictureChoiceGroup>
     ),
   },
   {
-    title: "A status on avatars",
-    text: "Avatar",
-    path: "/docs/components-media-avatar--docs",
+    title: "A large field for one value",
+    text: "Input",
+    path: "/docs/components-data-entry-input--docs",
     art: (
-      <span className="qx-welcome-row">
-        <Avatar name="Priya Sharma" size="lg" status={{ label: "Online", tone: "success" }} />
-        <Avatar name="Rahul Verma" size="lg" status={{ label: "Away", tone: "warning" }} />
-      </span>
+      <Input size="lg" aria-label="Phone number" startAdornment="+91" defaultValue="98765 43210" />
     ),
   },
   {
-    title: "Filled when selected",
-    text: "Tabs",
-    path: "/docs/components-navigation-tabs--docs",
+    title: "Full-width toggles",
+    text: "ToggleGroup",
+    path: "/docs/components-actions-toggle--docs",
     art: (
-      <Tabs defaultValue="members">
-        <TabsList>
-          <Tab value="members" icon={UsersIcon}>
-            Members
-          </Tab>
-          <Tab value="settings" icon={SettingsIcon}>
-            Settings
-          </Tab>
-        </TabsList>
-      </Tabs>
+      <ToggleGroup fullWidth defaultValue={["week"]} aria-label="Period">
+        <Toggle value="day">Day</Toggle>
+        <Toggle value="week">Week</Toggle>
+        <Toggle value="month">Month</Toggle>
+      </ToggleGroup>
     ),
   },
 ];
@@ -399,7 +391,7 @@ export function Welcome(): ReactElement {
 
       <section className="qx-welcome-section">
         <SectionHead
-          title={`New in ${react.version}`}
+          title={`New in ${react.version.split(".").slice(0, 2).join(".")}`}
           action={
             <a className="qx-welcome-link" href={CHANGELOG} {...external}>
               Changelog

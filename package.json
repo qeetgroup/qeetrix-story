@@ -1,6 +1,6 @@
 {
   "name": "@qeetrix/stories",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "private": true,
   "type": "module",
   "description": "Storybook workshop for @qeetrix/react, the Qeetrix design system (not published).",
@@ -27,9 +27,9 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
-    "@qeetrix/icons": "^2.1.0",
-    "@qeetrix/react": "0.4.0",
-    "@qeetrix/tokens": "^0.0.13",
+    "@qeetrix/icons": "^2.1.2",
+    "@qeetrix/react": "0.5.0",
+    "@qeetrix/tokens": "^0.0.15",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
   },

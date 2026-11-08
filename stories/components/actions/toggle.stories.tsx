@@ -63,6 +63,27 @@ export const Sizes: Story = {
   ),
 };
 
+export const FullWidth: Story = {
+  name: "Full width",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "A ToggleGroup with `fullWidth` fills its row, every toggle an equal share with its label centred, as a phone's segmented control does.",
+      },
+    },
+  },
+  render: () => (
+    <Box style={{ inlineSize: 328 }}>
+      <ToggleGroup fullWidth defaultValue={["week"]} aria-label="Period">
+        <Toggle value="day">Day</Toggle>
+        <Toggle value="week">Week</Toggle>
+        <Toggle value="month">Month</Toggle>
+      </ToggleGroup>
+    </Box>
+  ),
+};
+
 export const States: Story = {
   render: (args) => (
     <Inline gap="md">
