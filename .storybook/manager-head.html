@@ -47,11 +47,23 @@
     color: #F26D0E;
   }
 
-  /* ── Brand logo — constrain the viewBox-only SVG to a consistent height ── */
-  img[src*="qeet-logo"] {
-    height: 24px;
-    width: auto;
+  /* ── Brand — Qeetrix's icon and name (theme.ts brandTitle), as ui.qeet.in's header ── */
+  .qx-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: "Qeet Sans", ui-sans-serif, system-ui, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .qx-brand-icon {
+    flex: none;
     display: block;
+  }
+  /* The name stays the strongest text on the dark sidebar, above the muted-span rule below. */
+  .qx-chrome-dark .sidebar-container .qx-brand {
+    color: #F3F1EF;
   }
 
   /* ── Sidebar scrollbar — thin warm-neutral track ──────────────────────── */

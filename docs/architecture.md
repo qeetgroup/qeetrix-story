@@ -117,10 +117,10 @@ are declared: `addon-docs`, `addon-a11y`, `addon-themes`, `addon-vitest`.
 | `.storybook/blocks/docs-container.tsx` | switches the docs pages between the light and dark docs themes with the Theme toolbar |
 | `.storybook/decorators/` | one module per toolbar global — each owns its `globalTypes` entry, its document-level side effect, and its decorator |
 | `.storybook/manager.ts` | brands the Storybook chrome, renders the sidebar's Experimental pills, and keeps the chrome in lockstep with the Theme toggle |
-| `.storybook/theme.ts` | the light and dark Storybook themes (chrome + docs), in the tokens' values converted to hex |
-| `.storybook/manager-head.html` | the chrome's fonts (Qeet Sans, Fira Code), its dark restyling and the status pill |
+| `.storybook/theme.ts` | the light and dark Storybook themes (chrome + docs), in the tokens' values converted to hex, and the brand: Qeetrix's icon and name, linking to ui.qeet.in |
+| `.storybook/manager-head.html` | the chrome's fonts (Qeet Sans, Fira Code), the brand's size and type, its dark restyling and the status pill |
 | `.storybook/styles.css` | the package imports, the chrome's theme-name mapping, and the docs canvas in the design language (ruled sections, square corners, the library's own code colours) |
-| `.storybook/public/` | `staticDirs` root: the Qeet logos |
+| `.storybook/public/` | `staticDirs` root: `favicon.svg`, Qeetrix's icon, for the browser tab and the sidebar brand |
 
 ### The component docs page
 
