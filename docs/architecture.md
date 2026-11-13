@@ -192,6 +192,6 @@ Documented so nobody burns an afternoon rediscovering it.
 
 | Thing | State |
 | --- | --- |
-| CI and release | `ci.yml`, `version.yml`, `release.yml`, `rollback.yml` — the same four as `qeetrix-react`, `qeetrix-icons` and `qeetrix-docs`; see [testing.md](./testing.md#in-ci). They build from this repository alone. `rollback.yml` still checks out `qeetrix-ui` for tags up to v0.0.11, which rendered `@qeetrix/ui`. |
+| CI and release | `ci.yml` (Verify), `release-gate.yml`, `release.yml`, `sync-develop.yml`, `rollback.yml`, as in `qeetrix-react`, `qeetrix-icons` and `qeetrix-docs`; see [testing.md](./testing.md#in-ci). They build from this repository alone. `rollback.yml` still checks out `qeetrix-ui` for tags up to v0.0.11, which rendered `@qeetrix/ui`. |
 | `bun run lint` | passes, with warnings for the `!important`s in `.storybook/styles.css` that override Storybook's own docs styling; warnings don't fail it |
 | MDX tables | the docs addon has no GFM plugin, so markdown tables in MDX don't render; the guides use lists |

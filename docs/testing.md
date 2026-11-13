@@ -139,13 +139,15 @@ portalled (`screen.findByRole`). One test, both queries.
 
 ## In CI
 
-The workflows are the same four as `qeetrix-react`, `qeetrix-icons` and `qeetrix-docs`:
+The workflows are the same as `qeetrix-react`'s, `qeetrix-icons`' and `qeetrix-docs`'. Each change is checked once,
+on its pull request; pushes run nothing.
 
 | Workflow | Runs on | Does |
 | --- | --- | --- |
-| `ci.yml` | every push to `develop`, every PR into it | the gates below |
-| `version.yml` | PR into `main` | checks the version is above `main`'s (raise it on `develop`) |
-| `release.yml` | push to `main` | gates, builds and deploys Storybook to Vercel production, then tags `vX.Y.Z` |
+| `ci.yml` · **Verify** | every PR into `develop` or `main` | lint, typecheck, the story contract |
+| `release-gate.yml` · **Release gate** | the `develop` → `main` PR | it comes from `develop`; the version is above `main`'s when what ships changed |
+| `release.yml` | push to `main` | builds and deploys Storybook to Vercel production, then tags `vX.Y.Z` |
+| `sync-develop.yml` | push to `main` | fast-forwards `develop` to `main` |
 | `rollback.yml` | manual, with a tag | redeploys exactly the commit a release tag names |
 
 They build from this repository alone: the workshop renders the published `@qeetrix/react`
@@ -154,18 +156,16 @@ so the type check and the stories always read the same API. `rollback.yml` is th
 for tags up to v0.0.11, which rendered `@qeetrix/ui`, it still checks out `qeetrix-ui` at that
 release.
 
-| Gate | Command |
-| --- | --- |
-| Lint | `bun run lint` |
-| Typecheck | `bun run typecheck` |
-| Story contract | `bun run verify:stories` |
-| Component tests | `bun run test` |
-| Build | `bun run build` |
+| Gate | Command | Where |
+| --- | --- | --- |
+| Lint | `bun run lint` | Verify, and before you push |
+| Typecheck | `bun run typecheck` | Verify, and before you push |
+| Story contract | `bun run verify:stories` | Verify, and before you push |
+| Component tests | `bun run test` | before you push |
+| Build | `bun run build` | before you push, and in `release.yml` as it deploys |
 
-Every gate runs even after an earlier one fails (`if: !cancelled()`), so one run tells you
-the state of all of them instead of one fix-and-rerun cycle per gate. The job still fails
-overall — no gate is `continue-on-error`, because a green tick on a broken tree is worse than
-no CI. `release.yml` runs the same gates before it deploys.
+The component tests (every story's interactions and axe, in headless Chromium) and the build run on your machine
+before every push ([CONTRIBUTING.md](../CONTRIBUTING.md), "Before you push"); no gate is `continue-on-error`.
 
 Upgrading `@qeetrix/react` is a PR here like any other change: bump it in `package.json`, and
 CI renders every story against the new release.
