@@ -144,7 +144,7 @@ on its pull request; pushes run nothing.
 
 | Workflow | Runs on | Does |
 | --- | --- | --- |
-| `ci.yml` · **Verify** | every PR into `develop` or `main` | lint, typecheck, the story contract |
+| `ci.yml` · **Verify** | every PR into `develop` or `main` | lint, typecheck, the story contract, the dependency audit |
 | `release-gate.yml` · **Release gate** | the `develop` → `main` PR | it comes from `develop`; the version is above `main`'s when what ships changed |
 | `release.yml` | push to `main` | builds and deploys Storybook to Vercel production, then tags `vX.Y.Z` |
 | `sync-develop.yml` | push to `main` | fast-forwards `develop` to `main` |
@@ -161,11 +161,17 @@ release.
 | Lint | `bun run lint` | Verify, and before you push |
 | Typecheck | `bun run typecheck` | Verify, and before you push |
 | Story contract | `bun run verify:stories` | Verify, and before you push |
+| Dependency audit | `bun run audit` | Verify, and before you push |
 | Component tests | `bun run test` | before you push |
 | Build | `bun run build` | before you push, and in `release.yml` as it deploys |
 
 The component tests (every story's interactions and axe, in headless Chromium) and the build run on your machine
 before every push ([CONTRIBUTING.md](../CONTRIBUTING.md), "Before you push"); no gate is `continue-on-error`.
+
+The audit ignores two moderate advisories, and only those: glob's (GHSA-3g3m-2fjr-6pw4) and minimatch's
+(GHSA-g3hv-75wg-m249). Both come in through Storybook's props-table plugin, which `@storybook/react-vite` 10.6
+pins at 0.7, and run only at build time; the plugin's 0.9 line drops glob. Remove both ignores from `package.json`
+when Storybook takes it.
 
 Upgrading `@qeetrix/react` is a PR here like any other change: bump it in `package.json`, and
 CI renders every story against the new release.

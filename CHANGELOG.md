@@ -1,5 +1,15 @@
 # @qeetrix/stories
 
+## 0.0.16
+
+- **The dependency audit joins Verify.** Vite 8.3 and Vitest 4.1.12 (with their browser and coverage packages), and
+  source-map-js 1.2.2 and brace-expansion 5.0.13 underneath, clear 12 of the 14 advisories `bun audit` found, all
+  in development tooling; no Qeetrix package changes. `bun run audit` ignores the other two (glob's and
+  minimatch's, both moderate), which Storybook's props-table plugin pins until Storybook takes its 0.9 line
+  ([docs/testing.md](docs/testing.md#in-ci)).
+- **Typography's font families no longer share a React key**: the heading and body stacks both start with Qeet
+  Sans, so each card is keyed by its token instead, and the test run's duplicate-key warning is gone.
+
 ## 0.0.15
 
 - **Qeetrix's own icon.** The sidebar shows Qeetrix's icon (three stacked layers in a white disc, on

@@ -93,7 +93,8 @@ export const Families: Story = {
           const face = FACES[name];
           const family = vars({ "--qx-typo-family": `var(${items[0]?.cssVar})` });
           return (
-            <article key={name} className="qx-typo-family" aria-label={name}>
+            // Keyed by the token, not the face: the heading and body stacks both start with Qeet Sans.
+            <article key={items[0]?.path ?? name} className="qx-typo-family" aria-label={name}>
               <div className="qx-typo-family-glyph" lang={face?.lang} style={family} aria-hidden>
                 <span>{face?.glyph ?? "Aa"}</span>
               </div>

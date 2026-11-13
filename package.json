@@ -1,6 +1,6 @@
 {
   "name": "@qeetrix/stories",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "private": true,
   "type": "module",
   "description": "Storybook workshop for @qeetrix/react, the Qeetrix design system (not published).",
@@ -20,6 +20,7 @@
     "test:watch": "vitest --project=storybook",
     "test:coverage": "node scripts/docgen.mjs && vitest run --coverage",
     "verify:stories": "node scripts/verify-stories.mjs",
+    "audit": "bun audit --ignore=GHSA-3g3m-2fjr-6pw4 --ignore=GHSA-g3hv-75wg-m249",
     "lint": "biome check .",
     "format": "biome check --write .",
     "typecheck": "node scripts/docgen.mjs && tsc --noEmit",
@@ -44,15 +45,15 @@
     "@types/node": "^26.3.0",
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
-    "@vitest/browser": "^4.1.11",
-    "@vitest/browser-playwright": "^4.1.11",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/browser": "^4.1.12",
+    "@vitest/browser-playwright": "^4.1.12",
+    "@vitest/coverage-v8": "^4.1.12",
     "axe-core": "^4.13.0",
     "playwright": "^1.61.0",
     "storybook": "^10.6.3",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.0",
-    "vitest": "^4.1.11"
+    "vite": "^8.3.8",
+    "vitest": "^4.1.12"
   }
 }

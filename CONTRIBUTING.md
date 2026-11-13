@@ -62,7 +62,7 @@ the `@qeetrix/react` release `bun.lock` installs.
 The component tests and the build don't run in CI. Run the whole gate before every push and say so in the PR:
 
 ```sh
-bun run lint && bun run typecheck && bun run verify:stories && bun run test && bun run build
+bun run lint && bun run typecheck && bun run verify:stories && bun run audit && bun run test && bun run build
 ```
 
 ---

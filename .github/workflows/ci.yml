@@ -5,7 +5,8 @@ name: CI
 #
 # The workshop renders the PUBLISHED @qeetrix/react and @qeetrix/tokens that bun.lock installs, exactly as a Qeet
 # product does: upgrading @qeetrix/react is a pull request here like any other change. Verify is the quick gate:
-# install, Biome, the types (which also write the props tables) and the stories' documentation check. The browser
+# install, Biome, the types (which also write the props tables), the stories' documentation check and the dependency
+# audit. The browser
 # tests (every story's interactions and axe) and the build run locally before pushing (CONTRIBUTING.md, "Before you
 # push"); the release builds the workshop again when it deploys.
 on:
@@ -42,3 +43,9 @@ jobs:
       - run: bun run typecheck
       - name: every component documented and tagged
         run: bun run verify:stories
+      # `bun run audit` ignores two moderate advisories, and only those: glob (GHSA-3g3m-2fjr-6pw4) and minimatch
+      # (GHSA-g3hv-75wg-m249), which Storybook's props-table plugin (@joshwooding/vite-plugin-react-docgen-typescript
+      # 0.7, pinned by @storybook/react-vite 10.6) pulls in at build time. Its 0.9 line drops glob; remove both
+      # ignores when Storybook takes it.
+      - name: dependency audit
+        run: bun run audit
