@@ -8,10 +8,10 @@ name: Release
 # The flow end to end:
 #
 #   1. Raise the version in package.json on develop, then open the PR into main
-#      (develop → main); its Version check fails until it's raised. The version
+#      (develop → main); its Release gate fails until it's raised. The version
 #      you are about to ship is in the PR diff.
-#   2. Merge to main. This workflow builds the commit (every gate already passed
-#      in develop's CI on it), deploys it to
+#   2. Merge to main. This workflow builds the commit (Verify passed on the pull
+#      request, and the tests ran locally before the push), deploys it to
 #      Vercel production, pushes the matching `vX.Y.Z` tag and opens a GitHub
 #      Release.
 #   3. Bad release? Run `rollback.yml` with an earlier tag — it redeploys
@@ -76,7 +76,7 @@ jobs:
       run:
         working-directory: qeetrix-story
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: qeetrix-story
           fetch-depth: 0 # full history, so tags are visible
@@ -110,17 +110,17 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - if: steps.version.outputs.release == 'true'
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version: ${{ env.BUN_VERSION }}
 
       - if: steps.version.outputs.release == 'true'
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24 # the Vercel CLI's runtime
 
-      # develop's CI already passed every gate on this commit (main takes develop only, on an up-to-date
-      # branch), so they don't run again here. The workshop is built for production in
+      # Verify passed on the develop → main pull request, so it doesn't run again here. The workshop is built
+      # for production in
       # `vercel build` below.
       - if: steps.version.outputs.release == 'true'
         run: bun install --frozen-lockfile

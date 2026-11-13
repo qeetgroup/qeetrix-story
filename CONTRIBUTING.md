@@ -51,11 +51,19 @@ Every command above passes. `lint` may print warnings for `!important` and selec
 **Branches:** Work on a branch from `develop` and open its pull request into `develop`. Only `develop` goes into `main`, through
 a `develop` → `main` pull request the maintainer opens; `main` refuses anything else.
 
-**CI** runs lint · typecheck · `verify:stories` · `test` · `build` on every push to `develop` and
-every PR into it, and a merge to `main` deploys — [`docs/testing.md`](./docs/testing.md#in-ci) describes
-all four workflows. They build from this repository alone, against the `@qeetrix/react`
-release `bun.lock` installs. Every gate runs even when an earlier one fails, so one CI run
-reports the state of all of them.
+**CI** checks each change once, on its pull request (every PR into `develop`, and the `develop` → `main` PR);
+pushes run nothing. **Verify** runs lint · typecheck · `verify:stories`; the **Release gate** checks the
+`develop` → `main` PR comes from `develop` with the version raised; a merge to `main` deploys.
+[`docs/testing.md`](./docs/testing.md#in-ci) describes the workflows. They build from this repository alone, against
+the `@qeetrix/react` release `bun.lock` installs.
+
+### Before you push
+
+The component tests and the build don't run in CI. Run the whole gate before every push and say so in the PR:
+
+```sh
+bun run lint && bun run typecheck && bun run verify:stories && bun run test && bun run build
+```
 
 ---
 
