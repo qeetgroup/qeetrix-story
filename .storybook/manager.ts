@@ -23,9 +23,9 @@ const isDark = () =>
  * from here, whereas the URL is always authoritative. A 200ms tick is imperceptible
  * for a theme flip and costs nothing.
  *
- * The brand mark is the Qeet SVG staged in ./public (the manager renders outside the
- * preview iframe and can't mount a React component); brand fonts load via
- * manager-head.html.
+ * The brand is Qeetrix's icon and name (theme.ts brandTitle), the icon being
+ * ./public/favicon.svg (the manager renders outside the preview iframe and can't mount
+ * a React component); brand fonts load via manager-head.html.
  */
 type Entry = { type: string; name: string; tags?: string[]; children?: string[] };
 type Api = { getData?: (id: string) => Entry | undefined };

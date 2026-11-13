@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Qeetrix">
+  <title>Qeetrix</title>
+  <defs>
+    <linearGradient id="qeetrix-tile" x1="0.2" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#DA653A"/>
+      <stop offset="0.45" stop-color="#D04800"/>
+      <stop offset="1" stop-color="#9B3314"/>
+    </linearGradient>
+  </defs>
+  <!-- The Qeet icon format: Qeet orange, a white disc, and the product's mark cut out of it. Qeetrix's
+       mark is three stacked layers: its primitives, components and patterns. -->
+  <rect width="100" height="100" rx="22.5" fill="url(#qeetrix-tile)"/>
+  <path fill="#FFFFFF" fill-rule="evenodd" d="M21 50a29 29 0 1 0 58 0a29 29 0 1 0-58 0ZM33 39.5L50 31L67 39.5L50 48ZM33 44.5L50 53L67 44.5V50L50 58.5L33 50ZM33 55L50 63.5L67 55V60.5L50 69L33 60.5Z"/>
+</svg>

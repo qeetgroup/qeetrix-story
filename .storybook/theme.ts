@@ -12,8 +12,13 @@ import { create } from "storybook/theming";
  */
 
 const brand = {
-  brandTitle: "Qeetrix",
-  brandUrl: "https://qeet.in",
+  // Qeetrix's icon and name, as ui.qeet.in's header shows them. With a title and no `brandImage`,
+  // Storybook renders the title as HTML (an image alone would set the name without Qeet Sans).
+  // The icon is the favicon, so the sidebar and the browser tab show the same file;
+  // manager-head.html sizes it and sets the name.
+  brandTitle:
+    '<span class="qx-brand"><img class="qx-brand-icon" src="/favicon.svg" width="24" height="24" alt="" />Qeetrix</span>',
+  brandUrl: "https://ui.qeet.in",
   brandTarget: "_self",
 
   // Ember: `bg.brand-bold` and its hover.
@@ -31,7 +36,6 @@ const brand = {
 export const qeetrixThemeLight = create({
   ...brand,
   base: "light",
-  brandImage: "/qeet-logo.svg",
 
   appBg: "#FBFAF9",
   appContentBg: "#FFFFFF",
@@ -61,7 +65,6 @@ export const qeetrixThemeLight = create({
 export const qeetrixThemeDark = create({
   ...brand,
   base: "dark",
-  brandImage: "/qeet-logo-dark.svg",
 
   colorSecondary: "#F26D0E",
   barSelectedColor: "#F26D0E",

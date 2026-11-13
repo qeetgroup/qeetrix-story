@@ -1,5 +1,12 @@
 # @qeetrix/stories
 
+## 0.0.15
+
+- **Qeetrix's own icon.** The sidebar shows Qeetrix's icon (three stacked layers in a white disc, on
+  Qeet orange) beside the name "Qeetrix" in Qeet Sans, as ui.qeet.in's header does, instead of the
+  Qeet "q"; it links to ui.qeet.in. The browser tab shows the same icon instead of Storybook's. The
+  icon's master files and rules are in qeet-mockups, `products/qeetrix/brand/`.
+
 ## 0.0.14
 
 The workshop moves to **`@qeetrix/react` 0.5.1**, **`@qeetrix/tokens` 0.0.15** and **`@qeetrix/icons`
